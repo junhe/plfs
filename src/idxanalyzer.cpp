@@ -502,6 +502,6 @@ void IdxSigEntryList::readFromFile(char *filename)
 void IdxSigEntryList::clear()
 {
     list.clear();
-    pb_list.clear();
+    pb_list.Clear();
 }
 
