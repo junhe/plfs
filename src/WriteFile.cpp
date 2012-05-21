@@ -386,9 +386,9 @@ int WriteFile::openIndexFile(string path, string host, pid_t p, mode_t m,
 }
 
 int WriteFile::openIndexFile(string path, string host, pid_t p, mode_t m,
-                             string *index_path, int indexType)
+                             string *index_path, IndexEntryType indexType)
 {
-   return 0; 
+    *index_path = Container::getIndexPath(path, host, p, createtime, indexType);
 }
 
 int WriteFile::openDataFile(string path, string host, pid_t p, mode_t m)

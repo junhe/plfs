@@ -869,7 +869,7 @@ Container::getIndexPath(const string& path, const string& host, int pid,
 
 string
 Container::getIndexPath(const string& path, const string& host, int pid,
-                        double ts, int indexType) 
+                        double ts, IndexEntryType indexType) 
 {
     string p;
     switch ( indexType ) {

@@ -64,7 +64,7 @@ class WriteFile : public Metadata
         int openIndexFile( string path, string host, pid_t, mode_t
                            , string *index_path);
         int openIndexFile( string path, string host, pid_t, mode_t
-                           , string *index_path, int indexType);
+                           , string *index_path, IndexEntryType indexType);
         int openDataFile(string path, string host, pid_t, mode_t );
         int openFile( string, mode_t mode );
         int Close( );
