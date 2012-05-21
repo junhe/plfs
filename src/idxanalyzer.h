@@ -362,6 +362,7 @@ class IdxSigEntryList {
         void readFromFile(char *filename);
         void siglistToPblist(vector<IdxSigEntry> &slist,
                 idxfile::EntryList &pblist);
+        void siglistToPblist();
 };
 
 void printIdxEntries( vector<IdxSigEntry> &idx_entry_list );

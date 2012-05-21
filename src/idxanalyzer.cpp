@@ -470,9 +470,15 @@ void IdxSigEntryList::siglistToPblist(vector<IdxSigEntry> &slist,
     }
 }
 
-void IdxSigEntryList::saveToFile(char *filename)
+void IdxSigEntryList::siglistToPblist()
 {
     siglistToPblist(list, pb_list);
+}
+
+
+void IdxSigEntryList::saveToFile(char *filename)
+{
+    siglistToPblist();
     fstream output(filename, ios::out | ios::trunc | ios::binary);
     if ( !pb_list.SerializeToOstream(&output) ) {
         cerr<<"failed to write to myfile."<<endl;

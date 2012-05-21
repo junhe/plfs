@@ -504,18 +504,20 @@ Index::flush()
 
     //analyze entries in buffer 
     if ( enable_complex_index ) {
-        //TODO:
-        //find out what pid there are and do it for each of them
-        int proc;
-        for ( proc = 0 ; proc < 64 ; proc++ ) {
+        map<pid_t,off_t>::iterator it;
+        for ( it = physical_offsets.begin() ; 
+                it != physical_offsets.end() ; it++ ) {
             complexIndexList.append( 
                 complexIndexUtil.generateIdxSignature
-                    (hostIndexBuf, proc ));
+                    (hostIndexBuf, (*it).first ));
         }
-        complexIndexList.show();
+        
+        mlog(IDX_WARN, "I am testingg mlog.\n");
+        complexIndexList.siglistToPblist();
+        mlog(IDX_WARN, "%s", complexIndexList.pb_list.DebugString().c_str());
         hostIndexBuf.clear(); 
     }
-    mlog(IDX_WARN, "I am testingg mlog.\n");
+    
     return ( ret < 0 ? -errno : 0 );
 }
 
