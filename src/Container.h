@@ -62,6 +62,8 @@ class Container
         static bool isContainer(const string& physical_path,mode_t *);
         static string getIndexPath( const string&, const string&,
                                     int pid,double);
+        static string getIndexPath( const string&, const string&,
+                                    int pid,double, int indexType);
         static string getDataPath(  const string&, const string&,
                                     int pid, double);
         static string getIndexHostPath(const string& path,

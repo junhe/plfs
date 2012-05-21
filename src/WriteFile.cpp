@@ -385,6 +385,12 @@ int WriteFile::openIndexFile(string path, string host, pid_t p, mode_t m,
     return openFile(*index_path,m);
 }
 
+int WriteFile::openIndexFile(string path, string host, pid_t p, mode_t m,
+                             string *index_path, int indexType)
+{
+   return 0; 
+}
+
 int WriteFile::openDataFile(string path, string host, pid_t p, mode_t m)
 {
     return openFile(Container::getDataPath(path,host,p,createtime),m);

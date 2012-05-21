@@ -867,6 +867,30 @@ Container::getIndexPath(const string& path, const string& host, int pid,
     return getChunkPath( path, host, pid, INDEXPREFIX, ts );
 }
 
+string
+Container::getIndexPath(const string& path, const string& host, int pid,
+                        double ts, int indexType) 
+{
+    string p;
+    switch ( indexType ) {
+        case SINGLEHOST:
+            mlog(CON_ERR, "In %s: should not be here", __FUNCTION__);
+            exit(-1);
+        case SIMPLEFORMULA:
+            mlog(CON_ERR, "In %s: should not be here", __FUNCTION__);
+            exit(-1);
+        case COMPLEXPATTERN:
+            p = getChunkPath( path, host, pid, COMPLEXINDEXPREFIX, ts);
+            mlog(CON_WARN, "In %s: path is %s", 
+                    __FUNCTION__, p.c_str() );
+            break;
+        default:
+            mlog(CON_ERR, "In %s: should not be here", __FUNCTION__);
+            exit(-1);
+            break;
+    }
+}
+
 // this function takes a container path, a hostname, a pid, and a type and
 // returns a path to a chunk (type is either DATAPREFIX or INDEXPREFIX)
 // the resulting path looks like this:

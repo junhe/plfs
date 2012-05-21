@@ -12,12 +12,13 @@ using namespace std;
 #include "Metadata.h"
 #include "idxanalyzer.h"
 
-
 enum IndexEntryType {
     SINGLEHOST = 0,  // HostEntry class
     SIMPLEFORMULA = 1, // SimpleFormulaEntry class
     COMPLEXPATTERN = 2, //IdxSigEntryList class 
 };
+
+
 
 // the LocalEntry (HostEntry) and the ContainerEntry should maybe be derived
 // from one another. there are two types of index files
