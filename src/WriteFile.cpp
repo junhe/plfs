@@ -344,6 +344,7 @@ int WriteFile::closeIndex( )
     int ret = 0;
     Util::MutexLock(   &index_mux , __FUNCTION__);
     ret = index->flush();
+    index->flushComplexIndexBuf();
     ret = closeFd( index->getFd() );
     delete( index );
     index = NULL;

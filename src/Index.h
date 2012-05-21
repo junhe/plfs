@@ -144,6 +144,7 @@ class Index : public Metadata
                           multimap<off_t,ContainerEntry> &);
         void findSplits(ContainerEntry&,set<off_t> &);
         void flushHostIndexBuf();
+        void flushComplexIndexBuf();
         // where we buffer the host index (i.e. write)
         vector< HostEntry > hostIndex;
         vector< HostEntry >  hostIndexBuf; //At this stage, let me maintain

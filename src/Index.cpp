@@ -1278,8 +1278,7 @@ Index::addWrite( off_t offset, size_t length, pid_t pid,
         if ( enable_complex_index ) {
             //add this write to buffer
             hostIndexBuf.push_back( entry ); 
-
-            // The entries will be anlayzed when flushing
+            
         }
     }
     if (buffering && !buffer_filled) {
@@ -1437,6 +1436,7 @@ Index::rewriteIndex( int fd )
 // put the pattern to complexIndexBuf
 void Index::flushHostIndexBuf()
 {
+    mlog(IDX_WARN, "in %", __FUNCTION__);
     //analyze entries in buffer 
     if ( enable_complex_index ) {
         map<pid_t,off_t>::iterator it;
@@ -1447,7 +1447,18 @@ void Index::flushHostIndexBuf()
                     (hostIndexBuf, (*it).first ));
         }
         
-        mlog(IDX_WARN, "in %", __FUNCTION__);
         hostIndexBuf.clear(); 
     }
+}
+
+// flush complex index from buffer to index file
+// Need a separate flush function because the frequency
+// is different from the old index
+void Index::flushComplexIndexBuf()
+{
+    mlog(IDX_WARN, "in %", __FUNCTION__);
+    //There may be some entries left in HostIndexBuf
+    flushHostIndexBuf();
+    //TODO: find the right file to write
+    complexIndexBuf.saveToFile("/tmp/complex.index"); 
 }
