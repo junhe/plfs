@@ -12,6 +12,13 @@ using namespace std;
 #include "Metadata.h"
 #include "idxanalyzer.h"
 
+
+enum IndexEntryType {
+    SINGLEHOST = 0,  // HostEntry class
+    SIMPLEFORMULA = 1, // SimpleFormulaEntry class
+    COMPLEXPATTERN = 2, //IdxSigEntryList class 
+};
+
 // the LocalEntry (HostEntry) and the ContainerEntry should maybe be derived
 // from one another. there are two types of index files
 // on a write, every host has a host index
@@ -106,8 +113,8 @@ class Index : public Metadata
         int setChunkFd( pid_t chunk_id, int fd );
 
         int globalLookup( int *fd, off_t *chunk_off, size_t *length,
-                          string& path, bool *hole, pid_t *chunk_id,
-                          off_t logical );
+                string& path, bool *hole, pid_t *chunk_id,
+                off_t logical );
 
         int insertGlobal( ContainerEntry * );
         void merge( Index *other);
@@ -130,28 +137,29 @@ class Index : public Metadata
     private:
         void init( string );
         int chunkFound( int *, off_t *, size_t *, off_t,
-                        string&, pid_t *, ContainerEntry * );
+                string&, pid_t *, ContainerEntry * );
         int cleanupReadIndex(int, void *, off_t, int, const char *,
-                             const char *);
+                const char *);
         void *mapIndex( string, int *, off_t * );
         int handleOverlap( ContainerEntry& g_entry,
-                           pair< map<off_t,ContainerEntry>::iterator,
-                           bool > &insert_ret );
+                pair< map<off_t,ContainerEntry>::iterator,
+                bool > &insert_ret );
         map<off_t,ContainerEntry>::iterator insertGlobalEntryHint(
-            ContainerEntry *g_entry ,map<off_t,ContainerEntry>::iterator hint);
+                ContainerEntry *g_entry ,map<off_t,ContainerEntry>::iterator hint);
         pair<map<off_t,ContainerEntry>::iterator,bool> insertGlobalEntry(
-            ContainerEntry *g_entry);
+                ContainerEntry *g_entry);
         size_t splitEntry(ContainerEntry *,set<off_t> &,
-                          multimap<off_t,ContainerEntry> &);
+                multimap<off_t,ContainerEntry> &);
         void findSplits(ContainerEntry&,set<off_t> &);
         void flushHostIndexBuf();
         // where we buffer the host index (i.e. write)
         vector< HostEntry > hostIndex;
         vector< HostEntry >  hostIndexBuf; //At this stage, let me maintain
-                                         //my own buffer. Complex pattern
-                                         //analysis is on this buffer.
+        
+        //my own buffer. Complex pattern
+        //analysis is on this buffer.
         IdxSigEntryList complexIndexBuf; //this is used to hold the
-                                          //recognized complex patterns
+                                         //recognized complex patterns
         IdxSignature complexIndexUtil;    //a tool class to analyze pattern
 
         // this is a global index made by aggregating multiple locals
@@ -161,6 +169,9 @@ class Index : public Metadata
         // so that the aggregated index can just have an int to point
         // to a local file instead of putting the full string in there
         vector< ChunkFile >       chunk_map;
+
+        // keep index file descriptor here, one for each index entry type
+        map< IndexEntryType, int > fds;
 
         // need to remember the current offset position within each chunk
         map<pid_t,off_t> physical_offsets;
