@@ -60,6 +60,7 @@ class HostEntry
         pid_t  id;      // needs to be last so no padding
 
         friend class Index;
+        friend class IdxSignature;
 };
 
 
@@ -177,6 +178,9 @@ class Index : public Metadata
         void findSplits(ContainerEntry&,set<off_t> &);
         // where we buffer the host index (i.e. write)
         vector< HostEntry > hostIndex;
+        vector< HostEntry >  idxEntryBuf; //At this stage, let me maintain
+                                         //my own buffer. Complex pattern
+                                         //analysis is on this buffer.
 
         // this is a global index made by aggregating multiple locals
         map< off_t, ContainerEntry > global_index;
@@ -201,7 +205,7 @@ class Index : public Metadata
         pthread_mutex_t    fd_mux;   // to allow thread safety
 
         bool compress_contiguous; // set true for performance. 0 for tracing.
-
+        bool enable_complex_index; // set true to enable complex index
 };
 
 #define MAP_ITR map<off_t,ContainerEntry>::iterator

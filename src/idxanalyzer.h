@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include "indexpb.h"
+#include "Index.h"
 
 using namespace std;
 
@@ -285,9 +286,8 @@ class IdxSignature {
                 vector<off_t> const &orig );
         //It takes in a entry buffer like in PLFS,
         //analyzes it and generate Index Signature Entries
-        IdxSigEntryList generateIdxSignature(vector<IdxEntry> &entry_buf, int proc);
+        IdxSigEntryList generateIdxSignature(vector<HostEntry> &entry_buf, int proc);
     private:
-        vector<IdxEntry> entry_buf;
         int win_size; //window size
         Tuple searchNeighbor( vector<off_t> const &seq,
                 vector<off_t>::const_iterator p_lookahead_win ); 

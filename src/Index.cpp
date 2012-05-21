@@ -1237,6 +1237,14 @@ Index::addWrite( off_t offset, size_t length, pid_t pid,
                  double begin_timestamp, double end_timestamp )
 {
     Metadata::addWrite( offset, length );
+    //Compress to complex pattern
+    if ( enable_complex_index ) {
+        //add this write to buffer
+        
+        //analyze entries in buffer if buffer is full
+        
+    }
+    
     // check whether incoming abuts with last and we want to compress
     if ( compress_contiguous && !hostIndex.empty() &&
             hostIndex.back().id == pid  &&
@@ -1308,6 +1316,9 @@ Index::addWrite( off_t offset, size_t length, pid_t pid,
             chunk_map.push_back( cf );
         }
     }
+    
+
+
 }
 
 void
