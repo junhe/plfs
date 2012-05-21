@@ -507,14 +507,15 @@ Index::flush()
         map<pid_t,off_t>::iterator it;
         for ( it = physical_offsets.begin() ; 
                 it != physical_offsets.end() ; it++ ) {
-            complexIndexList.append( 
+            complexIndexBuf.append( 
                 complexIndexUtil.generateIdxSignature
                     (hostIndexBuf, (*it).first ));
         }
         
         mlog(IDX_WARN, "I am testingg mlog.\n");
-        complexIndexList.siglistToPblist();
-        mlog(IDX_WARN, "%s", complexIndexList.pb_list.DebugString().c_str());
+        complexIndexBuf.siglistToPblist();
+        mlog(IDX_WARN, "%s", complexIndexBuf.pb_list.DebugString().c_str());
+        complexIndexBuf.saveToFile("/tmp/complex.index");
         hostIndexBuf.clear(); 
     }
     

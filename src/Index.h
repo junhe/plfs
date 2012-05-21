@@ -148,9 +148,9 @@ class Index : public Metadata
         vector< HostEntry >  hostIndexBuf; //At this stage, let me maintain
                                          //my own buffer. Complex pattern
                                          //analysis is on this buffer.
-        IdxSigEntryList complexIndexList; //this is used to hold the
+        IdxSigEntryList complexIndexBuf; //this is used to hold the
                                           //recognized complex patterns
-        IdxSignature complexIndexUtil;
+        IdxSignature complexIndexUtil;    //a tool class to analyze pattern
 
         // this is a global index made by aggregating multiple locals
         map< off_t, ContainerEntry > global_index;
