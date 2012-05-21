@@ -131,6 +131,7 @@ class Index : public Metadata
         friend ostream& operator <<(ostream&,const Index&);
         // Added to get chunk path on write
         string index_path;
+        //map<int, string> index_paths;
         void startBuffering();
         void stopBuffering();
         bool isBuffering();

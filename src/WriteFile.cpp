@@ -324,6 +324,11 @@ int WriteFile::openIndex( pid_t pid ) {
     string index_path;
     int fd = openIndexFile(subdir_path, hostname, pid, DROPPING_MODE,
                            &index_path);
+    //string index_path_complex;
+    int fd_complex = openIndexFile(subdir_path, hostname, pid, DROPPING_MODE,
+                           &index_path, COMPLEXPATTERN);
+    mlog(WF_WARN, "in %s, fd_complex=%d\n", __FUNCTION__, fd_complex);
+
     if ( fd < 0 ) {
         ret = -errno;
     } else {
@@ -389,6 +394,9 @@ int WriteFile::openIndexFile(string path, string host, pid_t p, mode_t m,
                              string *index_path, IndexEntryType indexType)
 {
     *index_path = Container::getIndexPath(path, host, p, createtime, indexType);
+    mlog(WF_WARN, "in %s. Path is %s.\n", __FUNCTION__, (*index_path).c_str());
+    return openFile(*index_path, m);
+    return 0;
 }
 
 int WriteFile::openDataFile(string path, string host, pid_t p, mode_t m)

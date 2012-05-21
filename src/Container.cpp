@@ -883,6 +883,7 @@ Container::getIndexPath(const string& path, const string& host, int pid,
             p = getChunkPath( path, host, pid, COMPLEXINDEXPREFIX, ts);
             mlog(CON_WARN, "In %s: path is %s", 
                     __FUNCTION__, p.c_str() );
+            return p;
             break;
         default:
             mlog(CON_ERR, "In %s: should not be here", __FUNCTION__);
