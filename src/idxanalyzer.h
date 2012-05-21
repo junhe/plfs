@@ -9,16 +9,13 @@
 #include <unistd.h>
 #include <stdio.h>
 #include "indexpb.h"
-#include "Index.h"
 
 using namespace std;
-
-#define off_t long long int
 
 template <class T> class SigStack;
 template <class T> class PatternStack;
 class IdxSigEntryList;
-
+class HostEntry;
 //used to describe a single pattern that found
 //This will be saved in the stack
 class PatternUnit {
@@ -276,6 +273,44 @@ class IdxEntry {
         off_t Physical_offset;
 };
 
+// this is the class that represents the records that get written into the
+// index file for each host.
+// TODO:
+// Move this class somewhere proper. It is impelmented in Index.cpp
+class HostEntry
+{
+    public:
+        HostEntry();
+        HostEntry( off_t o, size_t s, pid_t p );
+        HostEntry( const HostEntry& copy );
+        bool overlap( const HostEntry& );
+        bool contains ( off_t ) const;
+        bool splittable ( off_t ) const;
+        bool abut   ( const HostEntry& );
+        off_t logical_tail( ) const;
+        bool follows(const HostEntry&);
+        bool preceeds(const HostEntry&);
+
+    protected:
+        off_t  logical_offset;
+        off_t  physical_offset;  // I tried so hard to not put this in here
+        // to save some bytes in the index entries
+        // on disk.  But truncate breaks it all.
+        // we assume that each write makes one entry
+        // in the data file and one entry in the index
+        // file.  But when we remove entries and
+        // rewrite the index, then we break this
+        // assumption.  blech.
+        size_t length;
+        double begin_timestamp;
+        double end_timestamp;
+        pid_t  id;      // needs to be last so no padding
+
+        friend class Index;
+        friend class IdxSignature;
+};
+
+
 
 // Each index has its own signature
 class IdxSignature {
@@ -323,7 +358,6 @@ class IdxSigEntryList {
         void append(IdxSigEntryList other);
         void append(vector<IdxSigEntry> &other);
         void show();
-        //TODO:
         void saveToFile(char *filename);
         void readFromFile(char *filename);
         void siglistToPblist(vector<IdxSigEntry> &slist,

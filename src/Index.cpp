@@ -298,6 +298,7 @@ Index::init( string physical )
     buffering       = false;
     buffer_filled   = false;
     compress_contiguous = true;
+    enable_complex_index = true;
     chunk_id        = 0;
     last_offset     = 0;
     total_bytes     = 0;
@@ -500,6 +501,21 @@ Index::flush()
              __FUNCTION__, fd, strerror(errno));
     }
     hostIndex.clear();
+
+    //analyze entries in buffer 
+    if ( enable_complex_index ) {
+        //TODO:
+        //find out what pid there are and do it for each of them
+        int proc;
+        for ( proc = 0 ; proc < 64 ; proc++ ) {
+            complexIndexList.append( 
+                complexIndexUtil.generateIdxSignature
+                    (hostIndexBuf, proc ));
+        }
+        complexIndexList.show();
+        hostIndexBuf.clear(); 
+    }
+    mlog(IDX_WARN, "I am testingg mlog.\n");
     return ( ret < 0 ? -errno : 0 );
 }
 
@@ -1237,13 +1253,6 @@ Index::addWrite( off_t offset, size_t length, pid_t pid,
                  double begin_timestamp, double end_timestamp )
 {
     Metadata::addWrite( offset, length );
-    //Compress to complex pattern
-    if ( enable_complex_index ) {
-        //add this write to buffer
-        
-        //analyze entries in buffer if buffer is full
-        
-    }
     
     // check whether incoming abuts with last and we want to compress
     if ( compress_contiguous && !hostIndex.empty() &&
@@ -1278,6 +1287,14 @@ Index::addWrite( off_t offset, size_t length, pid_t pid,
         hostIndex.push_back( entry );
         // Needed for our index stream function
         // It seems that we can store this pid for the global entry
+        
+        //Compress to complex pattern
+        if ( enable_complex_index ) {
+            //add this write to buffer
+            hostIndexBuf.push_back( entry ); 
+
+            // The entries will be anlayzed when flushing
+        }
     }
     if (buffering && !buffer_filled) {
         // ok this code is confusing

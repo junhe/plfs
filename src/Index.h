@@ -10,6 +10,7 @@ using namespace std;
 
 #include "Util.h"
 #include "Metadata.h"
+#include "idxanalyzer.h"
 
 // the LocalEntry (HostEntry) and the ContainerEntry should maybe be derived
 // from one another. there are two types of index files
@@ -27,42 +28,6 @@ class IndexFileInfo
         string hostname;
         pid_t  id;
 };
-
-// this is the class that represents the records that get written into the
-// index file for each host.
-class HostEntry
-{
-    public:
-        HostEntry();
-        HostEntry( off_t o, size_t s, pid_t p );
-        HostEntry( const HostEntry& copy );
-        bool overlap( const HostEntry& );
-        bool contains ( off_t ) const;
-        bool splittable ( off_t ) const;
-        bool abut   ( const HostEntry& );
-        off_t logical_tail( ) const;
-        bool follows(const HostEntry&);
-        bool preceeds(const HostEntry&);
-
-    protected:
-        off_t  logical_offset;
-        off_t  physical_offset;  // I tried so hard to not put this in here
-        // to save some bytes in the index entries
-        // on disk.  But truncate breaks it all.
-        // we assume that each write makes one entry
-        // in the data file and one entry in the index
-        // file.  But when we remove entries and
-        // rewrite the index, then we break this
-        // assumption.  blech.
-        size_t length;
-        double begin_timestamp;
-        double end_timestamp;
-        pid_t  id;      // needs to be last so no padding
-
-        friend class Index;
-        friend class IdxSignature;
-};
-
 
 // this is the class that represents one record in the in-memory
 // data structure that is
@@ -98,6 +63,8 @@ typedef struct {
     int fd;
 } ChunkFile;
 
+class IdxSigEntryList;
+class IdxSignature;
 class Index : public Metadata
 {
     public:
@@ -178,9 +145,12 @@ class Index : public Metadata
         void findSplits(ContainerEntry&,set<off_t> &);
         // where we buffer the host index (i.e. write)
         vector< HostEntry > hostIndex;
-        vector< HostEntry >  idxEntryBuf; //At this stage, let me maintain
+        vector< HostEntry >  hostIndexBuf; //At this stage, let me maintain
                                          //my own buffer. Complex pattern
                                          //analysis is on this buffer.
+        IdxSigEntryList complexIndexList; //this is used to hold the
+                                          //recognized complex patterns
+        IdxSignature complexIndexUtil;
 
         // this is a global index made by aggregating multiple locals
         map< off_t, ContainerEntry > global_index;
