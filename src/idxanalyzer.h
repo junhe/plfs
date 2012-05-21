@@ -363,6 +363,7 @@ class IdxSigEntryList {
         void siglistToPblist(vector<IdxSigEntry> &slist,
                 idxfile::EntryList &pblist);
         void siglistToPblist();
+        void clear();
 };
 
 void printIdxEntries( vector<IdxSigEntry> &idx_entry_list );

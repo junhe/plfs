@@ -1460,5 +1460,6 @@ void Index::flushComplexIndexBuf()
     //There may be some entries left in HostIndexBuf
     flushHostIndexBuf();
     //TODO: find the right file to write
-    complexIndexBuf.saveToFile("/tmp/complex.index"); 
+    complexIndexBuf.saveToFile("/tmp/complex.index");
+    complexIndexBuf.clear();  
 }

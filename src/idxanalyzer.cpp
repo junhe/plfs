@@ -499,5 +499,9 @@ void IdxSigEntryList::readFromFile(char *filename)
     input.close();
 }
 
-
+void IdxSigEntryList::clear()
+{
+    list.clear();
+    pb_list.clear();
+}
 
