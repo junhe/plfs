@@ -8,7 +8,7 @@
 #include <assert.h>
 #include <unistd.h>
 #include <stdio.h>
-#include "protobuf/index.pb.h"
+#include "indexpb.h"
 
 using namespace std;
 
