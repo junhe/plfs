@@ -131,7 +131,7 @@ class Index : public Metadata
         friend ostream& operator <<(ostream&,const Index&);
         // Added to get chunk path on write
         string index_path;
-        //map<int, string> index_paths;
+        map<int, string> index_paths;
         void startBuffering();
         void stopBuffering();
         bool isBuffering();
@@ -143,6 +143,7 @@ class Index : public Metadata
         int cleanupReadIndex(int, void *, off_t, int, const char *,
                 const char *);
         void *mapIndex( string, int *, off_t * );
+        void resetFD( int fd, string indexpath );
         int handleOverlap( ContainerEntry& g_entry,
                 pair< map<off_t,ContainerEntry>::iterator,
                 bool > &insert_ret );

@@ -1463,3 +1463,22 @@ void Index::flushComplexIndexBuf()
     complexIndexBuf.saveToFile("/tmp/complex.index");
     complexIndexBuf.clear();  
 }
+
+void
+Index::resetFD( int fd, string indexpath )
+{
+    if ( indexpath.find(COMPLEXINDEXPREFIX) != string::npos ) {    
+        fds[COMPLEXPATTERN] = fd;
+    } else if ( indexpath.find(INDEXPREFIX) != string::npos ) {
+        fds[SINGLEHOST] = fd;
+    } else {
+        mlog(IDX_ERR, "In %s. Should not be here", __FUNCTION__);
+        exit(-1);
+    }
+    index_paths[fd] = indexpath;
+    return;
+}
+
+
+
+
