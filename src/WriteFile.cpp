@@ -324,9 +324,9 @@ int WriteFile::openIndex( pid_t pid ) {
     string index_path;
     int fd = openIndexFile(subdir_path, hostname, pid, DROPPING_MODE,
                            &index_path);
-    //string index_path_complex;
+    string index_path_complex;
     int fd_complex = openIndexFile(subdir_path, hostname, pid, DROPPING_MODE,
-                           &index_path, COMPLEXPATTERN);
+                           &index_path_complex, COMPLEXPATTERN);
     mlog(WF_WARN, "in %s, fd_complex=%d\n", __FUNCTION__, fd_complex);
 
     if ( fd < 0 ) {
