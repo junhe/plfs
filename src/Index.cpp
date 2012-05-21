@@ -501,23 +501,6 @@ Index::flush()
              __FUNCTION__, fd, strerror(errno));
     }
     hostIndex.clear();
-
-    //analyze entries in buffer 
-    if ( enable_complex_index ) {
-        map<pid_t,off_t>::iterator it;
-        for ( it = physical_offsets.begin() ; 
-                it != physical_offsets.end() ; it++ ) {
-            complexIndexBuf.append( 
-                complexIndexUtil.generateIdxSignature
-                    (hostIndexBuf, (*it).first ));
-        }
-        
-        mlog(IDX_WARN, "I am testingg mlog.\n");
-        complexIndexBuf.siglistToPblist();
-        mlog(IDX_WARN, "%s", complexIndexBuf.pb_list.DebugString().c_str());
-        complexIndexBuf.saveToFile("/tmp/complex.index");
-        hostIndexBuf.clear(); 
-    }
     
     return ( ret < 0 ? -errno : 0 );
 }
@@ -1448,4 +1431,23 @@ Index::rewriteIndex( int fd )
         */
     }
     return flush();
+}
+
+// Recognize the complex patterns in hostEntryBuf and
+// put the pattern to complexIndexBuf
+void Index::flushHostIndexBuf()
+{
+    //analyze entries in buffer 
+    if ( enable_complex_index ) {
+        map<pid_t,off_t>::iterator it;
+        for ( it = physical_offsets.begin() ; 
+                it != physical_offsets.end() ; it++ ) {
+            complexIndexBuf.append( 
+                complexIndexUtil.generateIdxSignature
+                    (hostIndexBuf, (*it).first ));
+        }
+        
+        mlog(IDX_WARN, "in %", __FUNCTION__);
+        hostIndexBuf.clear(); 
+    }
 }
