@@ -1436,7 +1436,7 @@ Index::rewriteIndex( int fd )
 // put the pattern to complexIndexBuf
 void Index::flushHostIndexBuf()
 {
-    mlog(IDX_WARN, "in %", __FUNCTION__);
+    mlog(IDX_WARN, "in %s", __FUNCTION__);
     //analyze entries in buffer 
     if ( enable_complex_index ) {
         map<pid_t,off_t>::iterator it;
@@ -1456,7 +1456,7 @@ void Index::flushHostIndexBuf()
 // is different from the old index
 void Index::flushComplexIndexBuf()
 {
-    mlog(IDX_WARN, "in %", __FUNCTION__);
+    mlog(IDX_WARN, "in %s", __FUNCTION__);
     //There may be some entries left in HostIndexBuf
     flushHostIndexBuf();
     //TODO: find the right file to write
