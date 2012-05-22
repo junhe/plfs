@@ -874,8 +874,11 @@ Container::getIndexPath(const string& path, const string& host, int pid,
     string p;
     switch ( indexType ) {
         case SINGLEHOST:
-            mlog(CON_ERR, "In %s: should not be here", __FUNCTION__);
-            exit(-1);
+            p = getChunkPath( path, host, pid, INDEXPREFIX, ts);
+            mlog(CON_WARN, "In %s: path is %s", 
+                    __FUNCTION__, p.c_str() );
+            return p;
+            break;
         case SIMPLEFORMULA:
             mlog(CON_ERR, "In %s: should not be here", __FUNCTION__);
             exit(-1);
