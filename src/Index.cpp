@@ -298,7 +298,7 @@ Index::init( string physical )
     buffering       = false;
     buffer_filled   = false;
     compress_contiguous = true;
-    enable_complex_index = true;
+    type            = COMPLEXPATTERN;
     chunk_id        = 0;
     last_offset     = 0;
     total_bytes     = 0;
@@ -485,24 +485,31 @@ Index::ispopulated( )
 int
 Index::flush()
 {
-    // ok, vectors are guaranteed to be contiguous
-    // so just dump it in one fell swoop
-    size_t  len = hostIndex.size() * sizeof(HostEntry);
-    mlog(IDX_DAPI, "%s flushing %lu bytes", __FUNCTION__, (unsigned long)len);
-    if ( len == 0 ) {
-        return 0;    // could be 0 if we weren't buffering
+    mlog(IDX_WARN, "%s is called", __FUNCTION__);
+    if ( type == SINGLEHOST ) {
+        // ok, vectors are guaranteed to be contiguous
+        // so just dump it in one fell swoop
+        size_t  len = hostIndex.size() * sizeof(HostEntry);
+        mlog(IDX_DAPI, "%s flushing %lu bytes", __FUNCTION__, (unsigned long)len);
+        if ( len == 0 ) {
+            return 0;    // could be 0 if we weren't buffering
+        }
+        // valgrind complains about writing uninitialized bytes here....
+        // but it's fine as far as I can tell.
+        void *start = &(hostIndex.front());
+        int ret     = Util::Writen( fd, start, len );
+        if ( (size_t)ret != (size_t)len ) {
+            mlog(IDX_DRARE, "%s failed write to fd %d: %s",
+                    __FUNCTION__, fd, strerror(errno));
+        }
+        hostIndex.clear();
+
+        return ( ret < 0 ? -errno : 0 );
+    } else {
+        //TODO: maybe I should keep the semantics of index.flush()
+        //when call this flush, also flush complex index
+        return 0;
     }
-    // valgrind complains about writing uninitialized bytes here....
-    // but it's fine as far as I can tell.
-    void *start = &(hostIndex.front());
-    int ret     = Util::Writen( fd, start, len );
-    if ( (size_t)ret != (size_t)len ) {
-        mlog(IDX_DRARE, "%s failed write to fd %d: %s",
-             __FUNCTION__, fd, strerror(errno));
-    }
-    hostIndex.clear();
-    
-    return ( ret < 0 ? -errno : 0 );
 }
 
 // takes a path and returns a ptr to the mmap of the file
