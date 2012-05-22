@@ -482,6 +482,9 @@ Index::ispopulated( )
 // returns 0 or -errno
 // this dumps the local index
 // and then clears it
+//
+// Note that, for complex pattern, don't flush too often. since
+// the large the buffer is, the higher compression rate we get.
 int
 Index::flush()
 {
@@ -505,9 +508,8 @@ Index::flush()
         hostIndex.clear();
 
         return ( ret < 0 ? -errno : 0 );
-    } else {
-        //TODO: maybe I should keep the semantics of index.flush()
-        //when call this flush, also flush complex index
+    } else if ( type == COMPLEXPATTERN ) {
+        flushComplexIndexBuf();
         return 0;
     }
 }
@@ -1248,10 +1250,13 @@ Index::addWrite( off_t offset, size_t length, pid_t pid,
     Metadata::addWrite( offset, length );
 
     // check whether incoming abuts with last and we want to compress
-    if ( compress_contiguous && !hostIndex.empty() &&
-            hostIndex.back().id == pid  &&
-            hostIndex.back().logical_offset +
-            (off_t)hostIndex.back().length == offset) {
+    if ( type == SINGLEHOST && 
+         compress_contiguous && !hostIndex.empty() &&
+         hostIndex.back().id == pid  &&
+         hostIndex.back().logical_offset +
+         (off_t)hostIndex.back().length == offset) 
+    {
+        //complex pattern don't need this compression, it has this. 
         mlog(IDX_DCOMMON, "Merged new write with last at offset %ld."
                 " New length is %d.\n",
                 (long)hostIndex.back().logical_offset,
@@ -1280,14 +1285,8 @@ Index::addWrite( off_t offset, size_t length, pid_t pid,
         hostIndex.push_back( entry );
         // Needed for our index stream function
         // It seems that we can store this pid for the global entry
-
-        //Compress to complex pattern
-        if ( type == COMPLEXPATTERN ) {
-            //add this write to buffer
-            hostIndexBuf.push_back( entry ); 
-        }
     }
-    if (buffering && !buffer_filled) {
+    if (type != COMPLEXPATTERN && buffering && !buffer_filled) {
         // ok this code is confusing
         // there are two types of indexes that we create in this same class:
         // HostEntry are used for writes (specific to a hostdir (subdir))
@@ -1299,6 +1298,9 @@ Index::addWrite( off_t offset, size_t length, pid_t pid,
         // index.  This is because we have code to serialize a read index into
         // a byte stream and we don't have code to serialize a write index.
         // restore the original physical offset before we incremented above
+        //
+        // When using complex pattern, we don't need this buffer since we
+        // have other buffers
         off_t poff = physical_offsets[pid] - length;
         // create a container entry from the hostentry
         ContainerEntry c_entry;
@@ -1451,10 +1453,10 @@ Index::flushHostIndexBuf()
                 it != physical_offsets.end() ; it++ ) {
             complexIndexBuf.append( 
                     complexIndexUtil.generateIdxSignature
-                    (hostIndexBuf, (*it).first ));
+                    (hostIndex, (*it).first ));
         }
 
-        hostIndexBuf.clear(); 
+        hostIndex.clear(); 
     }
 }
 
@@ -1467,7 +1469,7 @@ Index::flushComplexIndexBuf()
     mlog(IDX_WARN, "in %s", __FUNCTION__);
     //There may be some entries left in HostIndexBuf
     flushHostIndexBuf();
-    //TODO: find the right file to write
+    
     complexIndexBuf.saveToFile(fd);
 
     complexIndexBuf.clear();  
