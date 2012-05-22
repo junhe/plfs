@@ -21,7 +21,7 @@ class HostEntry;
 class PatternUnit {
     public:
         vector<off_t> seq;
-        int cnt; //count of repeatition
+        int64_t cnt; //count of repeatition
         
         PatternUnit() {}
         PatternUnit( vector<off_t> sq, int ct )
