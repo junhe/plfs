@@ -191,7 +191,7 @@ class Index : public Metadata
         pthread_mutex_t    fd_mux;   // to allow thread safety
 
         bool compress_contiguous; // set true for performance. 0 for tracing.
-        bool enable_complex_index; // set true to enable complex index
+        IndexEntryType type; 
 };
 
 #define MAP_ITR map<off_t,ContainerEntry>::iterator

@@ -30,6 +30,7 @@ WriteFile::WriteFile(string path, string hostname,
     this->write_count       = 0;
     this->index_buffer_mbs  = buffer_mbs;
     this->max_writers       = 0;
+    this->index_type        = COMPLEXPATTERN;
     pthread_mutex_init( &data_mux, NULL );
     pthread_mutex_init( &index_mux, NULL );
 }
@@ -322,12 +323,16 @@ WriteFile::write(const char *buf, size_t size, off_t offset, pid_t pid)
 int WriteFile::openIndex( pid_t pid ) {
     int ret = 0;
     string index_path;
-    int fd = openIndexFile(subdir_path, hostname, pid, DROPPING_MODE,
-                           &index_path);
-    string index_path_complex;
-    int fd_complex = openIndexFile(subdir_path, hostname, pid, DROPPING_MODE,
-                           &index_path_complex, COMPLEXPATTERN);
-    mlog(WF_WARN, "in %s, fd_complex=%d\n", __FUNCTION__, fd_complex);
+    int fd;
+    
+    if ( index_type == SINGLEHOST ) {
+        fd = openIndexFile(subdir_path, hostname, pid, DROPPING_MODE,
+                           &index_path, SINGLEHOST);
+    } else if (index_type == COMPLEXPATTERN ) {
+        fd = openIndexFile(subdir_path, hostname, pid, DROPPING_MODE,
+                           &index_path, COMPLEXPATTERN);
+    }
+    mlog(WF_WARN, "in %s, fd: %d\n", __FUNCTION__, fd);
 
     if ( fd < 0 ) {
         ret = -errno;
@@ -336,6 +341,8 @@ int WriteFile::openIndex( pid_t pid ) {
         index = new Index(container_path, fd);
         Util::MutexUnlock(&index_mux, __FUNCTION__);
         mlog(WF_DAPI, "In open Index path is %s",index_path.c_str());
+        mlog(WF_WARN, "container_path is %s", container_path.c_str());
+        mlog(WF_WARN, "index_path is %s", index_path.c_str());
         index->index_path=index_path;
         if(index_buffer_mbs) {
             index->startBuffering();

@@ -476,7 +476,7 @@ void IdxSigEntryList::siglistToPblist()
 }
 
 
-void IdxSigEntryList::saveToFile(char *filename)
+void IdxSigEntryList::saveToFile(const char *filename)
 {
     siglistToPblist();
     fstream output(filename, ios::out | ios::trunc | ios::binary);

@@ -87,6 +87,7 @@ class WriteFile : public Metadata
         size_t max_writers;
         // Keeps track of writes for flush of index
         int write_count;
+        IndexEntryType index_type; //what type of index is used
 };
 
 #endif
