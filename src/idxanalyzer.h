@@ -377,6 +377,7 @@ class IdxSigEntryList {
         void append(vector<IdxSigEntry> &other);
         void show();
         void saveToFile(const char *filename);
+        void saveToFile(const int fd);
         void readFromFile(char *filename);
         void siglistToPblist(vector<IdxSigEntry> &slist,
                 idxfile::EntryList &pblist);

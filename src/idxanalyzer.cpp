@@ -1,4 +1,5 @@
 #include "idxanalyzer.h"
+#include "Util.h"
 
 #include <algorithm>
 
@@ -486,6 +487,14 @@ void IdxSigEntryList::saveToFile(const char *filename)
         cout<<"Write to myfile: OK"<<endl;
     }
     output.close();
+}
+
+void IdxSigEntryList::saveToFile(const int fd)
+{
+    string buf = serialize();
+    if ( buf.size() > 0 ) {
+        Util::Writen(fd, &buf[0], buf.size());
+    }
 }
 
 void IdxSigEntryList::readFromFile(char *filename)
