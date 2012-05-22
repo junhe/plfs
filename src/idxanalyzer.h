@@ -16,6 +16,9 @@ template <class T> class SigStack;
 template <class T> class PatternStack;
 class IdxSigEntryList;
 class HostEntry;
+
+
+
 //used to describe a single pattern that found
 //This will be saved in the stack
 class PatternUnit {
