@@ -18,6 +18,12 @@ class IdxSigEntryList;
 class HostEntry;
 
 
+void appendToBuffer( string &to, const void *from, const int size );
+
+//Note that this function will increase start
+void readFromBuf( string &from, void *to, int &start, const int size );
+
+
 
 //used to describe a single pattern that found
 //This will be saved in the stack
