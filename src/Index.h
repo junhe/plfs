@@ -157,7 +157,6 @@ class Index : public Metadata
         void flushHostIndexBuf();
         // where we buffer the host index (i.e. write)
         vector< HostEntry > hostIndex;
-        vector< HostEntry >  hostIndexBuf; //At this stage, let me maintain
         
         //my own buffer. Complex pattern
         //analysis is on this buffer.
