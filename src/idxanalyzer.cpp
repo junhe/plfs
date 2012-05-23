@@ -70,7 +70,6 @@ IdxSigEntryList IdxSignature::generateIdxSignature(
                     length_delta, 
                     physical_offset_delta;
     IdxSigEntryList entrylist;
-    static int totalsize = 0;
     vector<HostEntry>::const_iterator iter;
     
     for ( iter = entry_buf.begin() ; 
@@ -135,14 +134,11 @@ IdxSigEntryList IdxSignature::generateIdxSignature(
         idx_entry.physical_offset = physical_offset_stack;
         
         idx_entry_list.push_back( idx_entry);
-        totalsize += idx_entry.memsize();
 
         range_start = range_end;
     }
     entrylist.append(idx_entry_list);
     //printIdxEntries(idx_entry_list);
-    fprintf(stderr, "so far(proc:%d), total size is: %d Bytes (%d KB).\n", 
-            proc, totalsize, totalsize/1024);
     return entrylist;
 }
 
