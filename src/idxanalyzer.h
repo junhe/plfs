@@ -333,6 +333,9 @@ class IdxSigEntry {
     public:
         pid_t original_chunk;  //used only when entry is in global
                                //complex index. 
+        pit_t new_chunk_id;    //This is not serialized yet.
+                               //it should only be serialized in
+                               //the context of global complex index
         IdxSigUnit logical_offset;
         SigStack<IdxSigUnit> length;
         SigStack<IdxSigUnit> physical_offset;
