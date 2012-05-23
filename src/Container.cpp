@@ -836,18 +836,31 @@ Container::aggregateIndices(const string& path, Index *index)
     }
     IndexerTask task;
     deque<IndexerTask> tasks;
+    set<IndexEntryType> indextypes;
     mlog(CON_DAPI, "In %s", __FUNCTION__);
     // create the list of tasks.  A task is reading one index file.
     for(vector<string>::iterator itr=files.begin(); itr!=files.end(); itr++) {
         string filename; // find just the filename
         size_t lastslash = itr->rfind('/');
         filename = itr->substr(lastslash+1,itr->npos);
+        mlog(CON_DCOMMON, "FFFile name is: %s.", filename.c_str());
         if (istype(filename,INDEXPREFIX)) {
+            indextypes.insert(SINGLEHOST);
             task.path = (*itr);
             tasks.push_back(task);
             mlog(CON_DCOMMON, "Ag indices path is %s",path.c_str());
+            mlog(CON_DCOMMON, "INDEX path is %s", task.path.c_str());
+        } else if (istype(filename,COMPLEXINDEXPREFIX)) {
+            indextypes.insert(COMPLEXPATTERN);
+            task.path = (*itr);
+            tasks.push_back(task);
+            mlog(CON_DCOMMON, "Ag indices path is %s",path.c_str());
+            mlog(CON_DCOMMON, "COMPLEX path is %s",task.path.c_str());
         }
     }
+
+    assert(indextypes.size() == 1); //can only have one index type
+    mlog(CON_DCOMMON, "before calling indexTaskManager");
     ret=indexTaskManager(tasks,index,path);
     return ret;
 }
