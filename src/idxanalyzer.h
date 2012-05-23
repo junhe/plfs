@@ -17,6 +17,7 @@ template <class T> class PatternStack;
 class IdxSigEntryList;
 class HostEntry;
 
+typedef header_t int32_t; //the type to hold the body size in serialization
 
 void appendToBuffer( string &to, const void *from, const int size );
 
@@ -81,7 +82,7 @@ class IdxSigUnit: public PatternUnit {
             return sizeof(init) + PatternUnit::memsize();
         }
        
-        int32_t bodySize();
+        header_t bodySize();
         string serialize();
         void deSerialize(string buf);
 };
@@ -395,10 +396,10 @@ template <class T>
 string 
 PatternStack<T>::serialize()
 {
-    int32_t bodysize = 0;
+    header_t bodysize = 0;
     string buf;
     typename vector<T>::iterator iter;
-    int32_t realtotalsize = 0;
+    header_t realtotalsize = 0;
 
     bodysize = bodySize();
     //cout << "data size put in: " << bodysize << endl;
@@ -424,7 +425,7 @@ template <class T>
 void
 PatternStack<T>::deSerialize( string buf )
 {
-    int32_t bodysize, bufsize;
+    header_t bodysize, bufsize;
     int cur_start = 0;
     
     clear(); 
@@ -434,7 +435,7 @@ PatternStack<T>::deSerialize( string buf )
     bufsize = buf.size();
     assert(bufsize == bodysize + sizeof(bodysize));
     while ( cur_start < bodysize ) {
-        int32_t unitbodysize;
+        header_t unitbodysize;
         string unitbuf;
         T sigunit;
 
@@ -464,7 +465,7 @@ PatternStack<T>::bodySize()
             iter++ )
     {
         //IdxSigUnit body size and its header
-        totalsize += (iter->bodySize() + sizeof(int32_t));
+        totalsize += (iter->bodySize() + sizeof(header_t));
     }
     return totalsize;
 }

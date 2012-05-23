@@ -559,7 +559,22 @@ int Index::readComplexIndex( string hostindex )
                 hostindex.c_str() );
     }
     mlog(IDX_WARN, "%s: index file mapped", __FUNCTION__ );
-   
+  
+
+    map<pid_t,pid_t> known_chunks;
+    map<pid_t,pid_t>::iterator known_chunks_itr;
+
+    // The file format for complex pattern is like this:
+    // [ [list_body_size][list body] [ [list_body_size][list body] ...]
+    // So the way to read them is first read 
+    //since the entries are not of the same sizes, keep where we are
+    off_t cur = 0;
+    while ( cur < length ) {
+         
+
+    }
+
+
     return -1; //TODO: should return right val.
 }
 

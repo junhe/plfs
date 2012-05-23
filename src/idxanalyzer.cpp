@@ -531,12 +531,12 @@ void readFromBuf( string &from, void *to, int &start, const int size )
 }
 
 //Serialiezd IdxSigUnit: [head:bodysize][body]
-int32_t IdxSigUnit::bodySize()
+header_t IdxSigUnit::bodySize()
 {
-    int32_t totalsize;
+    header_t totalsize;
     totalsize = sizeof(init) //init
                 + sizeof(cnt) //cnt
-                + sizeof(int32_t) //length of seq size header
+                + sizeof(header_t) //length of seq size header
                 + seq.size()*sizeof(off_t);
     return totalsize;
 }
@@ -545,8 +545,8 @@ string
 IdxSigUnit::serialize()
 {
     string buf; //let me put it in string and see if it works
-    int32_t seqbodysize;
-    int32_t totalsize;
+    header_t seqbodysize;
+    header_t totalsize;
 
     totalsize = bodySize(); 
     
@@ -554,7 +554,7 @@ IdxSigUnit::serialize()
     appendToBuffer(buf, &init, sizeof(init));
     appendToBuffer(buf, &cnt, sizeof(cnt));
     seqbodysize = seq.size()*sizeof(off_t);
-    appendToBuffer(buf, &(seqbodysize), sizeof(int32_t));
+    appendToBuffer(buf, &(seqbodysize), sizeof(header_t));
     if (seqbodysize > 0 ) {
         appendToBuffer(buf, &seq[0], seqbodysize);
     }
@@ -565,14 +565,14 @@ IdxSigUnit::serialize()
 void 
 IdxSigUnit::deSerialize(string buf)
 {
-    int32_t totalsize;
+    header_t totalsize;
     int cur_start = 0;
-    int32_t seqbodysize;
+    header_t seqbodysize;
 
     readFromBuf(buf, &totalsize, cur_start, sizeof(totalsize));
     readFromBuf(buf, &init, cur_start, sizeof(init));
     readFromBuf(buf, &cnt, cur_start, sizeof(cnt));
-    readFromBuf(buf, &seqbodysize, cur_start, sizeof(int32_t));
+    readFromBuf(buf, &seqbodysize, cur_start, sizeof(header_t));
     if ( seqbodysize > 0 ) {
         seq.resize(seqbodysize/sizeof(off_t));
         readFromBuf(buf, &seq[0], cur_start, seqbodysize); 
@@ -585,7 +585,7 @@ int IdxSigEntry::bodySize()
 {
     int totalsize = 0;
     totalsize += sizeof(proc);
-    totalsize += sizeof(int32_t) * 3; //the header size of the following 
+    totalsize += sizeof(header_t) * 3; //the header size of the following 
     totalsize += logical_offset.bodySize();
     totalsize += length.bodySize();
     totalsize += physical_offset.bodySize();
@@ -595,9 +595,9 @@ int IdxSigEntry::bodySize()
 
 string IdxSigEntry::serialize()
 {
-    int32_t totalsize = 0;
+    header_t totalsize = 0;
     string buf, tmpbuf;
-    int32_t datasize;
+    header_t datasize;
     
     totalsize = bodySize();
     //cout << "IdxSigEntry totalsize put in: " << totalsize << endl;
@@ -622,9 +622,9 @@ string IdxSigEntry::serialize()
 
 void IdxSigEntry::deSerialize(string buf)
 {
-    int32_t totalsize = 0; 
+    header_t totalsize = 0; 
     int cur_start = 0;
-    int32_t datasize = 0;
+    header_t datasize = 0;
     string tmpbuf;
 
 
@@ -668,7 +668,7 @@ void IdxSigEntry::deSerialize(string buf)
 
 string IdxSigEntryList::serialize()
 {
-    int32_t bodysize, realbodysize = 0;
+    header_t bodysize, realbodysize = 0;
     string buf;
     vector<IdxSigEntry>::iterator iter;
     
@@ -697,7 +697,7 @@ string IdxSigEntryList::serialize()
 
 void IdxSigEntryList::deSerialize(string buf)
 {
-    int32_t bodysize, bufsize;
+    header_t bodysize, bufsize;
     int cur_start = 0;
 
     list.clear();
@@ -707,7 +707,7 @@ void IdxSigEntryList::deSerialize(string buf)
     bufsize = buf.size();
     assert(bufsize == bodysize + sizeof(bodysize));
     while ( cur_start < bufsize ) {
-        int32_t unitbodysize, sizeofheadandbody;
+        header_t unitbodysize, sizeofheadandbody;
         string unitbuf;
         IdxSigEntry unitentry;
 
@@ -733,7 +733,7 @@ int IdxSigEntryList::bodySize()
           iter != list.end() ;
           iter++ )
     {
-        bodysize += iter->bodySize() + sizeof(int32_t);
+        bodysize += iter->bodySize() + sizeof(header_t);
     }
 
     return bodysize;
