@@ -750,6 +750,7 @@ Container::collectIndices(const string& physical, vector<string> &indices,
 {
     vector<string> filters;
     filters.push_back(INDEXPREFIX);
+    filters.push_back(COMPLEXINDEXPREFIX);
     filters.push_back(HOSTDIRPREFIX);
     return collectContents(physical,indices,NULL,NULL,filters,full_path);
 }
@@ -821,6 +822,15 @@ Container::aggregateIndices(const string& path, Index *index)
 {
     vector<string> files;
     int ret = collectIndices(path,files,true);
+
+    vector<string>::iterator fiter;
+    for ( fiter = files.begin() ;
+          fiter != files.end() ;
+          fiter++ )
+    {
+        mlog(CON_DAPI, "collected indices: %s", fiter->c_str()); 
+    }
+
     if (ret!=0) {
         return -errno;
     }
