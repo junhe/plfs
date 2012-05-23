@@ -588,18 +588,18 @@ int Index::readComplexIndex( string hostindex )
               iter != tmp_list.list.end() ;
               iter++ )
         {
-            ChunkFile cf;
-            cf.path = Container::chunkPathFromIndexPath(hostindex, iter->original_chunk);
-            cf.fd   = -1;
-            chunk_map.push_back( cf );
-            known_chunks[iter->original_chunk] = chunk_id++;
-            assert( (size_t)chunk_id == chunk_map.size() );
-            mlog(IDX_DCOMMON, "Inserting chunk %s (%lu)", cf.path.c_str(),
-                    (unsigned long)chunk_map.size());
-
-            //Assign 
+            if ( known_chunks.find(iter->original_chunk) == known_chunks.end() ) {
+                ChunkFile cf;
+                cf.path = Container::chunkPathFromIndexPath(hostindex, iter->original_chunk);
+                cf.fd   = -1;
+                chunk_map.push_back( cf );
+                known_chunks[iter->original_chunk] = chunk_id++;
+                assert( (size_t)chunk_id == chunk_map.size() );
+                mlog(IDX_DCOMMON, "Inserting chunk %s (%lu)", cf.path.c_str(),
+                        (unsigned long)chunk_map.size());
+            }
+            iter->new_chunk_id = known_chunks[iter->original_chunk];
         }
-        
         
         //tmp_list.show();
         global_complex_index.append(tmp_list);
