@@ -542,11 +542,32 @@ Index::mapIndex( string hostindex, int *fd, off_t *length )
     return addr;
 }
 
+// To not make readIndex() any longer, put the reading of complex index here
+// It assumes hostindex is a complex index
+int Index::readComplexIndex( string hostindex ) 
+{
+    mlog(IDX_WARN, "Entering %s(%s)", __FUNCTION__, hostindex.c_str());
+    
+    off_t length = (off_t)-1;
+    int   fd = -1;
+    void  *maddr = NULL;
+    populated = true;
+     
+    maddr = mapIndex( hostindex, &fd, &length );
+    if( maddr == (void *)-1 ) {
+        return cleanupReadIndex( fd, maddr, length, 0, "mapIndex",
+                hostindex.c_str() );
+    }
+    mlog(IDX_WARN, "%s: index file mapped", __FUNCTION__ );
+   
+    return -1; //TODO: should return right val.
+}
 
 // this builds a global in-memory index from a physical host index dropping
 // return 0 for sucess, -errno for failure
 int Index::readIndex( string hostindex )
 {
+    mlog(IDX_WARN, "Entering %s(%s)", __FUNCTION__, hostindex.c_str());
     off_t length = (off_t)-1;
     int   fd = -1;
     void  *maddr = NULL;
@@ -555,11 +576,32 @@ int Index::readIndex( string hostindex )
     os << __FUNCTION__ << ": " << this << " reading index on " <<
         physical_path;
     mlog(IDX_DAPI, "%s", os.str().c_str() );
+    
+    //get file name and decide the index type (SINGLEHOST or COMPLEX)
+    string filename;
+    size_t lastslash = hostindex.rfind('/');
+    filename = hostindex.substr(lastslash+1, hostindex.npos);
+    mlog(IDX_WARN, "%s: filename is %s", __FUNCTION__, filename.c_str());
+    if (Util::istype(filename, INDEXPREFIX)) {
+        type = SINGLEHOST;
+        mlog(IDX_WARN, "%s: index type is single host", __FUNCTION__ );
+    } else if ( Util::istype(filename, COMPLEXINDEXPREFIX) ) {
+        type = COMPLEXPATTERN;
+        mlog(IDX_WARN, "%s: index type is complex pattern", __FUNCTION__ );
+        return readComplexIndex(hostindex);
+    } else {
+        mlog(IDX_ERR, "There should not be any other index type.");
+        exit(-1);
+    }
+    
+    
     maddr = mapIndex( hostindex, &fd, &length );
     if( maddr == (void *)-1 ) {
         return cleanupReadIndex( fd, maddr, length, 0, "mapIndex",
                 hostindex.c_str() );
     }
+    mlog(IDX_WARN, "%s: index file mapped", __FUNCTION__ );
+
     // ok, there's a bunch of data structures in here
     // some temporary some more permanent
     // each entry in the Container index has a chunk id (id)

@@ -140,6 +140,7 @@ class Index : public Metadata
         void init( string );
         int chunkFound( int *, off_t *, size_t *, off_t,
                 string&, pid_t *, ContainerEntry * );
+        int readComplexIndex( string hostindex );
         int cleanupReadIndex(int, void *, off_t, int, const char *,
                 const char *);
         void *mapIndex( string, int *, off_t * );
@@ -162,6 +163,7 @@ class Index : public Metadata
         //analysis is on this buffer.
         IdxSigEntryList complexIndexBuf; //this is used to hold the
                                          //recognized complex patterns
+        IdxSigEntryList global_complex_index;
         IdxSignature complexIndexUtil;    //a tool class to analyze pattern
 
         // this is a global index made by aggregating multiple locals
