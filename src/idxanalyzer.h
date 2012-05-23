@@ -17,7 +17,7 @@ template <class T> class PatternStack;
 class IdxSigEntryList;
 class HostEntry;
 
-typedef header_t int32_t; //the type to hold the body size in serialization
+typedef int32_t header_t; //the type to hold the body size in serialization
 
 void appendToBuffer( string &to, const void *from, const int size );
 

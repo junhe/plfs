@@ -570,11 +570,36 @@ int Index::readComplexIndex( string hostindex )
     //since the entries are not of the same sizes, keep where we are
     off_t cur = 0;
     while ( cur < length ) {
-         
+        header_t list_body_size;
+        IdxSigEntryList tmp_list;
+        string header_and_body_buf;
 
+        memcpy(&list_body_size, maddr+cur, sizeof(header_t));
+        mlog(IDX_WARN, "list_body_size:%d", list_body_size);
+        appendToBuffer(header_and_body_buf, maddr+cur, 
+                       sizeof(header_t)+list_body_size);
+        tmp_list.deSerialize(header_and_body_buf); 
+        
+        // Now the entries are in tmp_list   
+        // Since there may be entries for several PIDs,
+        // we iterate and handl them one by one
+        vector<IdxSigEntry>::iterator iter; 
+        for ( iter = tmp_list.list.begin() ;
+              iter != tmp_list.list.end() ;
+              iter++ )
+        {
+            ChunkFile cf;
+            cf.path = 
+        }
+        
+        
+        //tmp_list.show();
+        global_complex_index.append(tmp_list);
+
+        cur += sizeof(header_t)+list_body_size;    
     }
-
-
+    assert(cur == length);
+    global_complex_index.show();
     return -1; //TODO: should return right val.
 }
 
