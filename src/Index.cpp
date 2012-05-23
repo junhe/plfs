@@ -589,7 +589,13 @@ int Index::readComplexIndex( string hostindex )
               iter++ )
         {
             ChunkFile cf;
-            cf.path = 
+            cf.path = Container::chunkPathFromIndexPath(hostindex, iter->proc);
+            cf.fd   = -1;
+            chunk_map.push_back( cf );
+            known_chunks[iter->proc] = chunk_id++;
+            assert( (size_t)chunk_id == chunk_map.size() );
+            mlog(IDX_DCOMMON, "Inserting chunk %s (%lu)", cf.path.c_str(),
+                    (unsigned long)chunk_map.size());
         }
         
         
@@ -619,8 +625,7 @@ int Index::readIndex( string hostindex )
     
     //get file name and decide the index type (SINGLEHOST or COMPLEX)
     string filename;
-    size_t lastslash = hostindex.rfind('/');
-    filename = hostindex.substr(lastslash+1, hostindex.npos);
+    filename = Util::getFilenameFromPath(hostindex);
     mlog(IDX_WARN, "%s: filename is %s", __FUNCTION__, filename.c_str());
     if (Util::istype(filename, INDEXPREFIX)) {
         type = SINGLEHOST;

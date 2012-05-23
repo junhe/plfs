@@ -994,10 +994,22 @@ Container::hostdirFromChunk( string chunkpath, const char *type )
 string
 Container::chunkPathFromIndexPath( const string& hostindex, pid_t pid )
 {
-    string host      = hostFromChunk( hostindex, INDEXPREFIX);
-    string hostdir   = hostdirFromChunk( hostindex, INDEXPREFIX);
-    string timestamp = timestampFromChunk(hostindex,INDEXPREFIX);
-    string chunkpath = chunkPath(hostdir, DATAPREFIX, host, pid,timestamp);
+    string filename;
+    string chunkpath;
+
+    filename = Util::getFilenameFromPath(hostindex);
+    if ( istype(filename, COMPLEXINDEXPREFIX) ) {
+        string host      = hostFromChunk( hostindex, COMPLEXINDEXPREFIX);
+        string hostdir   = hostdirFromChunk( hostindex, COMPLEXINDEXPREFIX);
+        string timestamp = timestampFromChunk(hostindex, COMPLEXINDEXPREFIX);
+        chunkpath = chunkPath(hostdir, DATAPREFIX, host, pid,timestamp);
+    } else {
+        string host      = hostFromChunk( hostindex, INDEXPREFIX);
+        string hostdir   = hostdirFromChunk( hostindex, INDEXPREFIX);
+        string timestamp = timestampFromChunk(hostindex,INDEXPREFIX);
+        chunkpath = chunkPath(hostdir, DATAPREFIX, host, pid,timestamp);
+    }
+
     mlog(CON_DAPI, "%s: Returning %s from %s",__FUNCTION__,chunkpath.c_str(),
          hostindex.c_str());
     return chunkpath;

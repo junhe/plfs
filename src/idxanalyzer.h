@@ -273,7 +273,8 @@ class Tuple {
         }
 };
 
-
+/* Not longer in use
+ *
 class IdxEntry {
     public:
         int Proc;
@@ -288,6 +289,7 @@ class IdxEntry {
         int ID_2;
         off_t Physical_offset;
 };
+*/
 
 // this is the class that represents the records that get written into the
 // index file for each host.
@@ -358,7 +360,7 @@ class IdxSigEntry {
         }
 
     public:
-        int proc;
+        int proc; //TODO: change name to id
         IdxSigUnit logical_offset;
         SigStack<IdxSigUnit> length;
         SigStack<IdxSigUnit> physical_offset;
