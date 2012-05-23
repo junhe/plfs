@@ -760,3 +760,9 @@ void PatternUnit::show() const
 
 }
 
+void IdxSigUnit::show() const
+{
+    cout << init << " ... ";
+    PatternUnit::show();
+}
+

@@ -48,11 +48,7 @@ class IdxSigUnit: public PatternUnit {
     public:
         off_t init; // the initial value of 
                     // logical offset, length, or physical offset
-        void show() const
-        {
-            cout << init << " ... ";
-            PatternUnit::show();
-        }
+        void show() const;
 
         header_t bodySize();
         string serialize();
