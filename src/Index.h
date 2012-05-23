@@ -199,5 +199,6 @@ class Index : public Metadata
 };
 
 #define MAP_ITR map<off_t,ContainerEntry>::iterator
+#define COMPLEXMAP_ITR map<off_t,IdxSigEntry>::iterator
 
 #endif

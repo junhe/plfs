@@ -1239,6 +1239,30 @@ int Index::globalComplexLookup( int *fd, off_t *chunk_off, size_t *chunk_len,
 {
     *hole = false;
     *chunk_id = (pid_t)-1;
+
+    IdxSigEntry entry, previous;
+    COMPLEXMAP_ITR itr;
+    COMPLEXMAP_ITR prev = (COMPLEXMAP_ITR)NULL;
+
+    itr = global_complex_index.lower_bound( logical );
+
+    if ( global_complex_index.size() == 0) {
+        *fd = -1;
+        *chunk_len = 0;
+        return 0;
+    }
+    
+    if ( itr == global_complex_index.end() ) {
+        itr--;
+    }
+
+    if ( itr != global_complex_index.begin() ) {
+        prev = itr;
+        prev--;
+    }
+
+    entry = itr->second;
+
 }
 
 
