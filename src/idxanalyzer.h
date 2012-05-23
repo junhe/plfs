@@ -241,6 +241,7 @@ class IdxSigEntry {
         string serialize();
         void deSerialize(string buf);
         int bodySize();
+        bool contain( off_t offset ) const; 
 };
 
 

@@ -1,5 +1,6 @@
 #include "idxanalyzer.h"
 #include "Util.h"
+#include "plfs_private.h"
 
 #include <algorithm>
 
@@ -765,4 +766,70 @@ void IdxSigUnit::show() const
     cout << init << " ... ";
     PatternUnit::show();
 }
+
+bool IdxSigEntry::contain( off_t offset ) const
+{
+    vector<IdxSigUnit>::const_iterator iter;
+    vector<off_t>::const_iterator iiter;
+    vector<off_t>::const_iterator off_delta_iter;
+    off_t &logical = offset;
+
+    off_t off_init = logical_offset.init;
+    off_t delta_sum = 0;
+    for ( off_delta_iter = logical_offset.seq.begin();
+          off_delta_iter != logical_offset.seq.end();
+          off_delta_iter++ )
+    {
+        delta_sum += *off_delta_iter;
+    }
+    ostringstream oss;
+    oss << delta_sum;
+    mlog(IDX_WARN, "delta_sum:%s", oss.str().c_str());
+    
+    off_t logical_remain = (logical - off_init) % delta_sum;
+    assert( logical_remain >= 0 );
+    int factor = (logical - off_init - logical_remain) / delta_sum;
+
+    if ( factor >= logical_offset.cnt ) {
+        // logical is very large.
+        // check the last offset
+        //
+        // note that there are totally cnt*seq.size() offsets
+        // in this class
+        // they are:
+        // [init][init+d0][init+d0+d1]...[init+(d0+d1+..+dp)*cnt-dp]
+        // [init+(d0+d1+..+dp)*cnt] is the 'last+1' offset
+    } else {
+        off_t sum = 0;
+        for ( off_delta_iter = logical_offset.seq.begin();
+              off_delta_iter != logical_offset.seq.end()
+              && sum < logical_remain;
+              off_delta_iter++ )
+        {
+            sum += *off_delta_iter;
+        }
+        assert(off_delta_iter != logical_offset.seq.end());
+
+        int pos = off_delta_iter - logical_offset.seq.begin();
+        int pre = pos - 1; //should check the one before pos
+        // should check logical_offset.seq.size()*factor+pre+1: this
+        // is the position of pre if offsets are expanded.
+        // Assume the rank for the offset is like:
+        // init:0, init+d0:1
+    }
+
+    for ( iter = length.begin() ;
+          iter != length.end() ;
+          iter++ )
+    {
+        for ( iiter = iter->seq.begin() ;
+              iiter != iter->seq.end() ;
+              iiter++ )
+        {
+            // iiter iterates through all deltas of length 
+        }
+    }
+    return false;
+}
+
 
