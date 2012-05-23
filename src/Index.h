@@ -166,7 +166,7 @@ class Index : public Metadata
         //analysis is on this buffer.
         IdxSigEntryList complexIndexBuf; //this is used to hold the
                                          //recognized complex patterns
-        IdxSigEntryList global_complex_index;
+        map< off_t, IdxSigEntry > global_complex_index;
         IdxSignature complexIndexUtil;    //a tool class to analyze pattern
 
         // this is a global index made by aggregating multiple locals

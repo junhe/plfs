@@ -588,9 +588,12 @@ int Index::readComplexIndex( string hostindex )
               iter != tmp_list.list.end() ;
               iter++ )
         {
-            if ( known_chunks.find(iter->original_chunk) == known_chunks.end() ) {
+            if ( known_chunks.find(iter->original_chunk) 
+                    == known_chunks.end() ) 
+            {
                 ChunkFile cf;
-                cf.path = Container::chunkPathFromIndexPath(hostindex, iter->original_chunk);
+                cf.path = Container::chunkPathFromIndexPath
+                                     (hostindex, iter->original_chunk);
                 cf.fd   = -1;
                 chunk_map.push_back( cf );
                 known_chunks[iter->original_chunk] = chunk_id++;
@@ -599,14 +602,16 @@ int Index::readComplexIndex( string hostindex )
                         (unsigned long)chunk_map.size());
             }
             iter->new_chunk_id = known_chunks[iter->original_chunk];
+            global_complex_index.insert(
+                pair<off_t, IdxSigEntry> (iter->logical_offset.init, *iter) );
         }
         
-        global_complex_index.append(tmp_list);
+        //global_complex_index.append(tmp_list);
 
         cur += sizeof(header_t)+list_body_size;    
     }
     assert(cur == length);
-    global_complex_index.show();
+    //global_complex_index.show();
     return cleanupReadIndex(fd, maddr, length, 0, "DONE in readComplexIndex",
                             hostindex.c_str());
 }
@@ -1252,8 +1257,8 @@ int Index::globalLookup( int *fd, off_t *chunk_off, size_t *chunk_len,
     mlog(IDX_DAPI, "%s", os.str().c_str() );
 
     if ( type == COMPLEXPATTERN ) {
-        globalComplexIndexLookup(fd, chunk_off, chunk_len,
-                path, hole, pid_t *chunk_id);
+        globalComplexLookup(fd, chunk_off, chunk_len,
+                path, hole, chunk_id, logical);
         return -1; //TODO: return the right val
     }
 
