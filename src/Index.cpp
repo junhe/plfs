@@ -1228,6 +1228,15 @@ Index::chunkFound( int *fd, off_t *chunk_off, size_t *chunk_len,
     return 0;
 }
 
+int Index::globalComplexLookup( int *fd, off_t *chunk_off, size_t *chunk_len,
+        string& path, bool *hole, pid_t *chunk_id,
+        off_t logical )
+{
+    *hole = false;
+    *chunk_id = (pid_t)-1;
+}
+
+
 // returns the fd for the chunk and the offset within the chunk
 // and the size of the chunk beyond the offset
 // if the chunk does not currently have an fd, it is created here
@@ -1241,6 +1250,13 @@ int Index::globalLookup( int *fd, off_t *chunk_off, size_t *chunk_len,
     ostringstream os;
     os << __FUNCTION__ << ": " << this << " using index.";
     mlog(IDX_DAPI, "%s", os.str().c_str() );
+
+    if ( type == COMPLEXPATTERN ) {
+        globalComplexIndexLookup(fd, chunk_off, chunk_len,
+                path, hole, pid_t *chunk_id);
+        return -1; //TODO: return the right val
+    }
+
     *hole = false;
     *chunk_id = (pid_t)-1;
     //mlog(IDX_DCOMMON, "Look up %ld in %s",

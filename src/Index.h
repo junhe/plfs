@@ -113,6 +113,9 @@ class Index : public Metadata
 
         int setChunkFd( pid_t chunk_id, int fd );
 
+        int globalComplexLookup( int *fd, off_t *chunk_off, size_t *length,
+                string& path, bool *hole, pid_t *chunk_id,
+                off_t logical );
         int globalLookup( int *fd, off_t *chunk_off, size_t *length,
                 string& path, bool *hole, pid_t *chunk_id,
                 off_t logical );
