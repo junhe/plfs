@@ -37,28 +37,9 @@ class PatternUnit {
         PatternUnit( vector<off_t> sq, int ct )
             :seq(sq),cnt(ct)
         {}
-        //return number of elements in total
-        int size() const 
-        {
-            if ( cnt == 0 ) {
-                return 1; //not repetition
-            } else {
-                return seq.size()*cnt;
-            }
-        }
         
-        virtual void show() const
-        {
-            vector<off_t>::const_iterator iter;
-            cout << "( " ;
-            for (iter = seq.begin();
-                    iter != seq.end();
-                    iter++ )
-            {
-                cout << *iter << " ";
-            }
-            cout << ") ^" << cnt << endl;
-        }
+        int size() const;
+        virtual void show() const;
 };
 
 //This is used to describ a single repeating

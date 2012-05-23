@@ -736,3 +736,27 @@ int IdxSigEntryList::bodySize()
     return bodysize;
 }
 
+//return number of elements in total
+int PatternUnit::size() const 
+{
+    if ( cnt == 0 ) {
+        return 1; //not repetition
+    } else {
+        return seq.size()*cnt;
+    }
+}
+
+void PatternUnit::show() const
+{
+    vector<off_t>::const_iterator iter;
+    cout << "( " ;
+    for (iter = seq.begin();
+            iter != seq.end();
+            iter++ )
+    {
+        cout << *iter << " ";
+    }
+    cout << ") ^" << cnt << endl;
+
+}
+
