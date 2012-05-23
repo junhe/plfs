@@ -14,7 +14,7 @@ void printIdxEntries( vector<IdxSigEntry> &idx_entry_list )
             iter != idx_entry_list.end();
             iter++ )
     {
-        cout << "[" << iter->proc << "]" << endl;
+        cout << "[" << iter->id << "]" << endl;
         cout << "----Logical Offset----" << endl;
         iter->logical_offset.show();
         
@@ -59,7 +59,7 @@ vector<off_t> buildDeltas( vector<off_t> seq )
 //
 //It gets signatures for a proc. 
 //TODO:
-//But do we really need to separate entries by proc at first?
+//But do we really need to separate entries by id at first?
 //Also, have to handle the case that there is only one entry
 IdxSigEntryList IdxSignature::generateIdxSignature(
         vector<HostEntry> &entry_buf, 
@@ -128,7 +128,7 @@ IdxSigEntryList IdxSignature::generateIdxSignature(
                     vector<off_t> (physical_offset.begin()+range_start,
                         physical_offset.begin()+range_end) );
 
-        idx_entry.proc = proc;
+        idx_entry.id = proc;
         idx_entry.logical_offset = *stack_iter;
         idx_entry.length = length_stack;
         idx_entry.physical_offset = physical_offset_stack;
@@ -442,7 +442,7 @@ void IdxSigEntryList::siglistToPblist(vector<IdxSigEntry> &slist,
             iter++)
     {
         idxfile::Entry *fentry = pblist.add_entry();
-        fentry->set_proc( (*iter).proc );
+        fentry->set_proc( (*iter).id );
         idxfile::SigUnit *su = fentry->mutable_logical_offset();
         idxSigUnit2PBSigUnit( (*iter).logical_offset, su );
 
@@ -580,7 +580,7 @@ IdxSigUnit::deSerialize(string buf)
 int IdxSigEntry::bodySize()
 {
     int totalsize = 0;
-    totalsize += sizeof(proc);
+    totalsize += sizeof(id);
     totalsize += sizeof(header_t) * 3; //the header size of the following 
     totalsize += logical_offset.bodySize();
     totalsize += length.bodySize();
@@ -598,8 +598,8 @@ string IdxSigEntry::serialize()
     totalsize = bodySize();
     //cout << "IdxSigEntry totalsize put in: " << totalsize << endl;
     appendToBuffer(buf, &totalsize, sizeof(totalsize));
-    appendToBuffer(buf, &proc, sizeof(proc));
-    //cout << "IdxSigEntry proc put in: " << proc << endl; 
+    appendToBuffer(buf, &id, sizeof(id));
+    //cout << "IdxSigEntry id put in: " << id << endl; 
     
     //this tmpbuf includes [data size][data]
     tmpbuf = logical_offset.serialize(); 
@@ -627,8 +627,8 @@ void IdxSigEntry::deSerialize(string buf)
     readFromBuf(buf, &totalsize, cur_start, sizeof(totalsize));
     //cout << "IdxSigEntry totalsize read out: " << totalsize << endl;
     
-    readFromBuf(buf, &proc, cur_start, sizeof(proc));
-    //cout << "IdxSigEntry proc read out: " << proc << endl; 
+    readFromBuf(buf, &id, cur_start, sizeof(id));
+    //cout << "IdxSigEntry id read out: " << id << endl; 
    
     tmpbuf.clear();
     readFromBuf(buf, &datasize, cur_start, sizeof(datasize));
