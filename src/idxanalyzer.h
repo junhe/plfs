@@ -331,7 +331,6 @@ class IdxSignature {
 //Damn, where can I put the time stamp :(
 class IdxSigEntry {
     public:
-        int id; //TODO: change name to id
         pid_t original_chunk;  //used only when entry is in global
                                //complex index. 
         IdxSigUnit logical_offset;

@@ -589,13 +589,15 @@ int Index::readComplexIndex( string hostindex )
               iter++ )
         {
             ChunkFile cf;
-            cf.path = Container::chunkPathFromIndexPath(hostindex, iter->id);
+            cf.path = Container::chunkPathFromIndexPath(hostindex, iter->original_chunk);
             cf.fd   = -1;
             chunk_map.push_back( cf );
-            known_chunks[iter->id] = chunk_id++;
+            known_chunks[iter->original_chunk] = chunk_id++;
             assert( (size_t)chunk_id == chunk_map.size() );
             mlog(IDX_DCOMMON, "Inserting chunk %s (%lu)", cf.path.c_str(),
                     (unsigned long)chunk_map.size());
+
+            //Assign 
         }
         
         
