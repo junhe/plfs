@@ -601,14 +601,14 @@ int Index::readComplexIndex( string hostindex )
             iter->new_chunk_id = known_chunks[iter->original_chunk];
         }
         
-        //tmp_list.show();
         global_complex_index.append(tmp_list);
 
         cur += sizeof(header_t)+list_body_size;    
     }
     assert(cur == length);
     global_complex_index.show();
-    return -1; //TODO: should return right val.
+    return cleanupReadIndex(fd, maddr, length, 0, "DONE in readComplexIndex",
+                            hostindex.c_str());
 }
 
 // this builds a global in-memory index from a physical host index dropping

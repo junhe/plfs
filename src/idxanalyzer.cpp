@@ -14,7 +14,8 @@ void printIdxEntries( vector<IdxSigEntry> &idx_entry_list )
             iter != idx_entry_list.end();
             iter++ )
     {
-        cout << "[" << iter->original_chunk << "]" << endl;
+        cout << "[" << iter->original_chunk << "]" 
+             << "[" << iter->new_chunk_id << "]" << endl;
         cout << "----Logical Offset----" << endl;
         iter->logical_offset.show();
         
