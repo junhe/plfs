@@ -53,6 +53,7 @@ class IdxSigUnit: public PatternUnit {
         header_t bodySize();
         string serialize();
         void deSerialize(string buf);
+        int getValByPos( int pos, off_t &val ) ;
 };
 
 template <class T> // T can be PatternUnit or IdxSigUnit
@@ -103,7 +104,8 @@ class SigStack: public PatternStack <T>
                 cout << "^" << iter->cnt << endl;
             }
         }
-
+        
+        int getValByPos( int pos, off_t &val ) const;
 };
 
 class Tuple {
@@ -448,5 +450,34 @@ PatternStack<T>::show()
         */
     }
 }
+
+template <class T>
+int SigStack<T>::getValByPos( int pos, off_t &val ) const
+{
+    int cur_pos = 0; //it should always point to sigunit.init
+
+    typename vector<T>::const_iterator iter;
+    vector<off_t>::const_iterator iiter;
+	
+    for ( iter = this->the_stack.begin() ;
+          iter != this->the_stack.end() ;
+          iter++ )
+    {
+        int range_start, range_end;
+        int numoflen = iter->seq.size() * iter->cnt;
+        
+        if ( cur_pos <= pos && pos < cur_pos + numoflen ) {
+            //in the range that pointed to by iter
+            int rpos = pos - cur_pos;
+            iter->getValByPos( rpos, val );
+        } else {
+            //not in the range of iter
+            cur_pos += numoflen; //keep track of current pos
+        }
+    }
+}
+
+
+
 #endif
 
