@@ -29,32 +29,27 @@ int main (int argc, char **argv) {
     myunit.seq.push_back(5);
     
     myentry.logical_offset = myunit;
-    /*
-    for ( int i = 0 ; i < 20 ; i++ ) { 
-        myunit.getValByPos(i, tmp);
-        cout << i << ":" << tmp << endl;
-    }
-    */
-    
-    
-    IdxSigUnit myunit2;
-    myunit2.deSerialize( myunit.serialize() );
 
-    SigStack<IdxSigUnit> stack;
-    stack.push(myunit);
-    stack.push(myunit);
-
-    off_t tmp;
-    for ( int i = 0 ; i < 20 ; i++ ) { 
-        cout << i << ":" << stack.getValByPos(i) << endl;
-    }
-   
     myunit.seq.clear();
     myunit.seq.push_back(0);
     myunit.seq.push_back(0);
-    myunit.init = 10;
+    myunit.init = 1;
 
+     
+    SigStack<IdxSigUnit> stack;
+    stack.push(myunit);
+    
+    myentry.length = stack;
+    myentry.physical_offset = stack;
 
+    vector<IdxSigEntry> mylist;
+    mylist.push_back(myentry);
+
+    printIdxEntries(mylist);
+
+    for ( int i = 0 ; i < 50 ; i++ ) {
+        cout << i << ":" << myentry.contains( i ) << endl;
+    }
 
 
     return 0;

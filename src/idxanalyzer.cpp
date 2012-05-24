@@ -806,17 +806,42 @@ bool IdxSigEntry::contains( off_t offset )
     oss << delta_sum;
     mlog(IDX_WARN, "delta_sum:%s", oss.str().c_str());
 
+    // At this time, let me do it in the stupidest way
+    // It works for all cases. Not bad.
+    int size = logical_offset.seq.size() * logical_offset.cnt;
+    int i;
+    for ( i = 0 ; i < size ; i++ ) {
+        if ( isContain(offset, logical_offset.getValByPos(i),
+                               length.getValByPos(i) ) )
+        {
+            return true;
+        }
+    }
+    return false;
+
+
+    ///////////////////////////////////////////////////
+    if ( offset < logical_offset.init ) {
+        return false;
+    }
+    if ( offset == logical_offset.init ) {
+        return true;
+    }
+
     if (  logical_offset.seq.size() * logical_offset.cnt <= 1 ) {
         // Only one offset in logical_offset, just check that one
         // Note that 5, [2]^1 and 5, []^0 are the same, they represent only 5
         return isContain(offset, logical_offset.init, length.getValByPos(0));
     }
 
-    assert (delta_sum <= 0); //let's not handl this at this time. TODO:
+    assert (delta_sum > 0); //let's not handl this at this time. TODO:
 
     off_t roffset = offset - logical_offset.init; //logical offset starts from init
     off_t col = roffset % delta_sum; 
     off_t row = roffset / delta_sum; 
+
+    cout << "col:" << col << endl;
+    cout << "row:" << row << endl;
 
     if ( row >= logical_offset.cnt ) {
         // logical is very large.
@@ -845,9 +870,11 @@ bool IdxSigEntry::contains( off_t offset )
             if ( sum == col ) {
                 //check col_pos
                 chk_pos = row * logical_offset.seq.size() + col_pos;
+                break;
             } else if ( col < sum ) {
                 //check the prevsiou
                 chk_pos = row * logical_offset.seq.size() + col_pos - 1;
+                break;
             }
         }
            
