@@ -27,25 +27,38 @@ int main (int argc, char **argv) {
     myunit.cnt = 3;
     myunit.seq.push_back(4);
     myunit.seq.push_back(5);
-
-    off_t tmp;
-    myunit.getValByPos(0, tmp);
-    cout << tmp << endl;
-    myunit.getValByPos(1, tmp);
-    cout << tmp << endl;
-    myunit.getValByPos(2, tmp);
-    cout << tmp << endl;
-
-    myunit.getValByPos(100, tmp);
-    cout << tmp << endl;
-    return 0;
-
+    
+    myentry.logical_offset = myunit;
+    /*
+    for ( int i = 0 ; i < 20 ; i++ ) { 
+        myunit.getValByPos(i, tmp);
+        cout << i << ":" << tmp << endl;
+    }
+    */
+    
+    
     IdxSigUnit myunit2;
     myunit2.deSerialize( myunit.serialize() );
 
     SigStack<IdxSigUnit> stack;
     stack.push(myunit);
     stack.push(myunit);
+
+    off_t tmp;
+    for ( int i = 0 ; i < 20 ; i++ ) { 
+        cout << i << ":" << stack.getValByPos(i) << endl;
+    }
+   
+    myunit.seq.clear();
+    myunit.seq.push_back(0);
+    myunit.seq.push_back(0);
+    myunit.init = 10;
+
+
+
+
+    return 0;
+
 
     stack.deSerialize( stack.serialize() );
 

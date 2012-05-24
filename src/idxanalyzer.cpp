@@ -782,30 +782,43 @@ off_t sumVector( vector<off_t> seq )
     return sum;
 }
 
-bool IdxSigEntry::contain( off_t offset ) const
+inline bool isContain( off_t off, off_t offset, off_t length )
+{
+    return ( offset <= off && off < offset+length );
+}
+
+
+
+// Decide whether offset is in this IdxSigEntry
+// Let assume there's no overwrite TODO:  this
+bool IdxSigEntry::contains( off_t offset )
 {
     vector<IdxSigUnit>::const_iterator iter;
     vector<off_t>::const_iterator iiter;
     vector<off_t>::const_iterator off_delta_iter;
     off_t &logical = offset;
 
-    off_t off_init = logical_offset.init;
-    off_t delta_sum = 0;
-    for ( off_delta_iter = logical_offset.seq.begin();
-          off_delta_iter != logical_offset.seq.end();
-          off_delta_iter++ )
-    {
-        delta_sum += *off_delta_iter;
-    }
+    off_t delta_sum;
+        
+    delta_sum = sumVector(logical_offset.seq);
+    
     ostringstream oss;
     oss << delta_sum;
     mlog(IDX_WARN, "delta_sum:%s", oss.str().c_str());
-    
-    off_t logical_remain = (logical - off_init) % delta_sum;
-    assert( logical_remain >= 0 );
-    int factor = (logical - off_init - logical_remain) / delta_sum;
 
-    if ( factor >= logical_offset.cnt ) {
+    if (  logical_offset.seq.size() * logical_offset.cnt <= 1 ) {
+        // Only one offset in logical_offset, just check that one
+        // Note that 5, [2]^1 and 5, []^0 are the same, they represent only 5
+        return isContain(offset, logical_offset.init, length.getValByPos(0));
+    }
+
+    assert (delta_sum <= 0); //let's not handl this at this time. TODO:
+
+    off_t roffset = offset - logical_offset.init; //logical offset starts from init
+    off_t col = roffset % delta_sum; 
+    off_t row = roffset / delta_sum; 
+
+    if ( row >= logical_offset.cnt ) {
         // logical is very large.
         // check the last offset
         //
@@ -814,61 +827,78 @@ bool IdxSigEntry::contain( off_t offset ) const
         // they are:
         // [init][init+d0][init+d0+d1]...[init+(d0+d1+..+dp)*cnt-dp]
         // [init+(d0+d1+..+dp)*cnt] is the 'last+1' offset
+        int last_pos = logical_offset.cnt * logical_offset.seq.size() - 1;
+        off_t off = logical_offset.getValByPos(last_pos);
+        off_t len = length.getValByPos(last_pos);
+
+        return isContain(offset, off, len);
     } else {
+        int chk_pos;
+            
         off_t sum = 0;
-        for ( off_delta_iter = logical_offset.seq.begin();
-              off_delta_iter != logical_offset.seq.end()
-              && sum < logical_remain;
-              off_delta_iter++ )
+        int col_pos;
+        for ( col_pos = 0 ; 
+              col_pos < logical_offset.seq.size() ;
+              col_pos++ )
         {
-            sum += *off_delta_iter;
+            sum += logical_offset.seq[col_pos];
+            if ( sum == col ) {
+                //check col_pos
+                chk_pos = row * logical_offset.seq.size() + col_pos;
+            } else if ( col < sum ) {
+                //check the prevsiou
+                chk_pos = row * logical_offset.seq.size() + col_pos - 1;
+            }
         }
-        assert(off_delta_iter != logical_offset.seq.end());
-
-        int pos = off_delta_iter - logical_offset.seq.begin();
-        int pre = pos - 1; //should check the one before pos
-        // should check logical_offset.seq.size()*factor+pre+1: this
-        // is the position of pre if offsets are expanded.
-        // Assume the rank for the offset is like:
-        // init:0, init+d0:1
+           
+        assert(chk_pos >= 0);
+        off_t off = logical_offset.getValByPos(chk_pos);
+        off_t len = length.getValByPos(chk_pos);
+        return isContain(offset, off, len);
     }
-
-    for ( iter = length.begin() ;
-          iter != length.end() ;
-          iter++ )
-    {
-        for ( iiter = iter->seq.begin() ;
-              iiter != iter->seq.end() ;
-              iiter++ )
-        {
-            // iiter iterates through all deltas of length 
-        }
-    }
-    return false;
 }
 
-
-int IdxSigUnit::getValByPos( int pos, off_t &val ) 
+// pos has to be in the range
+off_t IdxSigUnit::getValByPos( int pos  ) 
 {
+    off_t locval = 0;
+    int mpos;
+    int col, row;
+    off_t seqsum;
+    off_t val = -1;
+
     if ( pos == 0 ) {
-	    val = init;
-        return 1;
+	    return init;
 	}
-	int mpos = pos - 1; //the position in the matrix
-	int col = mpos % seq.size();
-	int row = mpos / seq.size();
-	if ( ! (row < seq.size()) ) {
-	    return -1;
+
+    if ( seq.size() == 0 || cnt == 0 || pos < 0 || pos >= seq.size()*cnt ) {
+        // that's nothing in seq and you are requesting 
+        // pos > 0. Sorry, no answer for that.
+        cout << "In getValByPos. Request out of range" << endl;
+        assert(0); // Make it hard for the errors
+    }
+
+    locval = init;
+	mpos = pos - 1; //the position in the matrix
+	col = mpos % seq.size();
+    //cout << "col" << col << endl;
+	row = mpos / seq.size();
+    //cout << "row" << row << endl;
+
+	if ( ! (row < cnt) ) {
+        assert(0); // Make it hard for the errors
 	}
-	off_t seqsum = sumVector(seq);
-	val = seqsum * row;
-	vector<off_t>::const_iterator it;
+	seqsum = sumVector(seq);
+    //cout << "seqsum" << seqsum << endl;
+	locval += seqsum * row;
 	
 	int i = 0;
 	while ( i <= col ) {
-		val += seq[i];
+		locval += seq[i];
         i++;
 	}
-	return 1;
+    
+    val = locval;
+	return val;
 }
 

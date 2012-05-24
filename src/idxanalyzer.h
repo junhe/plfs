@@ -53,7 +53,7 @@ class IdxSigUnit: public PatternUnit {
         header_t bodySize();
         string serialize();
         void deSerialize(string buf);
-        int getValByPos( int pos, off_t &val ) ;
+        off_t getValByPos( int pos ) ;
 };
 
 template <class T> // T can be PatternUnit or IdxSigUnit
@@ -105,7 +105,7 @@ class SigStack: public PatternStack <T>
             }
         }
         
-        int getValByPos( int pos, off_t &val ) const;
+        off_t getValByPos( int pos );
 };
 
 class Tuple {
@@ -243,8 +243,7 @@ class IdxSigEntry {
         string serialize();
         void deSerialize(string buf);
         int bodySize();
-        bool contain( off_t offset ) const; 
-        off_t getLengthByPos( int pos ) const;
+        bool contains( off_t offset ); 
 };
 
 
@@ -451,13 +450,13 @@ PatternStack<T>::show()
     }
 }
 
+// pos has to be in the range
 template <class T>
-int SigStack<T>::getValByPos( int pos, off_t &val ) const
+off_t SigStack<T>::getValByPos( int pos ) 
 {
     int cur_pos = 0; //it should always point to sigunit.init
 
-    typename vector<T>::const_iterator iter;
-    vector<off_t>::const_iterator iiter;
+    typename vector<T>::iterator iter;
 	
     for ( iter = this->the_stack.begin() ;
           iter != this->the_stack.end() ;
@@ -469,12 +468,14 @@ int SigStack<T>::getValByPos( int pos, off_t &val ) const
         if ( cur_pos <= pos && pos < cur_pos + numoflen ) {
             //in the range that pointed to by iter
             int rpos = pos - cur_pos;
-            iter->getValByPos( rpos, val );
+            return iter->getValByPos( rpos );
         } else {
             //not in the range of iter
             cur_pos += numoflen; //keep track of current pos
         }
     }
+    cout << "in " << __FUNCTION__ << ". Request out of range" << endl;
+    exit(-1);
 }
 
 
