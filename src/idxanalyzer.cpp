@@ -767,6 +767,51 @@ void IdxSigUnit::show() const
     PatternUnit::show();
 }
 
+off_t sumVector( vector<off_t> seq )
+{
+    vector<off_t>::const_iterator iiter;
+    
+    off_t sum = 0;
+    for ( iiter = iter->seq.begin() ;
+          iiter != iter->seq.end() ;
+          iiter++ )
+    {
+        sum += *iiter;
+    }
+    
+    return sum;
+}
+
+off_t IdxSigEntry::getLengthByPos( int pos ) const
+{
+    int cur_pos = 0; //it should always point to sigunit.init
+
+    vector<IdxSigUnit>::const_iterator iter;
+    vector<off_t>::const_iterator iiter;
+
+
+    for ( iter = length.begin() ;
+          iter != length.end() ;
+          iter++ )
+    {
+        int range_start, range_end;
+        int numoflen = iter->seq.size()*iter->cnt;
+        
+        if ( cur_pos <= pos && pos < cur_pos + numoflen ) {
+            //in the range that pointed to by iter
+            int rpos = pos - cur_pos;
+            off_t delta_sum = sumVector(iter->seq);
+            int remain = rpos % iter->seq.size();
+            int factor = rpos / iter->seq.size();
+
+        } else {
+            //not in the range of iter
+            cur_pos += numoflen; //keep track of current pos
+        }
+
+    }
+}
+
 bool IdxSigEntry::contain( off_t offset ) const
 {
     vector<IdxSigUnit>::const_iterator iter;
