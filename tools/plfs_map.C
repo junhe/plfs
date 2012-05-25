@@ -47,13 +47,12 @@ int main (int argc, char **argv) {
 
     printIdxEntries(mylist);
 
+    int pos;
     for ( int i = 0 ; i < 50 ; i++ ) {
-        cout << i << ":" << myentry.contains( i ) << endl;
+        cout << i << ":" << myentry.contains( i, pos ) << endl;
     }
 
-
     return 0;
-
 
     stack.deSerialize( stack.serialize() );
 

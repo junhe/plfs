@@ -243,7 +243,7 @@ class IdxSigEntry {
         string serialize();
         void deSerialize(string buf);
         int bodySize();
-        bool contains( off_t offset ); 
+        bool contains( off_t offset, int &pos ); 
 };
 
 

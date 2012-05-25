@@ -143,6 +143,9 @@ class Index : public Metadata
         void init( string );
         int chunkFound( int *, off_t *, size_t *, off_t,
                 string&, pid_t *, ContainerEntry * );
+        int chunkFound( int *fd, off_t *chunk_off, size_t *chunk_len,
+                off_t shift, string& path, pid_t *chunk_id,
+                IdxSigEntry *entry, int pos );
         int readComplexIndex( string hostindex );
         int cleanupReadIndex(int, void *, off_t, int, const char *,
                 const char *);

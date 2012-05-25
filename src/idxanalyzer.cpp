@@ -791,7 +791,7 @@ inline bool isContain( off_t off, off_t offset, off_t length )
 
 // Decide whether offset is in this IdxSigEntry
 // Let assume there's no overwrite TODO:  this
-bool IdxSigEntry::contains( off_t offset )
+bool IdxSigEntry::contains( off_t offset, int &pos )
 {
     vector<IdxSigUnit>::const_iterator iter;
     vector<off_t>::const_iterator iiter;
@@ -814,6 +814,7 @@ bool IdxSigEntry::contains( off_t offset )
         if ( isContain(offset, logical_offset.getValByPos(i),
                                length.getValByPos(i) ) )
         {
+            pos = i;
             return true;
         }
     }

@@ -1198,6 +1198,44 @@ Index::setChunkFd( pid_t chunk_id, int fd )
     return 0;
 }
 
+
+
+int
+Index::chunkFound( int *fd, off_t *chunk_off, size_t *chunk_len,
+        off_t shift, string& path, pid_t *chunk_id,
+        IdxSigEntry *entry, int pos )
+{
+    ChunkFile *cf_ptr = &(chunk_map[entry->new_chunk_id]); // typing shortcut
+    *chunk_off  = entry->physical_offset.getValByPos(pos) + shift;
+    *chunk_len  = entry->length.getValByPos(pos)  - shift;
+    *chunk_id   = entry->new_chunk_id;
+    if( cf_ptr->fd < 0 ) {
+        // I'm not sure why we used to open the chunk file here and
+        // now we don't.  If you figure it out, pls explain it here.
+        // we must have done the open elsewhere.  But where and why not here?
+        // ok, I figured it out (johnbent 8/27/2011):
+        // this function is a helper to globalLookup which returns information
+        // about in which physical data chunk some logical data resides
+        // we stash that location info here but don't do the open.  we changed
+        // this when we made reads be multi-threaded.  since we postpone the
+        // opens and do them in the threads we give them a better chance to
+        // be parallelized.  However, it turns out that the opens are then
+        // later mutex'ed so they're actually parallized.  But we've done the
+        // best that we can here at least.
+        mlog(IDX_DRARE, "Not opening chunk file %s yet", cf_ptr->path.c_str());
+    }
+    mlog(IDX_DCOMMON, "Will read from chunk %s at off %ld (shift %ld)",
+            cf_ptr->path.c_str(), (long)*chunk_off, (long)shift );
+    *fd = cf_ptr->fd;
+    path = cf_ptr->path;
+    return 0;
+}
+
+
+
+
+
+
 // this is a helper function to globalLookup which returns information
 // identifying the physical location of some piece of data
 // we found a chunk containing an offset, return necessary stuff
@@ -1237,6 +1275,7 @@ int Index::globalComplexLookup( int *fd, off_t *chunk_off, size_t *chunk_len,
         string& path, bool *hole, pid_t *chunk_id,
         off_t logical )
 {
+    mlog(IDX_WARN, "Entering %s", __FUNCTION__);
     *hole = false;
     *chunk_id = (pid_t)-1;
 
@@ -1263,6 +1302,27 @@ int Index::globalComplexLookup( int *fd, off_t *chunk_off, size_t *chunk_len,
 
     entry = itr->second;
 
+    int pos = -1;
+    if ( entry.contains( logical, pos ) ) {
+        // itr->first == logical
+        return chunkFound( fd, chunk_off, chunk_len,
+                logical - entry.logical_offset.getValByPos(pos), path,
+                chunk_id, &entry, pos );
+    }
+
+    if ( prev != (COMPLEXMAP_ITR)NULL ) {
+        previous = prev->second;
+        if ( previous.contains( logical, pos ) ) {
+            // itr->first > logical
+            return chunkFound( fd, chunk_off, chunk_len,
+                    logical - previous.logical_offset.getValByPos(pos), path,
+                    chunk_id, &previous, pos );
+        }
+    }
+    //in a hole or off the end of file.
+    //TODO: handle it...
+    mlog(IDX_WARN, "%s in a hole.", __FUNCTION__);
+    exit(-1);
 }
 
 
@@ -1299,7 +1359,7 @@ int Index::globalLookup( int *fd, off_t *chunk_off, size_t *chunk_len,
     // 2) within a chunk
     // 3) off the end of the file
     // 4) in a hole
-    itr = global_index.lower_bound( logical );
+    itr = global_index.lower_bound( logical ); //itr->first >= x
     // zero length file, nothing to see here, move along
     if ( global_index.size() == 0 ) {
         *fd = -1;
