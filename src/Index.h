@@ -139,6 +139,10 @@ class Index : public Metadata
         void stopBuffering();
         bool isBuffering();
 
+        IndexEntryType type;  //TODO: figure out when to set this and when 
+                              //      can use it. Probably use getType() setType
+                              //      Shall I decide the type at the time creating
+                              //      object
     private:
         void init( string );
         int chunkFound( int *, off_t *, size_t *, off_t,
@@ -198,7 +202,6 @@ class Index : public Metadata
         pthread_mutex_t    fd_mux;   // to allow thread safety
 
         bool compress_contiguous; // set true for performance. 0 for tracing.
-        IndexEntryType type; 
 };
 
 #define MAP_ITR map<off_t,ContainerEntry>::iterator

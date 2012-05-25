@@ -14,6 +14,7 @@ void show_usage(char* app_name) {
 
 int main (int argc, char **argv) {
 
+    /*
     IdxSignature mysig;
     ifstream idx_file;
     vector<off_t> off_deltas;
@@ -78,7 +79,7 @@ int main (int argc, char **argv) {
 
     return -1;
     //////////////////////
-
+    */
     int i;
     char *target;
     bool found_target = false;
