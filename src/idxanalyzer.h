@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <sstream>
 #include "indexpb.h"
+#include "mlogfacs.h"
 
 using namespace std;
 
