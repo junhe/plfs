@@ -16,6 +16,7 @@ enum IndexEntryType {
     SINGLEHOST = 0,  // HostEntry class
     SIMPLEFORMULA = 1, // SimpleFormulaEntry class
     COMPLEXPATTERN = 2, //IdxSigEntryList class 
+    UNKNOWNTYPE = 7, //IdxSigEntryList class 
 };
 
 
@@ -131,7 +132,7 @@ class Index : public Metadata
         int global_to_file(int fd);
         int global_from_stream(void *addr);
         int global_to_stream(void **buffer,size_t *length);
-        friend ostream& operator <<(ostream&,const Index&);
+        friend ostream& operator <<(ostream&, Index&); //TODO: make all my show() const
         // Added to get chunk path on write
         string index_path;
         map<int, string> index_paths;

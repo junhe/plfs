@@ -273,20 +273,43 @@ ostream& operator <<(ostream& os,const ContainerEntry& entry)
     return os;
 }
 
-ostream& operator <<(ostream& os,const Index& ndx )
+
+ostream& operator <<(ostream& os, IdxSigEntry& entry)
+{
+    os << entry.show();
+    return os;
+}
+
+
+
+ostream& operator <<(ostream& os, Index& ndx )
 {
     os << "# Index of " << ndx.physical_path << endl;
     os << "# Data Droppings" << endl;
     for(unsigned i = 0; i < ndx.chunk_map.size(); i++ ) {
         os << "# " << i << " " << ndx.chunk_map[i].path << endl;
     }
-    map<off_t,ContainerEntry>::const_iterator itr;
-    os << "# Entry Count: " << ndx.global_index.size() << endl;
-    os << "# ID Logical_offset Length Begin_timestamp End_timestamp "
-       << " Logical_tail ID.Chunk_offset " << endl;
-    for(itr = ndx.global_index.begin(); itr != ndx.global_index.end(); itr++) {
-        os << itr->second << endl;
+
+    if ( ndx.type == SINGLEHOST ) {
+        map<off_t,ContainerEntry>::const_iterator itr;
+        os << "# Entry Count: " << ndx.global_index.size() << endl;
+        os << "# ID Logical_offset Length Begin_timestamp End_timestamp "
+           << " Logical_tail ID.Chunk_offset " << endl;    
+        for(itr = ndx.global_index.begin(); itr != ndx.global_index.end(); itr++) {
+            os << itr->second << endl;
+        }
+    } else if (ndx.type == COMPLEXPATTERN) {
+        map<off_t,IdxSigEntry>::iterator itr;
+        for(itr =  ndx.global_complex_index.begin(); 
+            itr != ndx.global_complex_index.end(); 
+            itr++) 
+        {
+            os << itr->second << endl;
+        }
+    } else {
+        mlog(IDX_ERR, "%s: unknown index type", __FUNCTION__);
     }
+        
     return os;
 }
 

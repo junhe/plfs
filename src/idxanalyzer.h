@@ -247,7 +247,9 @@ class IdxSigEntry {
         string serialize();
         void deSerialize(string buf);
         int bodySize();
-        bool contains( off_t offset, int &pos ); 
+        bool contains( off_t offset, int &pos );
+        string show();
+        friend ostream& operator <<(ostream&, IdxSigEntry&);
 };
 
 

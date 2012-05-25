@@ -7,7 +7,7 @@
 //for debugging
 string printIdxEntries( vector<IdxSigEntry> &idx_entry_list )
 {
-    vector<IdxSigEntry>::const_iterator iter;
+    vector<IdxSigEntry>::iterator iter;
 
     //cout << "this is printIdxEntries" << endl;
 
@@ -16,29 +16,7 @@ string printIdxEntries( vector<IdxSigEntry> &idx_entry_list )
             iter != idx_entry_list.end();
             iter++ )
     {
-        showstr << "[" << iter->original_chunk << "]" 
-             << "[" << iter->new_chunk_id << "]" << endl;
-        showstr << "----Logical Offset----" << endl;
-        iter->logical_offset.show();
-        
-        vector<IdxSigUnit>::const_iterator iter2;
-
-        showstr << "----Length----" << endl;
-        for (iter2 = iter->length.begin();
-                iter2 != iter->length.end();
-                iter2++ )
-        {
-            iter2->show(); 
-        }
-
-        showstr << "----Physical Offset----" << endl;
-        for (iter2 = iter->physical_offset.begin();
-                iter2 != iter->physical_offset.end();
-                iter2++ )
-        {
-            iter2->show(); 
-        }
-        showstr << "-------------------------------------" << endl;
+        showstr << iter->show();
     }
     return showstr.str();
 }
@@ -939,4 +917,40 @@ off_t IdxSigUnit::getValByPos( int pos  )
     val = locval;
 	return val;
 }
+
+string IdxSigEntry::show()
+{
+    ostringstream showstr;
+
+    showstr << "[" << original_chunk << "]" 
+         << "[" << new_chunk_id << "]" << endl;
+    showstr << "----Logical Offset----" << endl;
+    showstr << logical_offset.show();
+    
+    vector<IdxSigUnit>::const_iterator iter2;
+
+    showstr << "----Length----" << endl;
+    for (iter2 = length.begin();
+            iter2 != length.end();
+            iter2++ )
+    {
+        showstr << iter2->show(); 
+    }
+
+    showstr << "----Physical Offset----" << endl;
+    for (iter2 = physical_offset.begin();
+            iter2 != physical_offset.end();
+            iter2++ )
+    {
+        showstr << iter2->show(); 
+    }
+    showstr << "-------------------------------------" << endl;
+
+    return showstr.str();
+}
+
+
+
+
+
 
