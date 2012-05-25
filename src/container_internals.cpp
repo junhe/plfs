@@ -686,6 +686,9 @@ find_read_tasks(Index *index, list<ReadTask> *tasks, size_t size, off_t offset,
                                       &(task.chunk_id),
                                       offset+bytes_traversed);
         }
+        ostringstream oss;
+        oss << "bytes_remaining:" << bytes_remaining << endl;
+        mlog(IDX_WARN, "%s", oss.str().c_str());
         // make sure it's good
         if ( ret == 0 ) {
             task.length = min(bytes_remaining,(ssize_t)task.length);

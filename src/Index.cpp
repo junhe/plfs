@@ -1231,6 +1231,10 @@ Index::chunkFound( int *fd, off_t *chunk_off, size_t *chunk_len,
     ChunkFile *cf_ptr = &(chunk_map[entry->new_chunk_id]); // typing shortcut
     *chunk_off  = entry->physical_offset.getValByPos(pos) + shift;
     *chunk_len  = entry->length.getValByPos(pos)  - shift;
+    ostringstream oss;
+    oss << "length.getValByPos(" << pos << ")=" << entry->length.getValByPos(pos)
+        << ", shift=" << shift << endl;
+    mlog(IDX_WARN, "%s", oss.str().c_str());
     *chunk_id   = entry->new_chunk_id;
     if( cf_ptr->fd < 0 ) {
         // I'm not sure why we used to open the chunk file here and
@@ -1330,8 +1334,11 @@ int Index::globalComplexLookup( int *fd, off_t *chunk_off, size_t *chunk_len,
     }
 
     //TODO: handle it...
-    mlog(IDX_WARN, "%s in a hole.", __FUNCTION__);
-    return -1;
+    mlog(IDX_WARN, "%s in a hole. or off the end of the file", __FUNCTION__);
+    
+    *fd = -1;
+    *chunk_len = 0;
+    return 0;
 }
 
 
@@ -1350,9 +1357,8 @@ int Index::globalLookup( int *fd, off_t *chunk_off, size_t *chunk_len,
     mlog(IDX_DAPI, "%s", os.str().c_str() );
 
     if ( type == COMPLEXPATTERN ) {
-        globalComplexLookup(fd, chunk_off, chunk_len,
+        return globalComplexLookup(fd, chunk_off, chunk_len,
                 path, hole, chunk_id, logical);
-        return -1; //TODO: return the right val
     }
 
     *hole = false;
