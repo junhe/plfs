@@ -598,7 +598,7 @@ int Index::readComplexIndex( string hostindex )
         string header_and_body_buf;
 
         memcpy(&list_body_size, maddr+cur, sizeof(header_t));
-        mlog(IDX_WARN, "list_body_size:%d", list_body_size);
+        //mlog(IDX_WARN, "list_body_size:%d", list_body_size);
         appendToBuffer(header_and_body_buf, maddr+cur, 
                        sizeof(header_t)+list_body_size);
         tmp_list.deSerialize(header_and_body_buf); 
@@ -1302,47 +1302,33 @@ int Index::globalComplexLookup( int *fd, off_t *chunk_off, size_t *chunk_len,
     *hole = false;
     *chunk_id = (pid_t)-1;
 
-    IdxSigEntry entry, previous;
     COMPLEXMAP_ITR itr;
-    COMPLEXMAP_ITR prev = (COMPLEXMAP_ITR)NULL;
 
-    itr = global_complex_index.lower_bound( logical );
-
-    if ( global_complex_index.size() == 0) {
-        *fd = -1;
-        *chunk_len = 0;
-        return 0;
-    }
-    
-    if ( itr == global_complex_index.end() ) {
-        itr--;
-    }
-
-    if ( itr != global_complex_index.begin() ) {
-        prev = itr;
-        prev--;
-    }
-
-    entry = itr->second;
-
-    int pos = -1;
-    if ( entry.contains( logical, pos ) ) {
-        // itr->first == logical
-        return chunkFound( fd, chunk_off, chunk_len,
-                logical - entry.logical_offset.getValByPos(pos), path,
-                chunk_id, &entry, pos );
-    }
-
-    if ( prev != (COMPLEXMAP_ITR)NULL ) {
-        previous = prev->second;
-        if ( previous.contains( logical, pos ) ) {
-            // itr->first > logical
+    // TODO: do it smarter, use the pattern.
+    for ( itr =  global_complex_index.begin();
+          itr != global_complex_index.end();
+          itr++ )
+    {
+        ostringstream oss;
+        oss << "Looking for offset:" << logical 
+            << " Length:" << " at"
+            << itr->second.show() ;
+        mlog(IDX_WARN, "%s", oss.str().c_str());
+        oss.clear();
+        int pos = -1;
+        if ( itr->second.contains( logical, pos ) ) {
+            oss << " !!!!!!!!Found at pos:" << pos << endl; 
+            mlog(IDX_WARN, "%s", oss.str().c_str());
             return chunkFound( fd, chunk_off, chunk_len,
-                    logical - previous.logical_offset.getValByPos(pos), path,
-                    chunk_id, &previous, pos );
+                    logical - itr->second.logical_offset.getValByPos(pos), path,
+                    chunk_id, &itr->second, pos );
+        } else {
+            oss << "Not Found!" << endl;
+            mlog(IDX_WARN, "%s", oss.str().c_str());
         }
+
     }
-    //in a hole or off the end of file.
+
     //TODO: handle it...
     mlog(IDX_WARN, "%s in a hole.", __FUNCTION__);
     exit(-1);

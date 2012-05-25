@@ -772,6 +772,9 @@ off_t sumVector( vector<off_t> seq )
 
 inline bool isContain( off_t off, off_t offset, off_t length )
 {
+    ostringstream oss;
+    oss << "isContain(" << off << ", " << offset << ", " << length << ")" <<  endl;
+    mlog(IDX_WARN, "%s", oss.str().c_str());
     return ( offset <= off && off < offset+length );
 }
 
@@ -781,6 +784,8 @@ inline bool isContain( off_t off, off_t offset, off_t length )
 // Let assume there's no overwrite TODO:  this
 bool IdxSigEntry::contains( off_t offset, int &pos )
 {
+    mlog(IDX_WARN, "EEEntering %s", __FUNCTION__);
+
     vector<IdxSigUnit>::const_iterator iter;
     vector<off_t>::const_iterator iiter;
     vector<off_t>::const_iterator off_delta_iter;
@@ -790,15 +795,21 @@ bool IdxSigEntry::contains( off_t offset, int &pos )
         
     delta_sum = sumVector(logical_offset.seq);
     
-    ostringstream oss;
-    oss << delta_sum;
-    mlog(IDX_WARN, "delta_sum:%s", oss.str().c_str());
+    //ostringstream oss;
+    //oss << delta_sum;
+    //mlog(IDX_WARN, "delta_sum:%s", oss.str().c_str());
 
     // At this time, let me do it in the stupidest way
     // It works for all cases. Not bad.
     int size = logical_offset.seq.size() * logical_offset.cnt;
     int i;
-    for ( i = 0 ; i < size ; i++ ) {
+    for ( i = 0 ; 
+          i < size 
+          || i == 0 ; //have to check the first one.
+          i++ ) {
+        ostringstream oss;
+        oss << "i:" << i << "size:" << size << endl;
+        mlog(IDX_WARN, "%s", oss.str().c_str());
         if ( isContain(offset, logical_offset.getValByPos(i),
                                length.getValByPos(i) ) )
         {
@@ -890,7 +901,10 @@ off_t IdxSigUnit::getValByPos( int pos  )
     if ( seq.size() == 0 || cnt == 0 || pos < 0 || pos >= seq.size()*cnt ) {
         // that's nothing in seq and you are requesting 
         // pos > 0. Sorry, no answer for that.
-        cout << "In getValByPos. Request out of range" << endl;
+        ostringstream oss;
+        oss << "In " << __FUNCTION__ << 
+            " Request out of range. Pos is " << pos << endl;
+        mlog (IDX_ERR, "%s", oss.str().c_str());
         assert(0); // Make it hard for the errors
     }
 

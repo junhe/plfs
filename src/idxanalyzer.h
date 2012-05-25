@@ -470,10 +470,12 @@ off_t SigStack<T>::getValByPos( int pos )
           iter != this->the_stack.end() ;
           iter++ )
     {
-        int range_start, range_end;
         int numoflen = iter->seq.size() * iter->cnt;
         
-        if ( cur_pos <= pos && pos < cur_pos + numoflen ) {
+        if ( numoflen == 0 ) {
+            numoflen = 1; //there's actually one element in *iter
+        } 
+        if (cur_pos <= pos && pos < cur_pos + numoflen ) {
             //in the range that pointed to by iter
             int rpos = pos - cur_pos;
             return iter->getValByPos( rpos );
@@ -482,8 +484,10 @@ off_t SigStack<T>::getValByPos( int pos )
             cur_pos += numoflen; //keep track of current pos
         }
     }
-    cout << "in " << __FUNCTION__ << ". Request out of range" << endl;
-    exit(-1);
+    ostringstream oss;
+    oss << "in " << __FUNCTION__ << ". Request out of range" << endl;
+    mlog(IDX_WARN, "%s", oss.str().c_str());
+    assert(0); // Make it hard for the errors
 }
 
 
