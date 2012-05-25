@@ -785,7 +785,7 @@ Container::collectContents(const string& physical,
     for(f_itr=filters.begin(); f_itr!=filters.end(); f_itr++) {
         rop.filter(*f_itr);
     }
-    mlog(CON_DAPI, "%s on %s", __FUNCTION__, physical.c_str());
+    mlog(CON_DAPI, "%s() on %s", __FUNCTION__, physical.c_str());
     ret = rop.op(physical.c_str(),DT_DIR);
     // now for each entry we found: descend into dirs, resolve metalinks and
     // then descend, save files.
@@ -826,12 +826,14 @@ Container::aggregateIndices(const string& path, Index *index)
     vector<string> files;
     int ret = collectIndices(path,files,true);
 
+    mlog(CON_DAPI, "------number of index file is %d", files.size());
+
     vector<string>::iterator fiter;
     for ( fiter = files.begin() ;
           fiter != files.end() ;
           fiter++ )
     {
-        mlog(CON_DAPI, "collected indices: %s", fiter->c_str()); 
+        mlog(CON_WARN, "collected indices: %s", fiter->c_str()); 
     }
 
     if (ret!=0) {
@@ -862,7 +864,8 @@ Container::aggregateIndices(const string& path, Index *index)
         }
     }
 
-    assert(indextypes.size() == 1); //can only have one index type
+    mlog(CON_DAPI, "----Number of index types: %d", indextypes.size());
+    assert(indextypes.size() == 1); //can only have one index type and only one
     mlog(CON_DCOMMON, "before calling indexTaskManager");
     ret=indexTaskManager(tasks,index,path);
     return ret;

@@ -219,8 +219,8 @@ SigStack<IdxSigUnit> IdxSignature::discoverSigPattern( vector<off_t> const &seq,
     if (! (seq.size() == orig.size()
             || seq.size() + 1 == orig.size() ) )
     {
-        fprintf(stderr, "discoverSigPattern() needs to be used with "
-                "seq.size==orig.size or seq.size+1==orig.size");
+        mlog(IDX_ERR, "discoverSigPattern() needs to be used with "
+                "seq.size==orig.size or seq.size+1==orig.size" );
         exit(-1);
     }
 

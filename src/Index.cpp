@@ -1331,7 +1331,7 @@ int Index::globalComplexLookup( int *fd, off_t *chunk_off, size_t *chunk_len,
 
     //TODO: handle it...
     mlog(IDX_WARN, "%s in a hole.", __FUNCTION__);
-    exit(-1);
+    return -1;
 }
 
 
