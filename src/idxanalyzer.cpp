@@ -5,24 +5,25 @@
 #include <algorithm>
 
 //for debugging
-void printIdxEntries( vector<IdxSigEntry> &idx_entry_list )
+string printIdxEntries( vector<IdxSigEntry> &idx_entry_list )
 {
     vector<IdxSigEntry>::const_iterator iter;
 
     //cout << "this is printIdxEntries" << endl;
 
+    ostringstream showstr;
     for ( iter = idx_entry_list.begin();
             iter != idx_entry_list.end();
             iter++ )
     {
-        cout << "[" << iter->original_chunk << "]" 
+        showstr << "[" << iter->original_chunk << "]" 
              << "[" << iter->new_chunk_id << "]" << endl;
-        cout << "----Logical Offset----" << endl;
+        showstr << "----Logical Offset----" << endl;
         iter->logical_offset.show();
         
         vector<IdxSigUnit>::const_iterator iter2;
 
-        cout << "----Length----" << endl;
+        showstr << "----Length----" << endl;
         for (iter2 = iter->length.begin();
                 iter2 != iter->length.end();
                 iter2++ )
@@ -30,15 +31,16 @@ void printIdxEntries( vector<IdxSigEntry> &idx_entry_list )
             iter2->show(); 
         }
 
-        cout << "----Physical Offset----" << endl;
+        showstr << "----Physical Offset----" << endl;
         for (iter2 = iter->physical_offset.begin();
                 iter2 != iter->physical_offset.end();
                 iter2++ )
         {
             iter2->show(); 
         }
-        cout << "-------------------------------------" << endl;
+        showstr << "-------------------------------------" << endl;
     }
+    return showstr.str();
 }
 
 vector<off_t> buildDeltas( vector<off_t> seq ) 
@@ -413,9 +415,12 @@ void IdxSigEntryList::append( IdxSigEntryList other )
     append(other.list);
 }
 
-void IdxSigEntryList::show()
+string 
+IdxSigEntryList::show()
 {
-    printIdxEntries(list);
+    ostringstream showstr;
+    showstr << printIdxEntries(list);
+    return showstr.str();
 }
 
 
@@ -747,24 +752,29 @@ int PatternUnit::size() const
     }
 }
 
-void PatternUnit::show() const
+string 
+PatternUnit::show() const
 {
     vector<off_t>::const_iterator iter;
-    cout << "( " ;
+    ostringstream showstr;
+    showstr << "( " ;
     for (iter = seq.begin();
             iter != seq.end();
             iter++ )
     {
-        cout << *iter << " ";
+        showstr << *iter << " ";
     }
-    cout << ") ^" << cnt << endl;
-
+    showstr << ") ^" << cnt << endl;
+    return showstr.str();
 }
 
-void IdxSigUnit::show() const
+string
+IdxSigUnit::show() const
 {
-    cout << init << " ... ";
-    PatternUnit::show();
+    ostringstream showstr;
+    showstr << init << " ... ";
+    showstr << PatternUnit::show();
+    return showstr.str();
 }
 
 off_t sumVector( vector<off_t> seq )

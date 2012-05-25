@@ -8,6 +8,7 @@
 #include <assert.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <sstream>
 #include "indexpb.h"
 
 using namespace std;
@@ -39,7 +40,7 @@ class PatternUnit {
         {}
         
         int size() const;
-        virtual void show() const;
+        virtual string show() const;
 };
 
 //This is used to describ a single repeating
@@ -48,7 +49,7 @@ class IdxSigUnit: public PatternUnit {
     public:
         off_t init; // the initial value of 
                     // logical offset, length, or physical offset
-        void show() const;
+        string show() const;
 
         header_t bodySize();
         string serialize();
@@ -71,7 +72,7 @@ class PatternStack {
         T top ();
         typename vector<T>::const_iterator begin() const;
         typename vector<T>::const_iterator end() const;
-        virtual void show();
+        virtual string show();
         int bodySize();
         string serialize();    
         void deSerialize( string buf );
@@ -85,24 +86,25 @@ template <class T>
 class SigStack: public PatternStack <T> 
 {
     public:
-        virtual void show()
+        virtual string show()
         {
             typename vector<T>::const_iterator iter;
-
+            ostringstream showstr;
             for ( iter = this->the_stack.begin();
                     iter != this->the_stack.end();
                     iter++ )
             {
                 vector<off_t>::const_iterator off_iter;
-                cout << iter->init << "- " ;
+                showstr << iter->init << "- " ;
                 for ( off_iter = (iter->seq).begin();
                         off_iter != (iter->seq).end();
                         off_iter++ )
                 {
-                    cout << *off_iter << ", ";
+                    showstr << *off_iter << ", ";
                 }
-                cout << "^" << iter->cnt << endl;
+                showstr << "^" << iter->cnt << endl;
             }
+            return showstr.str(); 
         }
         
         off_t getValByPos( int pos );
@@ -145,10 +147,12 @@ class Tuple {
             return (offset == length && offset > 0);
         }
 
-        void show() {
-            cout << "(" << offset 
+        string show() {
+            ostringstream showstr;
+            showstr << "(" << offset 
                 << ", " << length
                 << ", " << next_symbol << ")" << endl;
+            return showstr.str();
         }
 };
 
@@ -255,7 +259,7 @@ class IdxSigEntryList {
     public:
         void append(IdxSigEntryList other);
         void append(vector<IdxSigEntry> &other);
-        void show();
+        string show();
         void saveToFile(const char *filename);
         void saveToFile(const int fd);
         void readFromFile(char *filename);
@@ -268,7 +272,7 @@ class IdxSigEntryList {
         int bodySize();
 };
 
-void printIdxEntries( vector<IdxSigEntry> &idx_entry_list );
+string printIdxEntries( vector<IdxSigEntry> &idx_entry_list );
 vector<off_t> buildDeltas( vector<off_t> seq );
 
 template <class T>
@@ -427,16 +431,17 @@ PatternStack<T>::end() const
 }
 
 template <class T>
-void 
+string 
 PatternStack<T>::show()
 {
     typename vector<T>::const_iterator iter;
-    
+    ostringstream showstr;
+
     for ( iter = the_stack.begin();
             iter != the_stack.end();
             iter++ )
     {
-        iter->show();
+        showstr << iter->show();
         /*
         vector<off_t>::const_iterator off_iter;
         for ( off_iter = (iter->seq).begin();
@@ -448,6 +453,7 @@ PatternStack<T>::show()
         cout << "^" << iter->cnt << endl;
         */
     }
+    return showstr.str();
 }
 
 // pos has to be in the range
