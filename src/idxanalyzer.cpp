@@ -104,9 +104,14 @@ IdxSigEntryList IdxSignature::generateIdxSignature(
                                                      //stack_iter.size();
         //cout << "************End length" << endl;
 
+        vector<off_t>::iterator phystart, phyend;
+        phystart = physical_offset_delta.begin() + 
+                   (lstart - length_delta.begin());
+        phyend = physical_offset_delta.begin() +
+                 (lend - length_delta.begin());
         SigStack<IdxSigUnit> physical_offset_stack = 
             discoverSigPattern( 
-                    vector<off_t>(lstart, lend),
+                    vector<off_t>(phystart, phyend),
                     vector<off_t> (physical_offset.begin()+range_start,
                         physical_offset.begin()+range_end) );
 
