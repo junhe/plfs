@@ -777,9 +777,9 @@ off_t sumVector( vector<off_t> seq )
 
 inline bool isContain( off_t off, off_t offset, off_t length )
 {
-    ostringstream oss;
-    oss << "isContain(" << off << ", " << offset << ", " << length << ")" <<  endl;
-    mlog(IDX_WARN, "%s", oss.str().c_str());
+    //ostringstream oss;
+    //oss << "isContain(" << off << ", " << offset << ", " << length << ")" <<  endl;
+    //mlog(IDX_WARN, "%s", oss.str().c_str());
     return ( offset <= off && off < offset+length );
 }
 
@@ -789,10 +789,10 @@ inline bool isContain( off_t off, off_t offset, off_t length )
 // Let assume there's no overwrite TODO:  this
 bool IdxSigEntry::contains( off_t offset, int &pos )
 {
-    mlog(IDX_WARN, "EEEntering %s", __FUNCTION__);
-    ostringstream oss;
-    oss << show() << "LOOKING FOR:" << offset << endl;
-    mlog(IDX_WARN, "%s", oss.str().c_str());
+    //mlog(IDX_WARN, "EEEntering %s", __FUNCTION__);
+    //ostringstream oss;
+    //oss << show() << "LOOKING FOR:" << offset << endl;
+    //mlog(IDX_WARN, "%s", oss.str().c_str());
 
     vector<IdxSigUnit>::const_iterator iter;
     vector<off_t>::const_iterator iiter;
@@ -831,21 +831,21 @@ bool IdxSigEntry::contains( off_t offset, int &pos )
 
     ///////////////////////////////////////////////////
     if ( offset < logical_offset.init ) {
-        mlog(IDX_WARN, "offset < init");
+        //mlog(IDX_WARN, "offset < init");
         return false;
     }
 
     if (  logical_offset.seq.size() * logical_offset.cnt <= 1 ) {
         // Only one offset in logical_offset, just check that one
         // Note that 5, [2]^1 and 5, []^0 are the same, they represent only 5
-        mlog(IDX_WARN, "check the only one");
+        //mlog(IDX_WARN, "check the only one");
         pos = 0;
         return isContain(offset, logical_offset.init, length.getValByPos(0));
     }
 
     if ( logical_offset.init == offset ) {
         //check the init separately from the matrix
-        mlog(IDX_WARN, "Hit the init");
+        //mlog(IDX_WARN, "Hit the init");
         pos = 0;
         return isContain(offset, logical_offset.init, length.getValByPos(0));
     }
@@ -856,9 +856,9 @@ bool IdxSigEntry::contains( off_t offset, int &pos )
     off_t col = roffset % delta_sum; 
     off_t row = roffset / delta_sum; 
 
-    oss.str("");
-    oss<<"col:"<<col<<"row:"<<row;
-    mlog(IDX_WARN, "%s", oss.str().c_str());
+    //oss.str("");
+    //oss<<"col:"<<col<<"row:"<<row;
+    //mlog(IDX_WARN, "%s", oss.str().c_str());
 
     //cout << "col:" << col << endl;
     //cout << "row:" << row << endl;
@@ -876,7 +876,7 @@ bool IdxSigEntry::contains( off_t offset, int &pos )
         off_t off = logical_offset.getValByPos(last_pos);
         off_t len = length.getValByPos(last_pos);
         pos = last_pos;
-        mlog(IDX_WARN, "check the last %d", pos);
+        //mlog(IDX_WARN, "check the last %d", pos);
         return isContain(offset, off, len);
     } else {
         int chk_pos;
@@ -897,11 +897,11 @@ bool IdxSigEntry::contains( off_t offset, int &pos )
         int chkpos_in_logical_off = chkpos_in_matric + 1;
 
         pos = chkpos_in_logical_off;
-        oss.str("");
-        oss << "Inside." <<  "col_pos:" << col_pos << endl;
-        oss << "chkpos_in_matric:" << chkpos_in_matric << endl;
-        oss << "chkpos_in_logical_off:" << chkpos_in_logical_off << endl;
-        mlog(IDX_WARN, "%s", oss.str().c_str());
+        //oss.str("");
+        //oss << "Inside." <<  "col_pos:" << col_pos << endl;
+        //oss << "chkpos_in_matric:" << chkpos_in_matric << endl;
+        //oss << "chkpos_in_logical_off:" << chkpos_in_logical_off << endl;
+        //mlog(IDX_WARN, "%s", oss.str().c_str());
         return isContain(offset, 
                          logical_offset.getValByPos(chkpos_in_logical_off),
                          length.getValByPos(chkpos_in_logical_off));

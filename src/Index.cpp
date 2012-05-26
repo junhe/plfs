@@ -1306,7 +1306,14 @@ int Index::globalComplexLookup( int *fd, off_t *chunk_off, size_t *chunk_len,
     *hole = false;
     *chunk_id = (pid_t)-1;
 
-    COMPLEXMAP_ITR itr;
+    COMPLEXMAP_ITR itr, donot_itr;
+
+    donot_itr = global_complex_index.lower_bound(logical);
+    if ( global_complex_index.size() == 0 ) {
+        *fd = -1;
+        *chunk_len = 0;
+        return 0;
+    }
 
     // TODO: do it smarter, use the pattern.
     for ( itr =  global_complex_index.begin();
