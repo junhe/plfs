@@ -1313,23 +1313,23 @@ int Index::globalComplexLookup( int *fd, off_t *chunk_off, size_t *chunk_len,
           itr != global_complex_index.end();
           itr++ )
     {
-        ostringstream oss;
-        oss << "Looking for offset:" << logical 
-            << " Length:" << " at"
-            << itr->second.show() ;
-        mlog(IDX_WARN, "%s", oss.str().c_str());
-        oss.clear();
+        //ostringstream oss;
+        //oss << "Looking for offset:" << logical 
+        //    << " Length:" << " at"
+        //    << itr->second.show() ;
+        //mlog(IDX_WARN, "%s", oss.str().c_str());
+        //oss.clear();
         int pos = -1;
         if ( itr->second.contains( logical, pos ) ) {
-            oss << " !!!!!!!!Found at pos:" << pos << endl; 
-            mlog(IDX_WARN, "%s", oss.str().c_str());
+            //oss << " !!!!!!!!Found at pos:" << pos << endl; 
+            //mlog(IDX_WARN, "%s", oss.str().c_str());
             return chunkFound( fd, chunk_off, chunk_len,
                     logical - itr->second.logical_offset.getValByPos(pos), path,
                     chunk_id, &itr->second, pos );
-        } else {
-            oss << "Not Found!" << endl;
-            mlog(IDX_WARN, "%s", oss.str().c_str());
-        }
+        } //else {
+            //oss << "Not Found!" << endl;
+            //mlog(IDX_WARN, "%s", oss.str().c_str());
+        //}
 
     }
 
