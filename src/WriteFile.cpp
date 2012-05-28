@@ -360,6 +360,8 @@ int WriteFile::openIndex( pid_t pid ) {
     return ret;
 }
 
+// Something to do when closing a index file.
+// This is called at the destruction of WriteFile
 int WriteFile::closeIndex( )
 {
     int ret = 0;
@@ -373,6 +375,7 @@ int WriteFile::closeIndex( )
     return ret;
 }
 
+// Close all file of this WriteFile
 // returns 0 or -errno
 int WriteFile::Close()
 {
@@ -391,6 +394,8 @@ int WriteFile::Close()
     return ( failures ? -EIO : 0 );
 }
 
+// Entry: init---(del)---offset------------init+length
+// Entry: init------------init+length
 // returns 0 or -errno
 int WriteFile::truncate( off_t offset )
 {
@@ -436,7 +441,12 @@ int WriteFile::openFile( string physicalpath, mode_t mode )
     umask(old_mode);
     return ( fd >= 0 ? fd : -errno );
 }
-
+// If a file is truncated, we close and reopen the index
+// file. and call index->resetPhysicalOffsets() to let
+// Index know the current file pointer of data files reset to 0
+// Then close and open data files. So the file pointers
+// are actually reset to the start.
+//
 // we call this after any calls to f_truncate
 // if fuse::f_truncate is used, we will have open handles that get messed up
 // in that case, we need to restore them

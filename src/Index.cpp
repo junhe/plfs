@@ -351,6 +351,9 @@ Index::unlock( const char *function )
     Util::MutexUnlock( &fd_mux, function );
 }
 
+
+// reset the current offset of each chunk to the start.
+// so the truncate writes can start from start.
 int
 Index::resetPhysicalOffsets()
 {
