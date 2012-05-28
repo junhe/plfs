@@ -24,6 +24,14 @@ OpenFd {
     int writers;
 };
 
+
+enum WriteType {
+    SINGLE_HOST_WRITE,
+    SIMPLE_FORMULA_WRITE,
+};
+
+
+
 class WriteFile : public Metadata
 {
     public:
@@ -87,7 +95,9 @@ class WriteFile : public Metadata
         size_t max_writers;
         // Keeps track of writes for flush of index
         int write_count;
-        IndexEntryType index_type; //what type of index is used
+        IndexEntryType index_type; //what type of index 
+                                   //is used when writing data
+                                   //TODO:should be controled by .plfsrc
 };
 
 #endif

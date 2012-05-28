@@ -46,6 +46,9 @@ void WriteFile::setSubdirPath (string p)
     this->subdir_path     = p;
 }
 
+
+// From here, we can know that a WriteFile has only a index
+// with it. 
 WriteFile::~WriteFile()
 {
     mlog(WF_DAPI, "Delete self %s", container_path.c_str() );
@@ -59,7 +62,8 @@ WriteFile::~WriteFile()
     pthread_mutex_destroy( &index_mux );
 }
 
-
+// sync file in the file system level. This has nothing
+// to do with the logical bufferes.
 int WriteFile::sync()
 {
     int ret = 0;
@@ -83,6 +87,7 @@ int WriteFile::sync()
     return ret;
 }
 
+// Flush a certain process's file, same as sync() 
 int WriteFile::sync( pid_t pid )
 {
     int ret=0;
@@ -109,6 +114,8 @@ int WriteFile::sync( pid_t pid )
 
 
 // returns -errno or number of writers
+// A writer is a process who writes data. This function is called
+// when WriteFile::write can not find file descriptor for a PID.
 int WriteFile::addWriter( pid_t pid, bool child )
 {
     int ret = 0;
@@ -206,6 +213,7 @@ struct OpenFd *WriteFile::getFd( pid_t pid ) {
     return ofd;
 }
 
+// Close a FD and clear some record
 int WriteFile::closeFd( int fd )
 {
     map<int,string>::iterator paths_itr;
@@ -220,6 +228,7 @@ int WriteFile::closeFd( int fd )
 }
 
 // returns -errno or number of writers
+// remove a writing process and clean up structures. 
 int
 WriteFile::removeWriter( pid_t pid )
 {

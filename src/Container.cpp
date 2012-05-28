@@ -865,7 +865,9 @@ Container::aggregateIndices(const string& path, Index *index)
     }
 
     mlog(CON_DAPI, "----Number of index types: %d", indextypes.size());
-    assert(indextypes.size() == 1); //can only have one index type and only one
+    //assert(indextypes.size() == 1); //can only have one index type and only one
+    if (indextypes.size() != 1) 
+        return -1;
     mlog(CON_DCOMMON, "before calling indexTaskManager");
     ret=indexTaskManager(tasks,index,path);
     return ret;
