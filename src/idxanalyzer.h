@@ -9,7 +9,6 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <sstream>
-#include "indexpb.h"
 #include "mlogfacs.h"
 
 using namespace std;
@@ -257,18 +256,12 @@ class IdxSigEntry {
 class IdxSigEntryList {
     public:
         vector<IdxSigEntry> list;
-        idxfile::EntryList pb_list;
 
     public:
         void append(IdxSigEntryList other);
         void append(vector<IdxSigEntry> &other);
         string show();
-        void saveToFile(const char *filename);
         void saveToFile(const int fd);
-        void readFromFile(char *filename);
-        void siglistToPblist(vector<IdxSigEntry> &slist,
-                idxfile::EntryList &pblist);
-        void siglistToPblist();
         void clear();
         string serialize();
         void deSerialize(string buf);

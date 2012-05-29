@@ -421,59 +421,8 @@ void idxSigUnit2PBSigUnit( const IdxSigUnit &iunit, idxfile::SigUnit *pbunit )
     pbunit->set_cnt(iunit.cnt);
 }
 
-void IdxSigEntryList::siglistToPblist(vector<IdxSigEntry> &slist,
-        idxfile::EntryList &pblist)
-{
-    //read out every entry in slist and put it to pblist
-    vector<IdxSigEntry>::iterator iter;
-
-    for ( iter = slist.begin();
-            iter != slist.end();
-            iter++)
-    {
-        idxfile::Entry *fentry = pblist.add_entry();
-        fentry->set_proc( (*iter).original_chunk );
-        idxfile::SigUnit *su = fentry->mutable_logical_offset();
-        idxSigUnit2PBSigUnit( (*iter).logical_offset, su );
-
-        //length
-        vector<IdxSigUnit>::const_iterator iter2;
-        for ( iter2 = (*iter).length.begin();
-                iter2 != (*iter).length.end();
-                iter2++ )
-        {
-            idxfile::SigUnit *su = fentry->add_length();
-            idxSigUnit2PBSigUnit( (*iter2), su);
-        }
-
-        //physical offset
-        for ( iter2 = (*iter).length.begin();
-                iter2 != (*iter).length.end();
-                iter2++ )
-        {
-            idxfile::SigUnit *su = fentry->add_physical_offset();
-            idxSigUnit2PBSigUnit( (*iter2), su);
-        }
-    }
-}
-
-void IdxSigEntryList::siglistToPblist()
-{
-    siglistToPblist(list, pb_list);
-}
 
 
-void IdxSigEntryList::saveToFile(const char *filename)
-{
-    siglistToPblist();
-    fstream output(filename, ios::out | ios::trunc | ios::binary);
-    if ( !pb_list.SerializeToOstream(&output) ) {
-        cerr<<"failed to write to myfile."<<endl;
-    } else {
-        cout<<"Write to myfile: OK"<<endl;
-    }
-    output.close();
-}
 
 void IdxSigEntryList::saveToFile(const int fd)
 {
@@ -483,21 +432,10 @@ void IdxSigEntryList::saveToFile(const int fd)
     }
 }
 
-void IdxSigEntryList::readFromFile(char *filename)
-{
-    fstream input(filename, ios::in | ios::binary);
-    if ( !input ) {
-        cerr << "can not open my file.\n";
-    } else if ( !pb_list.ParseFromIstream(&input) ) {
-        cerr << "failed to parse from myfile\n";
-    }
-    input.close();
-}
 
 void IdxSigEntryList::clear()
 {
     list.clear();
-    pb_list.Clear();
 }
 
 
