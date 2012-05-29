@@ -326,6 +326,8 @@ Index::init( string physical )
     last_offset     = 0;
     total_bytes     = 0;
     hostIndex.clear();
+    complexIndexBuf.clear();
+    global_complex_index.clear();
     global_index.clear();
     chunk_map.clear();
     pthread_mutex_init( &fd_mux, NULL );
@@ -1450,6 +1452,7 @@ int Index::globalLookup( int *fd, off_t *chunk_off, size_t *chunk_len,
     return 0;
 }
 
+// TODO: add my data structures in
 // we're just estimating the area of these stl containers which ignores overhead
     size_t
 Index::memoryFootprintMBs()
