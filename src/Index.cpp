@@ -299,13 +299,7 @@ ostream& operator <<(ostream& os, Index& ndx )
             os << itr->second << endl;
         }
     } else if (ndx.type == COMPLEXPATTERN) {
-        map<off_t,IdxSigEntry>::iterator itr;
-        for(itr =  ndx.global_complex_index.begin(); 
-            itr != ndx.global_complex_index.end(); 
-            itr++) 
-        {
-            os << itr->second << endl;
-        }
+        os << ndx.global_complex_index_list.show() << endl;
     } else {
         mlog(IDX_ERR, "%s: unknown index type", __FUNCTION__);
     }
@@ -327,7 +321,8 @@ Index::init( string physical )
     total_bytes     = 0;
     hostIndex.clear();
     complexIndexBuf.clear();
-    global_complex_index.clear();
+    global_complex_index_list.clear();
+    global_complex_index_map.clear();
     global_index.clear();
     chunk_map.clear();
     pthread_mutex_init( &fd_mux, NULL );
@@ -630,8 +625,23 @@ int Index::readComplexIndex( string hostindex )
                         (unsigned long)chunk_map.size());
             }
             iter->new_chunk_id = known_chunks[iter->original_chunk];
-            global_complex_index.insert(
-                pair<off_t, IdxSigEntry> (iter->logical_offset.init, *iter) );
+        
+            global_complex_index_list.list.push_back(*iter);
+            
+            int lastinlist = global_complex_index_list.list.size() - 1;
+            int pos;
+            int total = iter->logical_offset.cnt 
+                        * iter->logical_offset.seq.size();
+            if ( total == 0 ) {
+                total = 1;
+            }
+            
+            for ( pos = 0 ; pos < total ; pos++ ) {
+                global_complex_index_map.insert(
+                    pair<off_t, int> 
+                    (iter->logical_offset.getValByPos(pos),
+                     lastinlist) );
+            }
         }
         
         //global_complex_index.append(tmp_list);
@@ -1311,39 +1321,47 @@ int Index::globalComplexLookup( int *fd, off_t *chunk_off, size_t *chunk_len,
     *hole = false;
     *chunk_id = (pid_t)-1;
 
-    COMPLEXMAP_ITR itr, donot_itr;
+    IdxSigEntry entry, previous;
+    COMPLEXMAP_ITR itr;
+    COMPLEXMAP_ITR prev = (COMPLEXMAP_ITR)NULL;
 
-    donot_itr = global_complex_index.lower_bound(logical);
-    if ( global_complex_index.size() == 0 ) {
+
+    itr = global_complex_index_map.lower_bound(logical);
+    
+    if ( global_complex_index_list.list.size() == 0 ) {
         *fd = -1;
         *chunk_len = 0;
         return 0;
     }
-
-    // TODO: do it smarter, use the pattern.
-    for ( itr =  global_complex_index.begin();
-          itr != global_complex_index.end();
-          itr++ )
-    {
-        //ostringstream oss;
-        //oss << "Looking for offset:" << logical 
-        //    << " Length:" << " at"
-        //    << itr->second.show() ;
-        //mlog(IDX_WARN, "%s", oss.str().c_str());
-        //oss.clear();
-        int pos = -1;
-        if ( itr->second.contains( logical, pos ) ) {
-            //oss << " !!!!!!!!Found at pos:" << pos << endl; 
-            //mlog(IDX_WARN, "%s", oss.str().c_str());
-            return chunkFound( fd, chunk_off, chunk_len,
-                    logical - itr->second.logical_offset.getValByPos(pos), path,
-                    chunk_id, &itr->second, pos );
-        } //else {
-            //oss << "Not Found!" << endl;
-            //mlog(IDX_WARN, "%s", oss.str().c_str());
-        //}
-
+    
+    if ( itr == global_complex_index_map.end() ) {
+        itr--;
     }
+
+    if ( itr != global_complex_index_map.begin() ) {
+        prev = itr;
+        prev--;
+    }
+   
+    entry = global_complex_index_list.list[itr->second];
+
+    int entry_pos = -1;
+    if ( entry.contains( logical, entry_pos ) ) {
+        return chunkFound( fd, chunk_off, chunk_len,
+                logical - entry.logical_offset.getValByPos(entry_pos), path,
+                chunk_id, &entry, entry_pos );
+    }
+
+    int previous_pos = -1;
+    if ( prev != (COMPLEXMAP_ITR)NULL ) {
+        previous = global_complex_index_list.list[prev->second];
+        if ( previous.contains( logical, previous_pos ) ) {
+            return chunkFound( fd, chunk_off, chunk_len,
+                    logical - previous.logical_offset.getValByPos(previous_pos), 
+                    path, chunk_id, &previous, previous_pos );
+        }
+    }
+
 
     //TODO: handle it...
     mlog(IDX_WARN, "%s in a hole. or off the end of the file", __FUNCTION__);

@@ -174,7 +174,12 @@ class Index : public Metadata
         //analysis is on this buffer.
         IdxSigEntryList complexIndexBuf; //this is used to hold the
                                          //recognized complex patterns
-        map< off_t, IdxSigEntry > global_complex_index;
+        
+        map< off_t, int > global_complex_index_map; // map from logical offset to its
+                                                    // position in global_complex_index_list
+        IdxSigEntryList global_complex_index_list;
+        
+
         IdxSignature complexIndexUtil;    //a tool class to analyze pattern
 
         // this is a global index made by aggregating multiple locals
@@ -206,6 +211,6 @@ class Index : public Metadata
 };
 
 #define MAP_ITR map<off_t,ContainerEntry>::iterator
-#define COMPLEXMAP_ITR map<off_t,IdxSigEntry>::iterator
+#define COMPLEXMAP_ITR map<off_t,int>::iterator
 
 #endif
