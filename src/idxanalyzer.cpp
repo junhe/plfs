@@ -408,21 +408,6 @@ IdxSigEntryList::show()
 
 
 
-void idxSigUnit2PBSigUnit( const IdxSigUnit &iunit, idxfile::SigUnit *pbunit )
-{
-    pbunit->set_init(iunit.init);
-    vector<off_t>::const_iterator iter;
-    for ( iter = iunit.seq.begin();
-            iter != iunit.seq.end();
-            iter++ )
-    {
-        pbunit->add_deltas(*iter);
-    }
-    pbunit->set_cnt(iunit.cnt);
-}
-
-
-
 
 void IdxSigEntryList::saveToFile(const int fd)
 {

@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <sstream>
+#include <stdint.h>
 #include "mlogfacs.h"
 
 using namespace std;
