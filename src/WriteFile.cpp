@@ -259,13 +259,16 @@ WriteFile::removeWriter( pid_t pid )
 int
 WriteFile::extend( off_t offset )
 {
+    mlog(WF_WARN, "HELL, %s is called", __FUNCTION__);
     // make a fake write
     if ( fds.begin() == fds.end() ) {
         return -ENOENT;
     }
     pid_t p = fds.begin()->first;
+    Util::MutexLock(   &index_mux , __FUNCTION__);
     index->addWrite( offset, 0, p, createtime, createtime );
     addWrite( offset, 0 );   // maintain metadata
+    Util::MutexUnlock( &index_mux, __FUNCTION__ );
     return 0;
 }
 
@@ -348,7 +351,6 @@ int WriteFile::openIndex( pid_t pid ) {
     } else {
         Util::MutexLock(&index_mux , __FUNCTION__);
         index = new Index(container_path, fd);
-        Util::MutexUnlock(&index_mux, __FUNCTION__);
         mlog(WF_DAPI, "In open Index path is %s",index_path.c_str());
         mlog(WF_WARN, "container_path is %s", container_path.c_str());
         mlog(WF_WARN, "index_path is %s", index_path.c_str());
@@ -356,6 +358,7 @@ int WriteFile::openIndex( pid_t pid ) {
         if(index_buffer_mbs) {
             index->startBuffering();
         }
+        Util::MutexUnlock(&index_mux, __FUNCTION__);
     }
     return ret;
 }
@@ -367,7 +370,6 @@ int WriteFile::closeIndex( )
     int ret = 0;
     Util::MutexLock(   &index_mux , __FUNCTION__);
     ret = index->flush();
-    index->flushComplexIndexBuf();
     ret = closeFd( index->getFd() );
     delete( index );
     index = NULL;
@@ -400,7 +402,9 @@ int WriteFile::Close()
 int WriteFile::truncate( off_t offset )
 {
     Metadata::truncate( offset );
+    Util::MutexLock(&index_mux , __FUNCTION__);
     index->truncateHostIndex( offset );
+    Util::MutexUnlock(&index_mux , __FUNCTION__);
     return 0;
 }
 
