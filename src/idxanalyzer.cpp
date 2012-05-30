@@ -90,7 +90,7 @@ IdxSigEntryList IdxSignature::generateIdxSignature(
 
         vector<off_t>::iterator lstart, lend;
         lstart = length_delta.begin() + range_start;
-        if ( length_delta.end() - (length_delta.begin() + range_end) > 0 ) {
+        if ( (length_delta.end() - length_delta.begin()) - range_end > 0 ) {
             lend = length_delta.begin() + range_end;
         } else {
             lend = length_delta.end();
@@ -224,8 +224,12 @@ SigStack<IdxSigUnit> IdxSignature::discoverSigPattern( vector<off_t> const &seq,
     if (! (seq.size() == orig.size()
             || seq.size() + 1 == orig.size() ) )
     {
+        ostringstream oss;
+        oss << "seq.size():" << seq.size()
+            << " orig.size():" << orig.size() << endl;
         mlog(IDX_ERR, "discoverSigPattern() needs to be used with "
-                "seq.size==orig.size or seq.size+1==orig.size" );
+                "seq.size==orig.size or seq.size+1==orig.size. \n %s", 
+                oss.str().c_str() );
         exit(-1);
     }
 
