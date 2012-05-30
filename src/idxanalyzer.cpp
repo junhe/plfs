@@ -370,11 +370,12 @@ Tuple IdxSignature::searchNeighbor( vector<off_t> const &seq,
     //cout << "------------------- I am in searchNeighbor() " << endl;
 
     //i goes left util the begin or reaching window size
-    int distance = 0;
     i = p_lookahead_win;
-    while ( i != seq.begin() && distance < win_size ) {
+    int remain = seq.end() - p_lookahead_win;
+    while ( i != seq.begin() 
+            && (p_lookahead_win - i) < win_size
+            && (p_lookahead_win - i) < remain ) {
         i--;
-        distance++;
     }
     //termination: i == seq.begin() or distance == win_size
 
