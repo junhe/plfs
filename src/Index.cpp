@@ -1317,7 +1317,9 @@ int Index::globalComplexLookup( int *fd, off_t *chunk_off, size_t *chunk_len,
         string& path, bool *hole, pid_t *chunk_id,
         off_t logical )
 {
-    mlog(IDX_WARN, "Entering %s", __FUNCTION__);
+    ostringstream oss;
+    oss<<logical;
+    mlog(IDX_WARN, "Entering %s, LookingFor:%s.", __FUNCTION__, oss.str().c_str());
     *hole = false;
     *chunk_id = (pid_t)-1;
 
