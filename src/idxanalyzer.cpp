@@ -97,14 +97,18 @@ IdxSigEntryList IdxSignature::generateIdxSignature(
         //cout << stack_iter->init << " " ;
         IdxSigEntry idx_entry;
         range_end = range_start + stack_iter->size();
+        mlog(IDX_WARN, "range_end:%d, logical_offset.size():%d",
+                range_end, logical_offset.size());
+        assert( range_end <= logical_offset.size() );
 
-        vector<off_t>::iterator lstart, lend;
+        vector<off_t>::iterator lstart, lend; //iterator used for length_delta
         lstart = length_delta.begin() + range_start;
-        if ( (length_delta.end() - length_delta.begin()) - range_end > 0 ) {
-            lend = length_delta.begin() + range_end;
+        if ( range_end == length.end() - length.begin() ) {
+            lend = length_delta.begin() + range_end - 1;
         } else {
-            lend = length_delta.end();
+            lend = length_delta.begin() + range_end;
         }
+        
         SigStack<IdxSigUnit> length_stack = 
             discoverSigPattern( 
                     vector<off_t> (lstart, lend),
