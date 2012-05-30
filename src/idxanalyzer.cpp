@@ -343,7 +343,7 @@ SigStack<IdxSigUnit> IdxSignature::discoverSigPattern( vector<off_t> const &seq,
     if ( pattern_stack.size() != orig.size() ) {
         ostringstream oss;
         oss<< "pattern_stack.size() != orig.size() in"
-               << __FUNCTION__ << pattern_stack.size(),
+               << __FUNCTION__ << pattern_stack.size() <<
                << "," << orig.size() << endl;
         oss << pattern_stack.show() << endl;
         vector<off_t>::const_iterator it;
