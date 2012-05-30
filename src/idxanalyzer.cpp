@@ -339,6 +339,13 @@ SigStack<IdxSigUnit> IdxSignature::discoverSigPattern( vector<off_t> const &seq,
 
         pattern_stack.push(pu); 
     }
+    
+    if ( pattern_stack.size() != orig.size() ) {
+        mlog(IDX_ERR, "pattern_stack.size() != orig.size() in"
+                " %s. %d!=%d", __FUNCTION__, pattern_stack.size(),
+                orig.size());
+        exit(-1);
+    }
 
     return pattern_stack;
 }
