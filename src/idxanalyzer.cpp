@@ -341,18 +341,20 @@ SigStack<IdxSigUnit> IdxSignature::discoverSigPattern( vector<off_t> const &seq,
     }
     
     if ( pattern_stack.size() != orig.size() ) {
-        mlog(IDX_ERR, "pattern_stack.size() != orig.size() in"
-                " %s. %d!=%d", __FUNCTION__, pattern_stack.size(),
-                orig.size());
-        cout << pattern_stack.show() << endl;
+        ostringstream oss;
+        oss<< "pattern_stack.size() != orig.size() in"
+               << __FUNCTION__ << pattern_stack.size(),
+               << "," orig.size() << endl;
+        oss << pattern_stack.show() << endl;
         vector<off_t>::const_iterator it;
         for ( it = orig.begin();
               it != orig.end();
               it++ )
         {
-            cout << *it << ",";
+            oss << *it << ",";
         }
-        cout << endl;
+        oss << endl;
+        mlog(IDX_ERR, "%s", oss.str().c_str());
         exit(-1);
     }
 
