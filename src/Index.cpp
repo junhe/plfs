@@ -1720,7 +1720,9 @@ Index::flushComplexIndexBuf()
     flushHostIndexBuf();
     
     complexIndexBuf.saveToFile(fd);
-
+    ostringstream oss;
+    oss << complexIndexBuf.show();
+    mlog(IDX_WARN, "%s", oss.str().c_str());
     complexIndexBuf.clear();  
 }
 

@@ -54,6 +54,7 @@ IdxSigEntryList IdxSignature::generateIdxSignature(
     IdxSigEntryList entrylist;
     vector<HostEntry>::const_iterator iter;
     
+    ostringstream oss;
     for ( iter = entry_buf.begin() ; 
             iter != entry_buf.end() ;
             iter++ )
@@ -63,9 +64,11 @@ IdxSigEntryList IdxSignature::generateIdxSignature(
         }
 
         logical_offset.push_back(iter->logical_offset);
+        oss << iter->logical_offset << ",";
         length.push_back(iter->length);
         physical_offset.push_back(iter->physical_offset);
     }
+    mlog(IDX_WARN, "%s", oss.str().c_str());
     
     if ( !(logical_offset.size() == length.size() &&
             length.size() == physical_offset.size()) ) {
