@@ -1497,7 +1497,9 @@ Index::addWrite( off_t offset, size_t length, pid_t pid,
         double begin_timestamp, double end_timestamp )
 {
     Metadata::addWrite( offset, length );
-
+    ostringstream oss;
+    oss << "addWrite:" << offset << ","<< length << endl;
+    mlog(IDX_WARN, "%s", oss.str().c_str());
     // check whether incoming abuts with last and we want to compress
     if ( type == SINGLEHOST && 
          compress_contiguous && !hostIndex.empty() &&

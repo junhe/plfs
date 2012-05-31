@@ -25,12 +25,15 @@ vector<off_t> buildDeltas( vector<off_t> seq )
 {
     vector<off_t>::iterator it;
     vector<off_t> deltas;
+    ostringstream oss;
     for ( it = seq.begin() ; it != seq.end() ; it++ )
     {
         if ( it > seq.begin() ) {
             deltas.push_back( *it - *(it-1) );
+            oss << (*it - *(it-1)) << "-";
         }
     }
+    mlog(IDX_WARN, "deltas:%s", oss.str().c_str());
     //cout << "in builddeltas: " << seq.size() << " " << deltas.size() << endl; 
     return deltas;
 }
