@@ -35,6 +35,7 @@ class IndexFileInfo
         //bool operator<(IndexFileInfo d1);
         double timestamp;
         string hostname;
+        IndexEntryType type;
         pid_t  id;
 };
 

@@ -131,6 +131,8 @@ IndexFileInfo::listToStream(vector<IndexFileInfo> &list,int *bytes)
     for(itr=list.begin(); itr!=list.end(); itr++) {
         (*bytes)+=sizeof(double);
         (*bytes)+=sizeof(pid_t);
+        // IndexEntryType
+        (*bytes)+=sizeof(IndexEntryType);
         (*bytes)+=sizeof(int);
         // Null terminating char
         (*bytes)+=(*itr).hostname.size()+1;
@@ -149,6 +151,7 @@ IndexFileInfo::listToStream(vector<IndexFileInfo> &list,int *bytes)
     for(itr=list.begin(); itr!=list.end(); itr++) {
         double timestamp = (*itr).timestamp;
         pid_t  id = (*itr).id;
+        IndexEntryType type = (*itr).type;
         // Putting the plus one for the null terminating  char
         // Try using the strcpy function
         int len =(*itr).hostname.size()+1;
@@ -156,6 +159,7 @@ IndexFileInfo::listToStream(vector<IndexFileInfo> &list,int *bytes)
         char *hostname = strdup((*itr).hostname.c_str());
         buf_pos=memcpy_helper(buf_pos,&timestamp,sizeof(double));
         buf_pos=memcpy_helper(buf_pos,&id,sizeof(pid_t));
+        buf_pos=memcpy_helper(buf_pos,&type,sizeof(IndexEntryType));
         buf_pos=memcpy_helper(buf_pos,&len,sizeof(int));
         buf_pos=memcpy_helper(buf_pos,(void *)hostname,len);
         free(hostname);
@@ -178,6 +182,7 @@ IndexFileInfo::streamToList(void *addr)
         double *ts_ptr;
         pid_t *id_ptr;
         int *hnamesz_ptr;
+        IndexEntryType *type_ptr; 
         char *hname_ptr;
         string hostname;
         IndexFileInfo index_dropping;
@@ -187,6 +192,9 @@ IndexFileInfo::streamToList(void *addr)
         id_ptr=(pid_t *)addr;
         index_dropping.id=id_ptr[0];
         addr = (void *)&id_ptr[1];
+        type_ptr = (IndexEntryType *)addr;
+        index_dropping.type = type_ptr[0];
+        addr = (void *)&type_ptr[1];
         hnamesz_ptr=(int *)addr;
         hn_sz=hnamesz_ptr[0];
         addr= (void *)&hnamesz_ptr[1];
