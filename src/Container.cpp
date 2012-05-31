@@ -538,6 +538,15 @@ Container::indices_from_subdir(string path, vector<IndexFileInfo> &indices)
         // ugh, this should be encapsulated.  if we ever change format
         // of index filename, this will break.
         Util::tokenize(itr->c_str(),".",tokens);
+        
+        if ( Util::istype(*itr, COMPLEXINDEXPREFIX) == true ) {
+            index_dropping.type = COMPLEXPATTERN;
+        } else if ( Util::istype(*itr, INDEXPREFIX) == true ) {
+            index_dropping.type = SINGLEHOST;
+        } else {
+            index_dropping.type = UNKNOWNTYPE;
+        }
+        
         str_time_stamp+=tokens[2];
         str_time_stamp+=".";
         str_time_stamp+=tokens[3];
