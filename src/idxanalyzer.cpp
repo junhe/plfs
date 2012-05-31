@@ -442,6 +442,11 @@ void IdxSigEntryList::append( IdxSigEntryList other )
     append(other.list);
 }
 
+void IdxSigEntryList::append( IdxSigEntry other ) 
+{
+    list.push_back(other);
+}
+
 string 
 IdxSigEntryList::show()
 {

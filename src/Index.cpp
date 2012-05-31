@@ -480,15 +480,31 @@ Index::merge(Index *other)
     for(itr = other->chunk_map.begin(); itr != other->chunk_map.end(); itr++) {
         chunk_map.push_back(*itr);
     }
-    // copy over the other's container entries but shift the index
-    // so they index into the new larger chunk_map
-    map<off_t,ContainerEntry>::const_iterator ce_itr;
-    map<off_t,ContainerEntry> *og = &(other->global_index);
-    for( ce_itr = og->begin(); ce_itr != og->end(); ce_itr++ ) {
-        ContainerEntry entry = ce_itr->second;
-        // Don't need to shift in the case of flatten on close
-        entry.id += chunk_map_shift;
-        insertGlobal(&entry);
+
+    if ( type == SINGLEHOST ) {
+        // copy over the other's container entries but shift the index
+        // so they index into the new larger chunk_map
+        map<off_t,ContainerEntry>::const_iterator ce_itr;
+        map<off_t,ContainerEntry> *og = &(other->global_index);
+        for( ce_itr = og->begin(); ce_itr != og->end(); ce_itr++ ) {
+            ContainerEntry entry = ce_itr->second;
+            // Don't need to shift in the case of flatten on close
+            entry.id += chunk_map_shift;
+            insertGlobal(&entry);
+        }
+    } else if ( type == COMPLEXPATTERN ) {
+        vector<IdxSigEntry>::iterator oth_entry;
+        for ( oth_entry = other->global_complex_index_list.list.begin();
+              oth_entry != other->global_complex_index_list.list.end();
+              oth_entry++ )
+        {
+            IdxSigEntry entry = *oth_entry;
+            entry.new_chunk_id += chunk_map_shift;
+            insertGlobal( &entry );  
+        }        
+    } else {
+        mlog(IDX_ERR, "In %s. Unknown type", __FUNCTION__);
+        exit(-1);
     }
 }
 
@@ -633,7 +649,7 @@ int Index::readComplexIndex( string hostindex )
                         (unsigned long)chunk_map.size());
             }
             iter->new_chunk_id = known_chunks[iter->original_chunk];
-        
+       
             global_complex_index_list.list.push_back(*iter);
             
             int lastinlist = global_complex_index_list.list.size() - 1;
@@ -779,6 +795,46 @@ int Index::readIndex( string hostindex )
 // returns 0 or -errno
 int Index::global_from_stream(void *addr)
 {
+    if ( type == COMPLEXPATTERN ) {
+        mlog(IDX_WARN, "Entering %s. Type: ComplexPattern",
+                __FUNCTION__);
+        header_t list_body_size;
+        string header_and_body_buf;
+        IdxSigEntryList tmp_list;
+        
+        memcpy(&list_body_size, 0, sizeof(header_t));
+        appendToBuffer(header_and_body_buf, 0,
+                       sizeof(header_t)+list_body_size);
+        tmp_list.deSerialize(header_and_body_buf); 
+
+        vector<IdxSigEntry>::iterator iter; 
+        for ( iter = tmp_list.list.begin() ;
+              iter != tmp_list.list.end() ;
+              iter++ )
+        {
+            insertGlobalEntry(&(*iter));
+        }
+        
+        addr += header_and_body_buf.size(); //point to chunks
+        vector<string> chunk_paths;
+        Util::tokenize((char *)addr,"\n",chunk_paths); // might be inefficient...
+        for( size_t i = 0; i < chunk_paths.size(); i++ ) {
+            if(chunk_paths[i].size()<7) {
+                continue;    // WTF does <7 mean???
+            }
+            ChunkFile cf;
+            // we used to strip the physical path off in global_to_stream
+            // and add it back here.  See comment in global_to_stream for why
+            // we don't do that anymore
+            //cf.path = physical_path + "/" + chunk_paths[i];
+            cf.path = chunk_paths[i];
+            cf.fd = -1;
+            chunk_map.push_back(cf);
+        }
+        return 0;
+    }
+    
+    
     // first read the header to know how many entries there are
     size_t quant = 0;
     size_t *sarray = (size_t *)addr;
@@ -859,13 +915,37 @@ int Index::global_to_file(int fd)
 {
     void *buffer;
     size_t length;
-    int ret = global_to_stream(&buffer,&length);
-    if (ret==0) {
-        ret = Util::Writen(fd,buffer,length);
-        ret = ( (size_t)ret == length ? 0 : -errno );
-        free(buffer);
+    int ret;
+    if ( type == SINGLEHOST ) {
+        ret = global_to_stream(&buffer,&length);
+        if (ret==0) {
+            ret = Util::Writen(fd,buffer,length);
+            ret = ( (size_t)ret == length ? 0 : -errno );
+            free(buffer);
+        }    
+    } else if ( type == COMPLEXPATTERN ) {
+        string buf;
+        ret = global_to_stream( buf );
+        if (ret==0) {
+            ret = Util::Writen(fd,buf.c_str(),buf.size());
+            ret = ( (size_t)ret == length ? 0 : -errno );
+        }    
     }
     return ret;
+}
+
+
+int Index::global_to_stream( string &buf ) 
+{
+    buf = global_complex_index_list.serialize();
+    
+    ostringstream chunks;
+    for(unsigned i = 0; i < chunk_map.size(); i++ ) {
+        chunks << chunk_map[i].path << endl;
+    }
+    chunks << '\0'; // null term the file
+    appendToBuffer(buf, chunks.str().c_str(), chunks.str().size());
+    return 0;
 }
 
 // this writes a flattened in-memory global index to a memory address
@@ -874,6 +954,11 @@ int Index::global_to_file(int fd)
 int Index::global_to_stream(void **buffer,size_t *length)
 {
     int ret = 0;
+
+    mlog(IDX_DCOMMON, "Entring %s", __FUNCTION__);
+    assert( type == SINGLEHOST ); // this func can be called only 
+                                  // when type is singlehost
+
     // Global ?? or this
     size_t quant = global_index.size();
     //Check if we stopped buffering, if so return -1 and length of -1
@@ -1120,6 +1205,32 @@ Index::insertGlobalEntry( ContainerEntry *g_entry)
     return global_index.insert(
             pair<off_t,ContainerEntry>( g_entry->logical_offset,
                 *g_entry ) );
+}
+
+void Index::insertGlobalEntry( IdxSigEntry *g_entry)
+{
+    global_complex_index_list.append(*g_entry); 
+    
+    int lastinlist = global_complex_index_list.list.size() - 1;
+    int pos;
+    int total = g_entry->logical_offset.cnt 
+                * g_entry->logical_offset.seq.size();
+    if ( total == 0 ) {
+        total = 1;
+    }
+    
+    for ( pos = 0 ; pos < total ; pos++ ) {
+        global_complex_index_map.insert(
+            pair<off_t, int> 
+            (g_entry->logical_offset.getValByPos(pos),
+             lastinlist) );
+    }
+}
+
+int Index::insertGlobal( IdxSigEntry *g_entry)
+{
+    insertGlobalEntry(g_entry);
+    return 0;
 }
 
     int

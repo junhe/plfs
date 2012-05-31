@@ -274,6 +274,7 @@ class IdxSigEntryList {
 
     public:
         void append(IdxSigEntryList other);
+        void append(IdxSigEntry other);
         void append(vector<IdxSigEntry> &other);
         string show();
         void saveToFile(const int fd);

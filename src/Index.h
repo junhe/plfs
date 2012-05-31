@@ -123,6 +123,7 @@ class Index : public Metadata
                 off_t logical );
 
         int insertGlobal( ContainerEntry * );
+        int insertGlobal( IdxSigEntry *g_entry);
         void merge( Index *other);
         void truncate( off_t offset );
         int rewriteIndex( int fd );
@@ -133,6 +134,7 @@ class Index : public Metadata
         int global_to_file(int fd);
         int global_from_stream(void *addr);
         int global_to_stream(void **buffer,size_t *length);
+        int global_to_stream( string &buf );
         friend ostream& operator <<(ostream&, Index&); //TODO: make all my show() const
         // Added to get chunk path on write
         string index_path;
@@ -164,6 +166,7 @@ class Index : public Metadata
                 ContainerEntry *g_entry ,map<off_t,ContainerEntry>::iterator hint);
         pair<map<off_t,ContainerEntry>::iterator,bool> insertGlobalEntry(
                 ContainerEntry *g_entry);
+        void insertGlobalEntry( IdxSigEntry *g_entry);
         size_t splitEntry(ContainerEntry *,set<off_t> &,
                 multimap<off_t,ContainerEntry> &);
         void findSplits(ContainerEntry&,set<off_t> &);
