@@ -832,6 +832,7 @@ int Index::global_from_stream(void *addr)
             // we don't do that anymore
             //cf.path = physical_path + "/" + chunk_paths[i];
             cf.path = chunk_paths[i];
+            mlog(IDX_WARN, "chunk_paths:%s", cf.path.c_str());
             cf.fd = -1;
             chunk_map.push_back(cf);
         }
