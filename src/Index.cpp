@@ -802,10 +802,14 @@ int Index::global_from_stream(void *addr)
         string header_and_body_buf;
         IdxSigEntryList tmp_list;
         
-        memcpy(&list_body_size, 0, sizeof(header_t));
-        appendToBuffer(header_and_body_buf, 0,
+        memcpy(&list_body_size, addr, sizeof(header_t));
+
+        appendToBuffer(header_and_body_buf, addr,
                        sizeof(header_t)+list_body_size);
         tmp_list.deSerialize(header_and_body_buf); 
+        
+        mlog(IDX_WARN, "tttt%sttttt\n%s", 
+                __FUNCTION__, tmp_list.show().c_str());
 
         vector<IdxSigEntry>::iterator iter; 
         for ( iter = tmp_list.list.begin() ;
@@ -937,8 +941,11 @@ int Index::global_to_file(int fd)
 
 int Index::global_to_stream( string &buf ) 
 {
+    flushHostIndexBuf();    
     buf = global_complex_index_list.serialize();
-    
+    mlog(IDX_WARN, "%s: %s", __FUNCTION__, 
+            global_complex_index_list.show().c_str());
+   
     ostringstream chunks;
     for(unsigned i = 0; i < chunk_map.size(); i++ ) {
         chunks << chunk_map[i].path << endl;
@@ -956,8 +963,14 @@ int Index::global_to_stream(void **buffer,size_t *length)
     int ret = 0;
 
     mlog(IDX_DCOMMON, "Entring %s", __FUNCTION__);
-    assert( type == SINGLEHOST ); // this func can be called only 
-                                  // when type is singlehost
+    if ( type == COMPLEXPATTERN ) {
+        string buf;
+        global_to_stream(buf);
+        *buffer = calloc(1, buf.size());
+        memcpy( *buffer, buf.c_str(), buf.size() );
+        *length = buf.size();
+        return 0;
+    } 
 
     // Global ?? or this
     size_t quant = global_index.size();
