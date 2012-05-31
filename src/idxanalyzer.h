@@ -255,6 +255,7 @@ class IdxSigEntry {
         pid_t new_chunk_id;    //This is not serialized yet.
                                //it should only be serialized in
                                //the context of global complex index
+                               //Now serialized
         IdxSigUnit logical_offset;
         SigStack<IdxSigUnit> length;
         SigStack<IdxSigUnit> physical_offset;

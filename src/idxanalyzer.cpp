@@ -538,6 +538,7 @@ int IdxSigEntry::bodySize()
 {
     int totalsize = 0;
     totalsize += sizeof(original_chunk);
+    totalsize += sizeof(new_chunk_id);
     totalsize += sizeof(header_t) * 3; //the header size of the following 
     totalsize += logical_offset.bodySize();
     totalsize += length.bodySize();
@@ -556,6 +557,7 @@ string IdxSigEntry::serialize()
     //cout << "IdxSigEntry totalsize put in: " << totalsize << endl;
     appendToBuffer(buf, &totalsize, sizeof(totalsize));
     appendToBuffer(buf, &original_chunk, sizeof(original_chunk));
+    appendToBuffer(buf, &new_chunk_id, sizeof(new_chunk_id));
     //cout << "IdxSigEntry original_chunk put in: " << original_chunk << endl; 
     
     //this tmpbuf includes [data size][data]
@@ -586,6 +588,8 @@ void IdxSigEntry::deSerialize(string buf)
     
     readFromBuf(buf, &original_chunk, cur_start, sizeof(original_chunk));
     //cout << "IdxSigEntry id read out: " << id << endl; 
+    
+    readFromBuf(buf, &new_chunk_id, cur_start, sizeof(new_chunk_id));
    
     tmpbuf.clear();
     readFromBuf(buf, &datasize, cur_start, sizeof(datasize));
