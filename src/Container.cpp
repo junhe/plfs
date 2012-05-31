@@ -580,7 +580,8 @@ Container::parAggregateIndices(vector<IndexFileInfo>& index_list,
         // get Index Path doesn't work for because we use the hostname
         // for a hash to hostdir. We already have the hostdir
         string index_path = getIndexHostPath(path,current->hostname,
-                                             current->id,current->timestamp);
+                                             current->id,current->timestamp,
+                                             current->type);
         task.path = index_path;
         mlog(CON_DCOMMON, "Task push path %s",index_path.c_str());
         tasks.push_back(task);
@@ -887,6 +888,21 @@ Container::getIndexHostPath(const string& path,const string& host,
     ostringstream oss;
     oss.setf(ios::fixed,ios::floatfield);
     oss << path << "/" << INDEXPREFIX;
+    oss << ts << "." << host << "." << pid;
+    return oss.str();
+}
+
+string
+Container::getIndexHostPath(const string& path,const string& host,
+                            int pid, double ts, IndexEntryType type)
+{
+    ostringstream oss;
+    oss.setf(ios::fixed,ios::floatfield);
+    if ( type == SINGLEHOST ) {
+        oss << path << "/" << INDEXPREFIX;
+    } else if ( type == COMPLEXPATTERN ) {
+        oss << path << "/" << COMPLEXINDEXPREFIX;
+    } 
     oss << ts << "." << host << "." << pid;
     return oss.str();
 }
