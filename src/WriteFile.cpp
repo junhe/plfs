@@ -301,9 +301,6 @@ WriteFile::write(const char *buf, size_t size, off_t offset, pid_t pid)
         begin = Util::getTime();
         ret = written = ( size ? Util::Write( fd, buf, size ) : 0 );
         end = Util::getTime();
-        ostringstream oss;
-        oss << "WriteFile:" << offset << "," << size;
-        mlog(CON_EMERG, "%s", oss.str().c_str());
         // then the index
         if ( ret >= 0 ) {
             write_count++;
