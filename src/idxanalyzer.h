@@ -56,6 +56,9 @@ class IdxSigUnit: public PatternUnit {
         string serialize();
         void deSerialize(string buf);
         off_t getValByPos( int pos ) ;
+        bool append( IdxSigUnit &other );
+        bool isSeqRepeating();
+        void compressRepeats();
 };
 
 template <class T> // T can be PatternUnit or IdxSigUnit
@@ -77,7 +80,7 @@ class PatternStack {
         int bodySize();
         string serialize();    
         void deSerialize( string buf );
-    protected:
+        
         vector<T> the_stack;
 };
 

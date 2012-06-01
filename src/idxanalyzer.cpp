@@ -345,7 +345,30 @@ SigStack<IdxSigUnit> IdxSignature::discoverSigPattern( vector<off_t> const &seq,
 
         pattern_stack.push(pu); 
     }
+   
+    SigStack<IdxSigUnit> pattern_stack_compressed;
+    vector<IdxSigUnit>::iterator it;
+    for ( it = pattern_stack.the_stack.begin();
+          it != pattern_stack.the_stack.end();
+          it++ )
+    {
+        it->compressRepeats();
+        if (pattern_stack_compressed.the_stack.empty()) {
+            mlog(IDX_WARN, "Empty");
+            pattern_stack_compressed.the_stack.push_back(*it);
+        } else {
+            bool ret;
+            ret = pattern_stack_compressed.the_stack.back().append(*it);
+            if (ret == false) {
+                pattern_stack_compressed.the_stack.push_back(*it);
+            }
+        }
+        ostringstream oss;
+        oss << pattern_stack_compressed.show();
+        mlog(IDX_WARN, "%s", oss.str().c_str());
+    }
     
+
     if ( pattern_stack.size() != orig.size() ) {
         ostringstream oss;
         oss<< "pattern_stack.size() != orig.size() in"
@@ -365,7 +388,7 @@ SigStack<IdxSigUnit> IdxSignature::discoverSigPattern( vector<off_t> const &seq,
         exit(-1);
     }
 
-    return pattern_stack;
+    return pattern_stack_compressed;
 }
 
 Tuple IdxSignature::searchNeighbor( vector<off_t> const &seq,
@@ -498,6 +521,97 @@ header_t IdxSigUnit::bodySize()
                 + seq.size()*sizeof(off_t);
     return totalsize;
 }
+
+// check if this follows other and merge
+// has to satisfy two:
+// 1. seq are exactly the same OR (repeating and the same, size can be diff)
+//    (3,3,3)==(3,3,3)             (3,3,3)==(3), (3,3,3)==()
+// 2. AND init1 + sum of deltas == init2
+// return true if appended successfully
+bool IdxSigUnit::append( IdxSigUnit &other )
+{
+
+    mlog(IDX_WARN, "in %s", __FUNCTION__);
+
+    if ( this->isSeqRepeating() 
+        && other.isSeqRepeating() )
+    {
+        if ( this->size() > 1 && other.size() > 1 ) {
+            //case 1. both has size > 1
+            if ( this->seq[0] == other.seq[0] 
+                 && this->init + this->seq[0]*this->size() == other.init ) {
+                int newsize = this->size() + other.size();
+                this->seq.clear();
+                this->seq.push_back(other.seq[0]);
+                this->cnt = newsize;
+                return true;
+            } else {
+                return false;
+            }               
+        } else if ( this->size() == 1 && other.size() == 1 ) {
+            //case 2. both has size == 1
+            //definitely follows
+            this->seq.clear();
+            this->seq.push_back(other.init - this->init);
+            this->cnt = 2; //has two now
+            return true;
+        } else if ( this->size() == 1 && other.size() > 1 ) {
+            if ( other.init - this->init == other.seq[0] ) {
+                int newsize = this->size() + other.size();
+                this->seq.clear();
+                this->seq.push_back(other.seq[0]);
+                this->cnt = newsize;
+                return true;
+            } else {
+                return false;
+            }
+        } else if ( this->size() > 1 && other.size() == 1) {
+            if ( this->init + this->seq[0]*this->size() == other.init ) {
+                int newsize = this->size() + other.size();
+                off_t tmp = this->seq[0];
+                this->seq.clear();
+                this->seq.push_back(tmp);
+                this->cnt = newsize;
+                return true;
+            } else {
+                return false;
+            }
+        }
+    } else {
+        return false;  //TODO:should handle this case
+    }
+}
+
+// (3,3,3)^4 is repeating
+// (0,0)^0 is also repeating
+bool IdxSigUnit::isSeqRepeating()
+{
+    vector<off_t>::iterator it;
+    bool allrepeat = true;
+    for ( it = seq.begin();
+          it != seq.end();
+          it++ )
+    {
+        if ( it != seq.begin()
+             && *it != *(it-1) ) {
+            allrepeat = false;
+            break;
+        }
+    }
+    return allrepeat;
+}
+
+void IdxSigUnit::compressRepeats()
+{
+    
+    if ( isSeqRepeating() && size() > 1 ) {
+        cnt = size();
+        off_t tmp = seq[0];
+        seq.clear();
+        seq.push_back(tmp);
+    }
+}
+
 
 string 
 IdxSigUnit::serialize()
