@@ -309,7 +309,7 @@ WriteFile::write(const char *buf, size_t size, off_t offset, pid_t pid)
             // TODO: why is 1024 a magic number?
             int flush_count = 10240;
             if (write_count%flush_count==0) {
-                ret = index->flush();
+                ret = index->flushHostIndexBuf();
                 // Check if the index has grown too large stop buffering
                 if(index->memoryFootprintMBs() > index_buffer_mbs) {
                     index->stopBuffering();

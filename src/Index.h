@@ -93,6 +93,7 @@ class Index : public Metadata
         size_t memoryFootprintMBs();    // how much area the index is occupying
 
         void flushComplexIndexBuf();
+        void flushHostIndexBuf();
         int flush();
 
         off_t lastOffset( );
@@ -170,7 +171,6 @@ class Index : public Metadata
         size_t splitEntry(ContainerEntry *,set<off_t> &,
                 multimap<off_t,ContainerEntry> &);
         void findSplits(ContainerEntry&,set<off_t> &);
-        void flushHostIndexBuf();
         // where we buffer the host index (i.e. write)
         vector< HostEntry > hostIndex;
         
