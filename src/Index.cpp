@@ -1826,7 +1826,7 @@ Index::rewriteIndex( int fd )
 
 // Recognize the complex patterns in hostEntryBuf and
 // put the pattern to complexIndexBuf
-void
+int
 Index::flushHostIndexBuf()
 {
     mlog(IDX_WARN, "in %s", __FUNCTION__);
@@ -1842,6 +1842,7 @@ Index::flushHostIndexBuf()
 
         hostIndex.clear(); 
     }
+    return 0;
 }
 
 // flush complex index from buffer to index file

@@ -455,7 +455,7 @@ void IdxSigEntryList::append( vector<IdxSigEntry> &other )
             iter != other.end();
             iter++ )
     {
-        list.push_back(*iter);
+        append(*iter, true);
     }
 
 }
@@ -465,9 +465,18 @@ void IdxSigEntryList::append( IdxSigEntryList other )
     append(other.list);
 }
 
-void IdxSigEntryList::append( IdxSigEntry other ) 
+void IdxSigEntryList::append( IdxSigEntry other, bool compress ) 
 {
-    list.push_back(other);
+    if ( compress == false || list.empty() ) {
+        list.push_back(other);
+        return ;
+    } else {
+        if ( ! list.back().append(other) ) {
+            list.push_back(other);
+            return;
+        }
+    }
+    return;
 }
 
 string 
@@ -1076,7 +1085,28 @@ string IdxSigEntry::show()
     return showstr.str();
 }
 
+// At this time, we only append when:
+// For logical off, length and physical off, each of them 
+// has only one SigUnit
+bool IdxSigEntry::append(IdxSigEntry &other)
+{
+    IdxSigEntry tmpentry = *this;
 
+    if ( this->length.the_stack.size() == 1
+         && this->physical_offset.the_stack.size() == 1
+         && other.length.the_stack.size() == 1
+         && other.physical_offset.the_stack.size() == 1 
+         && tmpentry.logical_offset.append( other.logical_offset )
+         && tmpentry.length.the_stack[0].append( other.length.the_stack[0] )
+         && tmpentry.physical_offset.the_stack[0].append( 
+                                          other.physical_offset.the_stack[0] ) )
+    {
+        *this = tmpentry;
+        return true;
+    } else {
+        return false;
+    }
+}
 
 
 

@@ -93,7 +93,7 @@ class Index : public Metadata
         size_t memoryFootprintMBs();    // how much area the index is occupying
 
         void flushComplexIndexBuf();
-        void flushHostIndexBuf();
+        int flushHostIndexBuf();
         int flush();
 
         off_t lastOffset( );

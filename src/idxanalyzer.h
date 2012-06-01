@@ -267,6 +267,7 @@ class IdxSigEntry {
         int bodySize();
         bool contains( off_t offset, int &pos );
         string show();
+        bool append(IdxSigEntry &other);
         friend ostream& operator <<(ostream&, IdxSigEntry&);
 };
 
@@ -277,7 +278,7 @@ class IdxSigEntryList {
 
     public:
         void append(IdxSigEntryList other);
-        void append(IdxSigEntry other);
+        void append(IdxSigEntry other, bool compress=false);
         void append(vector<IdxSigEntry> &other);
         string show();
         void saveToFile(const int fd);
