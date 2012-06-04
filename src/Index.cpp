@@ -1376,6 +1376,7 @@ Index::setChunkFd( pid_t chunk_id, int fd )
 
 
 
+inline
 int
 Index::chunkFound( int *fd, off_t *chunk_off, size_t *chunk_len,
         off_t shift, string& path, pid_t *chunk_id,
@@ -1451,6 +1452,7 @@ Index::chunkFound( int *fd, off_t *chunk_off, size_t *chunk_len,
     return 0;
 }
 
+inline
 int Index::globalComplexLookup( int *fd, off_t *chunk_off, size_t *chunk_len,
         string& path, bool *hole, pid_t *chunk_id,
         off_t logical )
