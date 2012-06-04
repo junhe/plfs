@@ -57,7 +57,7 @@ class IdxSigUnit: public PatternUnit {
         header_t bodySize();
         string serialize();
         void deSerialize(string buf);
-        off_t getValByPos( int pos ) ;
+        off_t getValByPos( const int &pos ) ;
         bool append( IdxSigUnit &other );
         bool isSeqRepeating();
         void compressRepeats();
@@ -126,7 +126,7 @@ class SigStack: public PatternStack <T>
             return size;
         }
 
-        off_t getValByPos( int pos );
+        off_t getValByPos( const int &pos );
 };
 
 class Tuple {
@@ -267,7 +267,7 @@ class IdxSigEntry {
         string serialize();
         void deSerialize(string buf);
         int bodySize();
-        bool contains( off_t offset, int &pos );
+        bool contains( const off_t &offset, int &pos );
         string show();
         bool append(IdxSigEntry &other);
         friend ostream& operator <<(ostream&, IdxSigEntry&);
@@ -477,7 +477,7 @@ PatternStack<T>::show()
 // pos has to be in the range
 template <class T>
 inline
-off_t SigStack<T>::getValByPos( int pos ) 
+off_t SigStack<T>::getValByPos( const int &pos ) 
 {
     int cur_pos = 0; //it should always point to sigunit.init
 
@@ -511,7 +511,7 @@ off_t SigStack<T>::getValByPos( int pos )
 // Decide whether offset is in this IdxSigEntry
 // Let assume there's no overwrite TODO:  this
 inline
-bool IdxSigEntry::contains( off_t offset, int &pos )
+bool IdxSigEntry::contains( const off_t &offset, int &pos )
 {
     //mlog(IDX_WARN, "EEEntering %s", __FUNCTION__);
     //ostringstream oss;
@@ -521,7 +521,7 @@ bool IdxSigEntry::contains( off_t offset, int &pos )
     vector<IdxSigUnit>::const_iterator iter;
     vector<off_t>::const_iterator iiter;
     vector<off_t>::const_iterator off_delta_iter;
-    off_t &logical = offset;
+    const off_t &logical = offset;
 
     off_t delta_sum;
         
@@ -603,7 +603,6 @@ bool IdxSigEntry::contains( off_t offset, int &pos )
         //mlog(IDX_WARN, "check the last %d", pos);
         return isContain(offset, off, len);
     } else {
-        int chk_pos;
         off_t sum = 0;
         int col_pos;
         
@@ -616,25 +615,27 @@ bool IdxSigEntry::contains( off_t offset, int &pos )
         
         col_pos--;  //seq[0~col_pos] = sum
 
+        /*      
         int chkpos_in_matric = col_pos - 1
                                + row*logical_offset.seq.size() ;
         int chkpos_in_logical_off = chkpos_in_matric + 1;
-
-        pos = chkpos_in_logical_off;
+        */
+        
+        pos = col_pos + row*logical_offset.seq.size() ;
         //oss.str("");
         //oss << "Inside." <<  "col_pos:" << col_pos << endl;
         //oss << "chkpos_in_matric:" << chkpos_in_matric << endl;
         //oss << "chkpos_in_logical_off:" << chkpos_in_logical_off << endl;
         //mlog(IDX_WARN, "%s", oss.str().c_str());
         return isContain(offset, 
-                         logical_offset.getValByPos(chkpos_in_logical_off),
-                         length.getValByPos(chkpos_in_logical_off));
+                         logical_offset.getValByPos(pos),
+                         length.getValByPos(pos));
     }
 }
 
 // pos has to be in the range
 inline
-off_t IdxSigUnit::getValByPos( int pos  ) 
+off_t IdxSigUnit::getValByPos( const int &pos  ) 
 {
     off_t locval = 0;
     int mpos;
