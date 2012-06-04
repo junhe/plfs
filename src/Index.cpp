@@ -1384,10 +1384,10 @@ Index::chunkFound( int *fd, off_t *chunk_off, size_t *chunk_len,
     ChunkFile *cf_ptr = &(chunk_map[entry->new_chunk_id]); // typing shortcut
     *chunk_off  = entry->physical_offset.getValByPos(pos) + shift;
     *chunk_len  = entry->length.getValByPos(pos)  - shift;
-    ostringstream oss;
-    oss << "length.getValByPos(" << pos << ")=" << entry->length.getValByPos(pos)
-        << ", shift=" << shift << endl;
-    mlog(IDX_WARN, "%s", oss.str().c_str());
+    //ostringstream oss;
+    //oss << "length.getValByPos(" << pos << ")=" << entry->length.getValByPos(pos)
+    //    << ", shift=" << shift << endl;
+    //mlog(IDX_WARN, "%s", oss.str().c_str());
     *chunk_id   = entry->new_chunk_id;
     if( cf_ptr->fd < 0 ) {
         // I'm not sure why we used to open the chunk file here and
@@ -1455,9 +1455,6 @@ int Index::globalComplexLookup( int *fd, off_t *chunk_off, size_t *chunk_len,
         string& path, bool *hole, pid_t *chunk_id,
         off_t logical )
 {
-    ostringstream oss;
-    oss<<logical;
-    mlog(IDX_WARN, "Entering %s, LookingFor:%s.", __FUNCTION__, oss.str().c_str());
     *hole = false;
     *chunk_id = (pid_t)-1;
 
@@ -1673,9 +1670,9 @@ Index::addWrite( off_t offset, size_t length, pid_t pid,
         double begin_timestamp, double end_timestamp )
 {
     Metadata::addWrite( offset, length );
-    ostringstream oss;
-    oss << "addWrite:" << offset << ","<< length << endl;
-    mlog(IDX_WARN, "%s", oss.str().c_str());
+    //ostringstream oss;
+    //oss << "addWrite:" << offset << ","<< length << endl;
+    //mlog(IDX_WARN, "%s", oss.str().c_str());
     // check whether incoming abuts with last and we want to compress
     if ( type == SINGLEHOST && 
          compress_contiguous && !hostIndex.empty() &&
@@ -1899,9 +1896,9 @@ Index::flushComplexIndexBuf()
     flushHostIndexBuf();
     
     complexIndexBuf.saveToFile(fd);
-    ostringstream oss;
-    oss << complexIndexBuf.show();
-    mlog(IDX_WARN, "%s", oss.str().c_str());
+    //ostringstream oss;
+    //oss << complexIndexBuf.show();
+    //mlog(IDX_WARN, "%s", oss.str().c_str());
     complexIndexBuf.clear();  
 }
 

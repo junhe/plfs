@@ -25,15 +25,15 @@ vector<off_t> buildDeltas( vector<off_t> seq )
 {
     vector<off_t>::iterator it;
     vector<off_t> deltas;
-    ostringstream oss;
+    //ostringstream oss;
     for ( it = seq.begin() ; it != seq.end() ; it++ )
     {
         if ( it > seq.begin() ) {
             deltas.push_back( *it - *(it-1) );
-            oss << (*it - *(it-1)) << "-";
+            //oss << (*it - *(it-1)) << "-";
         }
     }
-    mlog(IDX_WARN, "deltas:%s", oss.str().c_str());
+    //mlog(IDX_WARN, "deltas:%s", oss.str().c_str());
     //cout << "in builddeltas: " << seq.size() << " " << deltas.size() << endl; 
     return deltas;
 }
@@ -57,7 +57,6 @@ IdxSigEntryList IdxSignature::generateIdxSignature(
     IdxSigEntryList entrylist;
     vector<HostEntry>::const_iterator iter;
     
-    ostringstream oss;
     for ( iter = entry_buf.begin() ; 
             iter != entry_buf.end() ;
             iter++ )
@@ -67,11 +66,9 @@ IdxSigEntryList IdxSignature::generateIdxSignature(
         }
 
         logical_offset.push_back(iter->logical_offset);
-        oss << iter->logical_offset << ",";
         length.push_back(iter->length);
         physical_offset.push_back(iter->physical_offset);
     }
-    mlog(IDX_WARN, "%s", oss.str().c_str());
     
     if ( !(logical_offset.size() == length.size() &&
             length.size() == physical_offset.size()) ) {
@@ -363,9 +360,9 @@ SigStack<IdxSigUnit> IdxSignature::discoverSigPattern( vector<off_t> const &seq,
                 pattern_stack_compressed.the_stack.push_back(*it);
             }
         }
-        ostringstream oss;
-        oss << pattern_stack_compressed.show();
-        mlog(IDX_WARN, "%s", oss.str().c_str());
+        //ostringstream oss;
+        //oss << pattern_stack_compressed.show();
+        //mlog(IDX_WARN, "%s", oss.str().c_str());
     }
     
 
