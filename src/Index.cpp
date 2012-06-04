@@ -659,13 +659,15 @@ int Index::readComplexIndex( string hostindex )
             if ( total == 0 ) {
                 total = 1;
             }
-            
+           
+            /*
             for ( pos = 0 ; pos < total ; pos++ ) {
                 global_complex_index_map.insert(
                     pair<off_t, int> 
                     (iter->logical_offset.getValByPos(pos),
                      lastinlist) );
             }
+            */
         }
         
         //global_complex_index.append(tmp_list);
@@ -1232,13 +1234,15 @@ void Index::insertGlobalEntry( IdxSigEntry *g_entry)
     if ( total == 0 ) {
         total = 1;
     }
-    
+   
+    /*
     for ( pos = 0 ; pos < total ; pos++ ) {
         global_complex_index_map.insert(
             pair<off_t, int> 
             (g_entry->logical_offset.getValByPos(pos),
              lastinlist) );
     }
+    */
 }
 
 int Index::insertGlobal( IdxSigEntry *g_entry)
@@ -1458,7 +1462,6 @@ int Index::globalComplexLookup( int *fd, off_t *chunk_off, size_t *chunk_len,
 
     COMPLEXMAP_ITR itr;
     COMPLEXMAP_ITR prev = (COMPLEXMAP_ITR)NULL;
-
 
     itr = global_complex_index_map.lower_bound(logical);
     
