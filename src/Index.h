@@ -216,6 +216,8 @@ class Index : public Metadata
 };
 
 
+#define MAP_ITR map<off_t,ContainerEntry>::iterator
+#define COMPLEXMAP_ITR map<off_t,int>::iterator
 inline
 int Index::globalComplexLookup( int *fd, off_t *chunk_off, size_t *chunk_len,
         string& path, bool *hole, pid_t *chunk_id,
@@ -320,7 +322,5 @@ int Index::globalComplexLookup( int *fd, off_t *chunk_off, size_t *chunk_len,
 }
 
 
-#define MAP_ITR map<off_t,ContainerEntry>::iterator
-#define COMPLEXMAP_ITR map<off_t,int>::iterator
 
 #endif
