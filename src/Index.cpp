@@ -323,6 +323,7 @@ Index::init( string physical )
     buffering       = false;
     buffer_filled   = false;
     compress_contiguous = true;
+    enable_hash_lookup = false;
     type            = COMPLEXPATTERN;
     chunk_id        = 0;
     last_offset     = 0;
@@ -660,14 +661,14 @@ int Index::readComplexIndex( string hostindex )
                 total = 1;
             }
            
-            /*
-            for ( pos = 0 ; pos < total ; pos++ ) {
-                global_complex_index_map.insert(
-                    pair<off_t, int> 
-                    (iter->logical_offset.getValByPos(pos),
-                     lastinlist) );
+            if ( enable_hash_lookup == true ) {
+                for ( pos = 0 ; pos < total ; pos++ ) {
+                    global_complex_index_map.insert(
+                        pair<off_t, int> 
+                        (iter->logical_offset.getValByPos(pos),
+                         lastinlist) );
+                }
             }
-            */
         }
         
         //global_complex_index.append(tmp_list);
@@ -1235,14 +1236,14 @@ void Index::insertGlobalEntry( IdxSigEntry *g_entry)
         total = 1;
     }
    
-    /*
-    for ( pos = 0 ; pos < total ; pos++ ) {
-        global_complex_index_map.insert(
-            pair<off_t, int> 
-            (g_entry->logical_offset.getValByPos(pos),
-             lastinlist) );
+    if ( enable_hash_lookup == true ) {
+        for ( pos = 0 ; pos < total ; pos++ ) {
+            global_complex_index_map.insert(
+                pair<off_t, int> 
+                (g_entry->logical_offset.getValByPos(pos),
+                 lastinlist) );
+        }
     }
-    */
 }
 
 int Index::insertGlobal( IdxSigEntry *g_entry)
@@ -1460,60 +1461,99 @@ int Index::globalComplexLookup( int *fd, off_t *chunk_off, size_t *chunk_len,
     *hole = false;
     *chunk_id = (pid_t)-1;
 
-    COMPLEXMAP_ITR itr;
-    COMPLEXMAP_ITR prev = (COMPLEXMAP_ITR)NULL;
+    //////////////////////////////////////////
+    /////////// without hashtable  /////////////////////////
+    if ( enable_hash_lookup == false ) {
+        vector<IdxSigEntry>::iterator itr;
 
-    itr = global_complex_index_map.lower_bound(logical);
-    
-    if ( global_complex_index_list.list.size() == 0 ) {
+        if ( global_complex_index_list.list.size() == 0 ) {
+            *fd = -1;
+            *chunk_len = 0;
+            return 0;
+        }
+
+        for ( itr =  global_complex_index_list.list.begin();
+              itr != global_complex_index_list.list.end();
+              itr++ )
+        {
+            int pos = -1;
+            if ( itr->contains( logical, pos ) ) {
+                //oss << " !!!!!!!!Found at pos:" << pos << endl; 
+                //mlog(IDX_WARN, "%s", oss.str().c_str());
+                return chunkFound( fd, chunk_off, chunk_len,
+                        logical - itr->logical_offset.getValByPos(pos), path,
+                        chunk_id, &(*itr), pos );
+            } //else {
+                //oss << "Not Found!" << endl;
+                //mlog(IDX_WARN, "%s", oss.str().c_str());
+            //}
+
+        }
+
+        //TODO: handle it...
+        mlog(IDX_WARN, "%s in a hole. or off the end of the file", __FUNCTION__);
+        
+        *fd = -1;
+        *chunk_len = 0;
+        return 0;
+    } else {
+        //////////////////////////////////////////
+        /////////// with hashtable  /////////////////////////
+        COMPLEXMAP_ITR itr;
+        COMPLEXMAP_ITR prev = (COMPLEXMAP_ITR)NULL;
+
+        itr = global_complex_index_map.lower_bound(logical);
+        
+        if ( global_complex_index_list.list.size() == 0 ) {
+            *fd = -1;
+            *chunk_len = 0;
+            return 0;
+        }
+        
+        if ( itr == global_complex_index_map.end() ) {
+            itr--;
+        }
+
+        if ( itr != global_complex_index_map.begin() ) {
+            prev = itr;
+            prev--;
+        }
+      
+        // Now we have:
+        // itr->first >= logical
+        // AND pre-first < logical
+
+        if ( itr->first > logical ) {
+            int previous_pos = -1;
+            if ( prev != (COMPLEXMAP_ITR)NULL ) {
+                IdxSigEntry &previous 
+                    = global_complex_index_list.list[prev->second];
+                if ( previous.contains( logical, previous_pos ) ) {
+                    return chunkFound( fd, chunk_off, chunk_len,
+                            logical - previous.logical_offset.getValByPos(previous_pos), 
+                            path, chunk_id, &previous, previous_pos );
+                }
+            }
+        } else {
+            // Now we have:
+            // itr->first <= logical
+            IdxSigEntry &entry = global_complex_index_list.list[itr->second];
+
+            int entry_pos = -1;
+            if ( entry.contains( logical, entry_pos ) ) {
+                return chunkFound( fd, chunk_off, chunk_len,
+                        logical - entry.logical_offset.getValByPos(entry_pos), path,
+                        chunk_id, &entry, entry_pos );
+            }
+        }
+
+        //TODO: handle it...
+        mlog(IDX_WARN, "%s in a hole. or off the end of the file", __FUNCTION__);
+        
         *fd = -1;
         *chunk_len = 0;
         return 0;
     }
-    
-    if ( itr == global_complex_index_map.end() ) {
-        itr--;
-    }
-
-    if ( itr != global_complex_index_map.begin() ) {
-        prev = itr;
-        prev--;
-    }
-  
-    // Now we have:
-    // itr->first >= logical
-    // AND pre-first < logical
-
-    if ( itr->first > logical ) {
-        int previous_pos = -1;
-        if ( prev != (COMPLEXMAP_ITR)NULL ) {
-            IdxSigEntry &previous 
-                = global_complex_index_list.list[prev->second];
-            if ( previous.contains( logical, previous_pos ) ) {
-                return chunkFound( fd, chunk_off, chunk_len,
-                        logical - previous.logical_offset.getValByPos(previous_pos), 
-                        path, chunk_id, &previous, previous_pos );
-            }
-        }
-    } else {
-        // Now we have:
-        // itr->first <= logical
-        IdxSigEntry &entry = global_complex_index_list.list[itr->second];
-
-        int entry_pos = -1;
-        if ( entry.contains( logical, entry_pos ) ) {
-            return chunkFound( fd, chunk_off, chunk_len,
-                    logical - entry.logical_offset.getValByPos(entry_pos), path,
-                    chunk_id, &entry, entry_pos );
-        }
-    }
-
-    //TODO: handle it...
-    mlog(IDX_WARN, "%s in a hole. or off the end of the file", __FUNCTION__);
-    
-    *fd = -1;
-    *chunk_len = 0;
-    return 0;
 }
 
 
