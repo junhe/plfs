@@ -421,7 +421,7 @@ Container::populateIndex(const string& path, Index *index,bool use_global)
 int
 Container::indexTaskManager(deque<IndexerTask> &tasks,Index *index, string path)
 {
-    mlog(CON_DCOMMON, "Entering %s", __FUNCTION__);
+    //mlog(CON_DCOMMON, "Entering %s", __FUNCTION__);
     int ret=0;
     if ( tasks.empty() ) {
         ret = 0;    // easy, 0 length file
@@ -836,6 +836,7 @@ Container::aggregateIndices(const string& path, Index *index)
     vector<string> files;
     int ret = collectIndices(path,files,true);
 
+    /*
     mlog(CON_DAPI, "------number of index file is %d", files.size());
 
     vector<string>::iterator fiter;
@@ -845,6 +846,7 @@ Container::aggregateIndices(const string& path, Index *index)
     {
         mlog(CON_WARN, "collected indices: %s", fiter->c_str()); 
     }
+    */
 
     if (ret!=0) {
         return -errno;
@@ -858,7 +860,7 @@ Container::aggregateIndices(const string& path, Index *index)
         string filename; // find just the filename
         size_t lastslash = itr->rfind('/');
         filename = itr->substr(lastslash+1,itr->npos);
-        mlog(CON_DCOMMON, "FFFile name is: %s.", filename.c_str());
+        //mlog(CON_DCOMMON, "FFFile name is: %s.", filename.c_str());
         if (istype(filename,INDEXPREFIX)) {
             indextypes.insert(SINGLEHOST);
             task.path = (*itr);
@@ -874,11 +876,11 @@ Container::aggregateIndices(const string& path, Index *index)
         }
     }
 
-    mlog(CON_DAPI, "----Number of index types: %d", indextypes.size());
+    //mlog(CON_DAPI, "----Number of index types: %d", indextypes.size());
     //assert(indextypes.size() == 1); //can only have one index type and only one
     if (indextypes.size() != 1) 
         return -1;
-    mlog(CON_DCOMMON, "before calling indexTaskManager");
+    //mlog(CON_DCOMMON, "before calling indexTaskManager");
     ret=indexTaskManager(tasks,index,path);
     return ret;
 }

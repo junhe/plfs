@@ -594,7 +594,7 @@ Index::mapIndex( string hostindex, int *fd, off_t *length )
 // It assumes hostindex is a complex index
 int Index::readComplexIndex( string hostindex ) 
 {
-    mlog(IDX_WARN, "Entering %s(%s)", __FUNCTION__, hostindex.c_str());
+    //mlog(IDX_WARN, "Entering %s(%s)", __FUNCTION__, hostindex.c_str());
     
     off_t length = (off_t)-1;
     int   fd = -1;
@@ -606,7 +606,7 @@ int Index::readComplexIndex( string hostindex )
         return cleanupReadIndex( fd, maddr, length, 0, "mapIndex",
                 hostindex.c_str() );
     }
-    mlog(IDX_WARN, "%s: index file mapped", __FUNCTION__ );
+    //mlog(IDX_WARN, "%s: index file mapped", __FUNCTION__ );
   
 
     map<pid_t,pid_t> known_chunks;
@@ -685,7 +685,7 @@ int Index::readComplexIndex( string hostindex )
 // return 0 for sucess, -errno for failure
 int Index::readIndex( string hostindex )
 {
-    mlog(IDX_WARN, "Entering %s(%s)", __FUNCTION__, hostindex.c_str());
+    //mlog(IDX_WARN, "Entering %s(%s)", __FUNCTION__, hostindex.c_str());
     off_t length = (off_t)-1;
     int   fd = -1;
     void  *maddr = NULL;
@@ -698,16 +698,16 @@ int Index::readIndex( string hostindex )
     //get file name and decide the index type (SINGLEHOST or COMPLEX)
     string filename;
     filename = Util::getFilenameFromPath(hostindex);
-    mlog(IDX_WARN, "%s: filename is %s", __FUNCTION__, filename.c_str());
+    //mlog(IDX_WARN, "%s: filename is %s", __FUNCTION__, filename.c_str());
     if (Util::istype(filename, INDEXPREFIX)) {
         type = SINGLEHOST;
-        mlog(IDX_WARN, "%s: index type is single host", __FUNCTION__ );
+        //mlog(IDX_WARN, "%s: index type is single host", __FUNCTION__ );
     } else if ( Util::istype(filename, COMPLEXINDEXPREFIX) ) {
         type = COMPLEXPATTERN;
-        mlog(IDX_WARN, "%s: index type is complex pattern", __FUNCTION__ );
+        //mlog(IDX_WARN, "%s: index type is complex pattern", __FUNCTION__ );
         return readComplexIndex(hostindex);
     } else {
-        mlog(IDX_ERR, "There should not be any other index type.");
+        //mlog(IDX_ERR, "There should not be any other index type.");
         exit(-1);
     }
     
@@ -717,7 +717,7 @@ int Index::readIndex( string hostindex )
         return cleanupReadIndex( fd, maddr, length, 0, "mapIndex",
                 hostindex.c_str() );
     }
-    mlog(IDX_WARN, "%s: index file mapped", __FUNCTION__ );
+    //mlog(IDX_WARN, "%s: index file mapped", __FUNCTION__ );
 
     // ok, there's a bunch of data structures in here
     // some temporary some more permanent
@@ -799,8 +799,8 @@ int Index::readIndex( string hostindex )
 int Index::global_from_stream(void *addr)
 {
     if ( type == COMPLEXPATTERN ) {
-        mlog(IDX_WARN, "Entering %s. Type: ComplexPattern",
-                __FUNCTION__);
+        //mlog(IDX_WARN, "Entering %s. Type: ComplexPattern",
+        //        __FUNCTION__);
         header_t list_body_size;
         string header_and_body_buf;
         IdxSigEntryList tmp_list;
@@ -811,8 +811,8 @@ int Index::global_from_stream(void *addr)
                        sizeof(header_t)+list_body_size);
         tmp_list.deSerialize(header_and_body_buf); 
         
-        mlog(IDX_WARN, "tttt%sttttt\n%s", 
-                __FUNCTION__, tmp_list.show().c_str());
+        //mlog(IDX_WARN, "tttt%sttttt\n%s", 
+        //        __FUNCTION__, tmp_list.show().c_str());
 
         vector<IdxSigEntry>::iterator iter; 
         for ( iter = tmp_list.list.begin() ;
@@ -835,7 +835,7 @@ int Index::global_from_stream(void *addr)
             // we don't do that anymore
             //cf.path = physical_path + "/" + chunk_paths[i];
             cf.path = chunk_paths[i];
-            mlog(IDX_WARN, "chunk_paths:%s", cf.path.c_str());
+            //mlog(IDX_WARN, "chunk_paths:%s", cf.path.c_str());
             cf.fd = -1;
             chunk_map.push_back(cf);
         }
@@ -947,8 +947,8 @@ int Index::global_to_stream( string &buf )
 {
     flushHostIndexBuf();    
     buf = global_complex_index_list.serialize();
-    mlog(IDX_WARN, "%s: %s", __FUNCTION__, 
-            global_complex_index_list.show().c_str());
+    //mlog(IDX_WARN, "%s: %s", __FUNCTION__, 
+    //        global_complex_index_list.show().c_str());
    
     ostringstream chunks;
     for(unsigned i = 0; i < chunk_map.size(); i++ ) {
@@ -1258,8 +1258,8 @@ Index::insertGlobal( ContainerEntry *g_entry )
     pair<map<off_t,ContainerEntry>::iterator,bool> ret;
     bool overlap  = false;
     ostringstream oss;
-    mlog(IDX_DAPI, "Inserting offset %ld into index of %s (%d)",
-            (long)g_entry->logical_offset, physical_path.c_str(),g_entry->id);
+    //mlog(IDX_DAPI, "Inserting offset %ld into index of %s (%d)",
+    //        (long)g_entry->logical_offset, physical_path.c_str(),g_entry->id);
     ret = insertGlobalEntry( g_entry );
     if ( ret.second == false ) {
         oss << "overlap1" <<endl<< *g_entry <<endl << ret.first->second << endl;
@@ -1768,7 +1768,7 @@ Index::rewriteIndex( int fd )
 int
 Index::flushHostIndexBuf()
 {
-    mlog(IDX_WARN, "in %s", __FUNCTION__);
+    //mlog(IDX_WARN, "in %s", __FUNCTION__);
     //analyze entries in buffer 
     if ( type = COMPLEXPATTERN ) {
         map<pid_t,off_t>::iterator it;
@@ -1790,7 +1790,7 @@ Index::flushHostIndexBuf()
 void
 Index::flushComplexIndexBuf()
 {
-    mlog(IDX_WARN, "in %s", __FUNCTION__);
+    //mlog(IDX_WARN, "in %s", __FUNCTION__);
     //There may be some entries left in HostIndexBuf
     flushHostIndexBuf();
     

@@ -501,9 +501,6 @@ off_t SigStack<T>::getValByPos( const int &pos )
             cur_pos += numoflen; //keep track of current pos
         }
     }
-    ostringstream oss;
-    oss << "in " << __FUNCTION__ << ". Request out of range" << endl;
-    mlog(IDX_WARN, "%s", oss.str().c_str());
     assert(0); // Make it hard for the errors
 }
 

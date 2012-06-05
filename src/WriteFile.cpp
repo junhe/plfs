@@ -341,7 +341,7 @@ int WriteFile::openIndex( pid_t pid ) {
         fd = openIndexFile(subdir_path, hostname, pid, DROPPING_MODE,
                            &index_path, COMPLEXPATTERN);
     }
-    mlog(WF_WARN, "in %s, fd: %d\n", __FUNCTION__, fd);
+    //mlog(WF_WARN, "in %s, fd: %d\n", __FUNCTION__, fd);
 
     if ( fd < 0 ) {
         ret = -errno;
@@ -350,8 +350,8 @@ int WriteFile::openIndex( pid_t pid ) {
         index = new Index(container_path, fd);
         Util::MutexUnlock(&index_mux, __FUNCTION__);
         mlog(WF_DAPI, "In open Index path is %s",index_path.c_str());
-        mlog(WF_WARN, "container_path is %s", container_path.c_str());
-        mlog(WF_WARN, "index_path is %s", index_path.c_str());
+        //mlog(WF_WARN, "container_path is %s", container_path.c_str());
+        //mlog(WF_WARN, "index_path is %s", index_path.c_str());
         index->index_path=index_path;
         if(index_buffer_mbs) {
             index->startBuffering();
@@ -414,9 +414,9 @@ int WriteFile::openIndexFile(string path, string host, pid_t p, mode_t m,
                              string *index_path, IndexEntryType indexType)
 {
     *index_path = Container::getIndexPath(path, host, p, createtime, indexType);
-    mlog(WF_WARN, "in %s. Path is %s.\n", __FUNCTION__, (*index_path).c_str());
+    //mlog(WF_WARN, "in %s. Path is %s.\n", __FUNCTION__, (*index_path).c_str());
     return openFile(*index_path, m);
-    return 0;
+    //return 0;
 }
 
 int WriteFile::openDataFile(string path, string host, pid_t p, mode_t m)
