@@ -226,6 +226,26 @@ int Index::globalComplexLookup( int *fd, off_t *chunk_off, size_t *chunk_len,
     *hole = false;
     *chunk_id = (pid_t)-1;
 
+    /////////////////
+    // For debug
+    // Return an offset instantly
+    if ( global_complex_index_list.list.size() == 0 
+         || logical >= 1048576) {
+        *fd = -1;
+        *chunk_len = 0;
+        return 0;
+    }
+    
+    IdxSigEntry entry = global_complex_index_list.list[0];
+    
+    *chunk_off = 0;
+    *chunk_len = 1;
+    *chunk_id = 0;
+    *fd = chunk_map[0].fd;
+    path = chunk_map[0].path;
+    return 0;
+
+
     //////////////////////////////////////////
     /////////// without hashtable  /////////////////////////
     if ( enable_hash_lookup == false ) {
