@@ -229,6 +229,7 @@ int Index::globalComplexLookup( int *fd, off_t *chunk_off, size_t *chunk_len,
     /////////////////
     // For debug
     // Return an offset instantly
+    /*
     if ( global_complex_index_list.list.size() == 0 
          || logical >= 1048576) {
         *fd = -1;
@@ -244,7 +245,7 @@ int Index::globalComplexLookup( int *fd, off_t *chunk_off, size_t *chunk_len,
     *fd = chunk_map[0].fd;
     path = chunk_map[0].path;
     return 0;
-
+    */
 
     //////////////////////////////////////////
     /////////// without hashtable  /////////////////////////
