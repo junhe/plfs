@@ -1573,8 +1573,7 @@ Index::addWrite( off_t offset, size_t length, pid_t pid,
     //oss << "addWrite:" << offset << ","<< length << endl;
     //mlog(IDX_WARN, "%s", oss.str().c_str());
     // check whether incoming abuts with last and we want to compress
-    if ( type == SINGLEHOST && 
-         compress_contiguous && !hostIndex.empty() &&
+    if ( compress_contiguous && !hostIndex.empty() &&
          hostIndex.back().id == pid  &&
          hostIndex.back().logical_offset +
          (off_t)hostIndex.back().length == offset) 
