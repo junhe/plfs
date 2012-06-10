@@ -1815,6 +1815,10 @@ Index::resetFD( int fd, string indexpath )
     return;
 }
 
-
+int 
+Index::getHostIndexSize()
+{
+    return hostIndex.size();
+}
 
 

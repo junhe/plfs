@@ -143,7 +143,7 @@ class Index : public Metadata
         void startBuffering();
         void stopBuffering();
         bool isBuffering();
-
+        int getHostIndexSize();
         IndexEntryType type;  //TODO: figure out when to set this and when 
                               //      can use it. Probably use getType() setType
                               //      Shall I decide the type at the time creating
