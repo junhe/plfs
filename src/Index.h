@@ -11,11 +11,14 @@ using namespace std;
 #include "Util.h"
 #include "Metadata.h"
 #include "idxanalyzer.h"
+#include "patternanalyzer.h"
+
 
 enum IndexEntryType {
     SINGLEHOST = 0,  // HostEntry class
     SIMPLEFORMULA = 1, // SimpleFormulaEntry class
-    COMPLEXPATTERN = 2, //IdxSigEntryList class 
+    COMPLEXPATTERN = 2, //IdxSigEntryList class
+    MULTILEVEL = 3,
     UNKNOWNTYPE = 7, //IdxSigEntryList class 
 };
 

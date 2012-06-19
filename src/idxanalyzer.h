@@ -18,6 +18,9 @@ template <class T> class SigStack;
 template <class T> class PatternStack;
 class IdxSigEntryList;
 class HostEntry;
+namespace MultiLevel {
+    class PatternCombo;
+}
 
 typedef int32_t header_t; //the type to hold the body size in serialization
 
@@ -228,6 +231,7 @@ class HostEntry
 
         friend class Index;
         friend class IdxSignature;
+        friend class MultiLevel::PatternCombo;
 };
 
 
