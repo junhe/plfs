@@ -159,6 +159,7 @@ class Index : public Metadata
                 off_t shift, string& path, pid_t *chunk_id,
                 IdxSigEntry *entry, int pos );
         int readComplexIndex( string hostindex );
+        int readMultiLevelIndex( string hostindex );
         int cleanupReadIndex(int, void *, off_t, int, const char *,
                 const char *);
         void *mapIndex( string, int *, off_t * );

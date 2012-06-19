@@ -593,6 +593,77 @@ Index::mapIndex( string hostindex, int *fd, off_t *length )
     return addr;
 }
 
+int Index::readMultiLevelIndex( string hostindex ) 
+{
+    off_t length = (off_t)-1;
+    int   fd = -1;
+    void  *maddr = NULL;
+    populated = true;
+     
+    maddr = mapIndex( hostindex, &fd, &length );
+    if( maddr == (void *)-1 ) {
+        return cleanupReadIndex( fd, maddr, length, 0, "mapIndex",
+                hostindex.c_str() );
+    }
+    //mlog(IDX_WARN, "%s: index file mapped", __FUNCTION__ );
+  
+
+    map<pid_t,pid_t> known_chunks;
+    map<pid_t,pid_t>::iterator known_chunks_itr;
+
+    // The file format for complex pattern is like this:
+    // [ [combo_body_size][list body] [ [combo_body_size][list body] ...]
+    // So the way to read them is first read 
+    //since the entries are not of the same sizes, keep where we are
+    off_t cur = 0;
+    while ( cur < length ) {
+        header_t combo_body_size;
+        MultiLevel::PatternCombo tmp_combo;
+        string header_and_body_buf;
+
+        memcpy(&combo_body_size, maddr+cur, sizeof(header_t));
+        //mlog(IDX_WARN, "combo_body_size:%d", combo_body_size);
+        appendToBuffer(header_and_body_buf, maddr+cur, 
+                       sizeof(header_t)+combo_body_size);
+        tmp_combo.deSerialize(header_and_body_buf); 
+       
+        global_multilevel_index.append( tmp_combo );
+
+        // Now the entries are in tmp_combo   
+        // Since there may be entries for several PIDs,
+        // we iterate and handl them one by one
+        vector<MultiLevel::ChunkMap>::iterator iter; 
+        for ( iter = tmp_combo.chunkmap.begin() ;
+              iter != tmp_combo.chunkmap.end() ;
+              iter++ )
+        {
+            if ( known_chunks.find(iter->original_chunk_id) 
+                    == known_chunks.end() ) 
+            {
+                ChunkFile cf;
+                cf.path = Container::chunkPathFromIndexPath
+                                     (hostindex, iter->original_chunk_id);
+                cf.fd   = -1;
+                chunk_map.push_back( cf );
+                known_chunks[iter->original_chunk_id] = chunk_id++;
+                assert( (size_t)chunk_id == chunk_map.size() );
+                mlog(IDX_DCOMMON, "Inserting chunk %s (%lu)", cf.path.c_str(),
+                        (unsigned long)chunk_map.size());
+            }
+            iter->new_chunk_id = known_chunks[iter->original_chunk_id];
+        }
+        
+        //global_complex_index.append(tmp_combo);
+
+        cur += sizeof(header_t)+combo_body_size;    
+    }
+    assert(cur == length);
+    //global_complex_index.show();
+    return cleanupReadIndex(fd, maddr, length, 0, "DONE in readMultiLevelIndex",
+                            hostindex.c_str());
+}
+
+
 // To not make readIndex() any longer, put the reading of complex index here
 // It assumes hostindex is a complex index
 int Index::readComplexIndex( string hostindex ) 
