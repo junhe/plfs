@@ -1,5 +1,6 @@
 
 #include "patternanalyzer.h"
+#include "Util.h"
 
 #include <string.h>
 #include <stack>
@@ -1213,7 +1214,7 @@ namespace MultiLevel {
         chunkmap.clear();
         logical_offset.clear();
         length.clear();
-        physical_offset();
+        physical_offset.clear();
     }
 
     ////////////////////////////////////////////////////////////////

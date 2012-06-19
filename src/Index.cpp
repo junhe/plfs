@@ -1785,7 +1785,7 @@ Index::flushHostIndexBuf()
                 it != physical_offsets.end() ; it++ ) {
             MultiLevel::PatternCombo combo;
             combo.buildFromHostEntries( hostIndex, (*it).first );
-            multilevelIndexbuf.append( &combo );        
+            multilevelIndexbuf.append( combo );        
         }
 
         hostIndex.clear(); 
