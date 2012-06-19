@@ -557,7 +557,7 @@ Index::flush()
 
         return ( ret < 0 ? -errno : 0 );
     } else if ( type == COMPLEXPATTERN ) {
-        flushComplexIndexBuf();
+        flushCompressedIndexBuf();
         return 0;
     }
 }
@@ -1797,7 +1797,7 @@ Index::flushHostIndexBuf()
 // Need a separate flush function because the frequency
 // is different from the old index
 void
-Index::flushComplexIndexBuf()
+Index::flushCompressedIndexBuf()
 {
     //mlog(IDX_WARN, "in %s", __FUNCTION__);
     //There may be some entries left in HostIndexBuf
