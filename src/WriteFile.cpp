@@ -30,7 +30,7 @@ WriteFile::WriteFile(string path, string hostname,
     this->write_count       = 0;
     this->index_buffer_mbs  = buffer_mbs;
     this->max_writers       = 0;
-    this->index_type        = COMPLEXPATTERN;
+    this->index_type        = MULTILEVEL;
     pthread_mutex_init( &data_mux, NULL );
     pthread_mutex_init( &index_mux, NULL );
 }
@@ -340,6 +340,9 @@ int WriteFile::openIndex( pid_t pid ) {
     } else if (index_type == COMPLEXPATTERN ) {
         fd = openIndexFile(subdir_path, hostname, pid, DROPPING_MODE,
                            &index_path, COMPLEXPATTERN);
+    } else if (index_type == MULTILEVEL ) {
+        fd = openIndexFile(subdir_path, hostname, pid, DROPPING_MODE,
+                           &index_path, MULTILEVEL);
     }
     //mlog(WF_WARN, "in %s, fd: %d\n", __FUNCTION__, fd);
 

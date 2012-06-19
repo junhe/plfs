@@ -877,7 +877,7 @@ Container::aggregateIndices(const string& path, Index *index)
             mlog(CON_DCOMMON, "Ag indices path is %s",path.c_str());
             mlog(CON_DCOMMON, "COMPLEX path is %s",task.path.c_str());
         } else if (istype(filename, MULTILEVELINDEXPREFIX)) {
-            indextypes.insert(COMPLEXPATTERN);
+            indextypes.insert(MULTILEVEL);
             task.path = (*itr);
             tasks.push_back(task);
             mlog(CON_DCOMMON, "Ag indices path is %s",path.c_str());
