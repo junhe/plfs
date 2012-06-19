@@ -1208,6 +1208,14 @@ namespace MultiLevel {
         }
     }
 
+    void PatternCombo::clear() 
+    {
+        chunkmap.clear();
+        logical_offset.clear();
+        length.clear();
+        physical_offset();
+    }
+
     ////////////////////////////////////////////////////////////////
     //  PatternUnit
     ////////////////////////////////////////////////////////////////

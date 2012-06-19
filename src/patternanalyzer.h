@@ -137,6 +137,7 @@ namespace MultiLevel {
                                          pid_t rorigin_id );
             bool expandBadCompression();
             void saveToFile( const int fd );
+            void clear();
     };
 
 
