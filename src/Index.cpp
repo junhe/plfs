@@ -1583,6 +1583,9 @@ int Index::globalLookup( int *fd, off_t *chunk_off, size_t *chunk_len,
     if ( type == COMPLEXPATTERN ) {
         return globalComplexLookup(fd, chunk_off, chunk_len,
                 path, hole, chunk_id, logical);
+    } else if ( type == MULTILEVEL ) {
+        return globalMultiLevelLookup(fd, chunk_off, chunk_len,
+                path, hole, chunk_id, logical);
     }
 
     *hole = false;

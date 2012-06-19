@@ -119,6 +119,9 @@ class Index : public Metadata
 
         int setChunkFd( pid_t chunk_id, int fd );
 
+        int globalMultiLevelLookup( int *fd, off_t *chunk_off, size_t *length,
+                string& path, bool *hole, pid_t *chunk_id,
+                off_t logical );
         int globalComplexLookup( int *fd, off_t *chunk_off, size_t *length,
                 string& path, bool *hole, pid_t *chunk_id,
                 off_t logical );
@@ -224,6 +227,15 @@ class Index : public Metadata
         bool compress_contiguous; // set true for performance. 0 for tracing.
         bool enable_hash_lookup;
 };
+
+inline
+int Index::globalMultiLevelLookup( int *fd, off_t *chunk_off, size_t *chunk_len,
+        string& path, bool *hole, pid_t *chunk_id,
+        off_t logical )
+{
+    *hole = false;
+    *chunk_id = (pid_t)-1;
+}
 
 
 #define MAP_ITR map<off_t,ContainerEntry>::iterator
