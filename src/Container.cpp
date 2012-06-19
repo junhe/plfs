@@ -543,6 +543,8 @@ Container::indices_from_subdir(string path, vector<IndexFileInfo> &indices)
             index_dropping.type = COMPLEXPATTERN;
         } else if ( Util::istype(*itr, INDEXPREFIX) == true ) {
             index_dropping.type = SINGLEHOST;
+        } else if ( Util::istype(*itr, MULTILEVELINDEXPREFIX) == true ) {
+            index_dropping.type = MULTILEVEL;
         } else {
             index_dropping.type = UNKNOWNTYPE;
         }
@@ -764,6 +766,7 @@ Container::collectIndices(const string& physical, vector<string> &indices,
     vector<string> filters;
     filters.push_back(INDEXPREFIX);
     filters.push_back(COMPLEXINDEXPREFIX);
+    filters.push_back(MULTILEVELINDEXPREFIX);
     filters.push_back(HOSTDIRPREFIX);
     return collectContents(physical,indices,NULL,NULL,filters,full_path);
 }
@@ -873,6 +876,12 @@ Container::aggregateIndices(const string& path, Index *index)
             tasks.push_back(task);
             mlog(CON_DCOMMON, "Ag indices path is %s",path.c_str());
             mlog(CON_DCOMMON, "COMPLEX path is %s",task.path.c_str());
+        } else if (istype(filename, MULTILEVELINDEXPREFIX)) {
+            indextypes.insert(COMPLEXPATTERN);
+            task.path = (*itr);
+            tasks.push_back(task);
+            mlog(CON_DCOMMON, "Ag indices path is %s",path.c_str());
+            mlog(CON_DCOMMON, "MULTILEVEL path is %s",task.path.c_str());
         }
     }
 
@@ -913,7 +922,9 @@ Container::getIndexHostPath(const string& path,const string& host,
         oss << path << "/" << INDEXPREFIX;
     } else if ( type == COMPLEXPATTERN ) {
         oss << path << "/" << COMPLEXINDEXPREFIX;
-    } 
+    } else if ( type == MULTILEVEL ) {
+        oss << path << "/" << MULTILEVELINDEXPREFIX;
+    }
     oss << ts << "." << host << "." << pid;
     return oss.str();
 }
@@ -942,6 +953,12 @@ Container::getIndexPath(const string& path, const string& host, int pid,
             exit(-1);
         case COMPLEXPATTERN:
             p = getChunkPath( path, host, pid, COMPLEXINDEXPREFIX, ts);
+            mlog(CON_WARN, "In %s: path is %s", 
+                    __FUNCTION__, p.c_str() );
+            return p;
+            break;
+        case MULTILEVEL:
+            p = getChunkPath( path, host, pid, MULTILEVELINDEXPREFIX, ts);
             mlog(CON_WARN, "In %s: path is %s", 
                     __FUNCTION__, p.c_str() );
             return p;
@@ -1032,7 +1049,12 @@ Container::chunkPathFromIndexPath( const string& hostindex, pid_t pid )
     string chunkpath;
 
     filename = Util::getFilenameFromPath(hostindex);
-    if ( istype(filename, COMPLEXINDEXPREFIX) ) {
+    if ( istype(filename, MULTILEVELINDEXPREFIX) ) {
+        string host      = hostFromChunk( hostindex, MULTILEVELINDEXPREFIX);
+        string hostdir   = hostdirFromChunk( hostindex, MULTILEVELINDEXPREFIX);
+        string timestamp = timestampFromChunk(hostindex, MULTILEVELINDEXPREFIX);
+        chunkpath = chunkPath(hostdir, DATAPREFIX, host, pid,timestamp);
+    } else if ( istype(filename, COMPLEXINDEXPREFIX) ) {
         string host      = hostFromChunk( hostindex, COMPLEXINDEXPREFIX);
         string hostdir   = hostdirFromChunk( hostindex, COMPLEXINDEXPREFIX);
         string timestamp = timestampFromChunk(hostindex, COMPLEXINDEXPREFIX);

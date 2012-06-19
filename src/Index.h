@@ -190,7 +190,7 @@ class Index : public Metadata
         // For multi-level patterns
         MultiLevel::PatternCombo multilevelIndexbuf; // to hold recognized
                                                      // multi-level patterns
-
+        MultiLevel::PatternCombo global_multilevel_index;  // use for reading.
 
 
         IdxSignature complexIndexUtil;    //a tool class to analyze pattern

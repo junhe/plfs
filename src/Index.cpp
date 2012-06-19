@@ -308,6 +308,8 @@ ostream& operator <<(ostream& os, Index& ndx )
         }
     } else if (ndx.type == COMPLEXPATTERN) {
         os << ndx.global_complex_index_list.show() << endl;
+    } else if (ndx.type == MULTILEVEL) {
+        os << ndx.global_multilevel_index.show() << endl;
     } else {
         mlog(IDX_ERR, "%s: unknown index type", __FUNCTION__);
     }
@@ -332,6 +334,7 @@ Index::init( string physical )
     complexIndexBuf.clear();
     global_complex_index_list.clear();
     global_complex_index_map.clear();
+    global_multilevel_index.clear();
     global_index.clear();
     chunk_map.clear();
     pthread_mutex_init( &fd_mux, NULL );
@@ -556,7 +559,7 @@ Index::flush()
         hostIndex.clear();
 
         return ( ret < 0 ? -errno : 0 );
-    } else if ( type == COMPLEXPATTERN ) {
+    } else if ( type == COMPLEXPATTERN || type == MULTILEVEL ) {
         flushCompressedIndexBuf();
         return 0;
     }
@@ -706,6 +709,11 @@ int Index::readIndex( string hostindex )
         type = COMPLEXPATTERN;
         //mlog(IDX_WARN, "%s: index type is complex pattern", __FUNCTION__ );
         return readComplexIndex(hostindex);
+    } else if ( Util::istype(filename, MULTILEVELINDEXPREFIX) ) {
+        type = MULTILEVEL;
+        //mlog(IDX_WARN, "%s: index type is complex pattern", __FUNCTION__ );
+        //TODO:not implemented here
+        assert( 0 );
     } else {
         //mlog(IDX_ERR, "There should not be any other index type.");
         exit(-1);
@@ -1820,6 +1828,8 @@ Index::resetFD( int fd, string indexpath )
 {
     if ( indexpath.find(COMPLEXINDEXPREFIX) != string::npos ) {    
         fds[COMPLEXPATTERN] = fd;
+    } else if ( indexpath.find(MULTILEVELINDEXPREFIX) != string::npos ) {
+        fds[MULTILEVEL] = fd;
     } else if ( indexpath.find(INDEXPREFIX) != string::npos ) {
         fds[SINGLEHOST] = fd;
     } else {
