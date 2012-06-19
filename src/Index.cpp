@@ -1803,11 +1803,16 @@ Index::flushComplexIndexBuf()
     //There may be some entries left in HostIndexBuf
     flushHostIndexBuf();
     
-    complexIndexBuf.saveToFile(fd);
-    //ostringstream oss;
-    //oss << complexIndexBuf.show();
-    //mlog(IDX_WARN, "%s", oss.str().c_str());
-    complexIndexBuf.clear();  
+    if ( type == COMPLEXPATTERN ) {
+        complexIndexBuf.saveToFile(fd);
+        //ostringstream oss;
+        //oss << complexIndexBuf.show();
+        //mlog(IDX_WARN, "%s", oss.str().c_str());
+        complexIndexBuf.clear();  
+    } else if ( type == MULTILEVEL ) {
+        multilevelIndexbuf.saveToFile(fd);
+        multilevelIndexbuf.clear();
+    }
 }
 
 void

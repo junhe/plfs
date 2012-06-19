@@ -136,9 +136,12 @@ namespace MultiLevel {
     void DeltaNode::freeChildren() 
     {
         vector<DeltaNode*>::const_iterator it;
-        while ( children.size() > 0 )
+        while ( !children.empty() )
         {
-            popChild();   
+            DeltaNode *pchild = children.back();
+            pchild->freeChildren();
+            delete pchild;
+            children.pop_back();
         }
         return;
     }
@@ -230,6 +233,7 @@ namespace MultiLevel {
         if ( children.size() > 0 ) {
             DeltaNode *pchild = children.back();
             pchild->freeChildren();
+            delete pchild;
             children.pop_back();
         }
         return;
@@ -532,6 +536,11 @@ namespace MultiLevel {
         }
     }
 
+    void DeltaNode::clear()
+    {
+        elements.clear();
+        freeChildren();
+    }
 
     // It tries to use LZ77 to find repeating pattern in
     // the children

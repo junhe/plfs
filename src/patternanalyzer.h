@@ -103,6 +103,7 @@ namespace MultiLevel {
             void compressDeltaChildren(int win_size);
             bool isCompressionRatioGood();
             void expandMe();
+            void clear();
     };
 
 
