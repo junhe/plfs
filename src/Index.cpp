@@ -920,7 +920,33 @@ int Index::global_from_stream(void *addr)
         }
         return 0;
     } else if ( type == MULTILEVEL ) {
-        assert( 0 ); //TODO:     
+        header_t combo_body_size;
+        string header_and_body_buf;
+        
+        memcpy(&combo_body_size, addr, sizeof(header_t));
+
+        appendToBuffer(header_and_body_buf, addr,
+                       sizeof(header_t)+combo_body_size);
+        global_multilevel_index.deSerialize(header_and_body_buf); 
+        
+        addr += header_and_body_buf.size(); //point to chunks
+        vector<string> chunk_paths;
+        Util::tokenize((char *)addr,"\n",chunk_paths); // might be inefficient...
+        for( size_t i = 0; i < chunk_paths.size(); i++ ) {
+            if(chunk_paths[i].size()<7) {
+                continue;    // WTF does <7 mean???
+            }
+            ChunkFile cf;
+            // we used to strip the physical path off in global_to_stream
+            // and add it back here.  See comment in global_to_stream for why
+            // we don't do that anymore
+            //cf.path = physical_path + "/" + chunk_paths[i];
+            cf.path = chunk_paths[i];
+            //mlog(IDX_WARN, "chunk_paths:%s", cf.path.c_str());
+            cf.fd = -1;
+            chunk_map.push_back(cf);
+        }
+        return 0;
     }
     
     
@@ -1012,7 +1038,7 @@ int Index::global_to_file(int fd)
             ret = ( (size_t)ret == length ? 0 : -errno );
             free(buffer);
         }    
-    } else if ( type == COMPLEXPATTERN ) {
+    } else if ( type == COMPLEXPATTERN || type == MULTILEVEL ) {
         string buf;
         ret = global_to_stream( buf );
         if (ret==0) {
@@ -1027,10 +1053,16 @@ int Index::global_to_file(int fd)
 int Index::global_to_stream( string &buf ) 
 {
     flushHostIndexBuf();    
-    buf = global_complex_index_list.serialize();
+    
+    if ( type == COMPLEXPATTERN ) {
+
+        buf = global_complex_index_list.serialize();
     //mlog(IDX_WARN, "%s: %s", __FUNCTION__, 
     //        global_complex_index_list.show().c_str());
-   
+    } else if ( type == MULTILEVEL ) {
+        buf = global_multilevel_index.serialize();
+    }
+
     ostringstream chunks;
     for(unsigned i = 0; i < chunk_map.size(); i++ ) {
         chunks << chunk_map[i].path << endl;
@@ -1048,7 +1080,7 @@ int Index::global_to_stream(void **buffer,size_t *length)
     int ret = 0;
 
     mlog(IDX_DCOMMON, "Entring %s", __FUNCTION__);
-    if ( type == COMPLEXPATTERN ) {
+    if ( type == COMPLEXPATTERN || type == MULTILEVEL ) {
         string buf;
         global_to_stream(buf);
         *buffer = calloc(1, buf.size());
