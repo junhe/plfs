@@ -1191,6 +1191,14 @@ namespace MultiLevel {
         return expanded;
     }
 
+    void PatternCombo::saveToFile( const int fd )
+    {
+        string buf = serialize();
+        if ( buf.size() > 0 ) {
+            Util::Writen(fd, buf.c_str(), buf.size() );
+        }
+    }
+
     ////////////////////////////////////////////////////////////////
     //  PatternUnit
     ////////////////////////////////////////////////////////////////

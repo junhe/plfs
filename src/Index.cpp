@@ -1769,13 +1769,23 @@ Index::flushHostIndexBuf()
 {
     //mlog(IDX_WARN, "in %s", __FUNCTION__);
     //analyze entries in buffer 
-    if ( type = COMPLEXPATTERN ) {
+    if ( type == COMPLEXPATTERN ) {
         map<pid_t,off_t>::iterator it;
         for ( it = physical_offsets.begin() ; 
                 it != physical_offsets.end() ; it++ ) {
             complexIndexBuf.append( 
                     complexIndexUtil.generateIdxSignature
                     (hostIndex, (*it).first ));
+        }
+
+        hostIndex.clear(); 
+    } else if ( type == MULTILEVEL ) {
+        map<pid_t,off_t>::iterator it;
+        for ( it = physical_offsets.begin() ; 
+                it != physical_offsets.end() ; it++ ) {
+            MultiLevel::PatternCombo combo;
+            combo.buildFromHostEntries( hostIndex, (*it).first );
+            multilevelIndexbuf.append( &combo );        
         }
 
         hostIndex.clear(); 

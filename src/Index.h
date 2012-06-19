@@ -187,6 +187,12 @@ class Index : public Metadata
         IdxSigEntryList global_complex_index_list;
         
 
+        // For multi-level patterns
+        MultiLevel::PatternCombo multilevelIndexbuf; // to hold recognized
+                                                     // multi-level patterns
+
+
+
         IdxSignature complexIndexUtil;    //a tool class to analyze pattern
 
         // this is a global index made by aggregating multiple locals
