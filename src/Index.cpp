@@ -326,7 +326,7 @@ Index::init( string physical )
     buffer_filled   = false;
     compress_contiguous = true;
     enable_hash_lookup = false;
-    type            = COMPLEXPATTERN;
+    type            = MULTILEVEL;
     chunk_id        = 0;
     last_offset     = 0;
     total_bytes     = 0;
@@ -784,7 +784,7 @@ int Index::readIndex( string hostindex )
         type = MULTILEVEL;
         //mlog(IDX_WARN, "%s: index type is complex pattern", __FUNCTION__ );
         //TODO:not implemented here
-        assert( 0 );
+        return readMultiLevelIndex(hostindex);
     } else {
         //mlog(IDX_ERR, "There should not be any other index type.");
         exit(-1);
@@ -919,6 +919,8 @@ int Index::global_from_stream(void *addr)
             chunk_map.push_back(cf);
         }
         return 0;
+    } else if ( type == MULTILEVEL ) {
+        assert( 0 ); //TODO:     
     }
     
     
@@ -1878,7 +1880,7 @@ Index::flushHostIndexBuf()
 void
 Index::flushCompressedIndexBuf()
 {
-    //mlog(IDX_WARN, "in %s", __FUNCTION__);
+    mlog(IDX_WARN, "in %s", __FUNCTION__);
     //There may be some entries left in HostIndexBuf
     flushHostIndexBuf();
     
@@ -1889,7 +1891,10 @@ Index::flushCompressedIndexBuf()
         //mlog(IDX_WARN, "%s", oss.str().c_str());
         complexIndexBuf.clear();  
     } else if ( type == MULTILEVEL ) {
-        multilevelIndexbuf.saveToFile(fd);
+        mlog(IDX_WARN, "MULTILEVEL: %s", multilevelIndexbuf.show().c_str());    
+        if ( multilevelIndexbuf.logical_offset.getNumOfDeltas() > 0 ) {
+            multilevelIndexbuf.saveToFile(fd);
+        }
         multilevelIndexbuf.clear();
     }
 }
