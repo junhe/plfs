@@ -643,33 +643,50 @@ int Index::readMultiLevelIndex( string hostindex )
         // Now the entries are in tmp_combo   
         // Since there may be entries for several PIDs,
         // we iterate and handl them one by one
-        vector<MultiLevel::ChunkMap>::iterator iter; 
-        for ( iter = tmp_combo.chunkmap.begin() ;
-              iter != tmp_combo.chunkmap.end() ;
-              iter++ )
-        {
-            if ( known_chunks.find(iter->original_chunk_id) 
-                    == known_chunks.end() ) 
-            {
-                ChunkFile cf;
-                cf.path = Container::chunkPathFromIndexPath
-                                     (hostindex, iter->original_chunk_id);
-                cf.fd   = -1;
-                chunk_map.push_back( cf );
-                known_chunks[iter->original_chunk_id] = chunk_id++;
-                assert( (size_t)chunk_id == chunk_map.size() );
-                mlog(IDX_DCOMMON, "Inserting chunk %s (%lu)", cf.path.c_str(),
-                        (unsigned long)chunk_map.size());
-            }
-            iter->new_chunk_id = known_chunks[iter->original_chunk_id];
-        }
+
         
         //global_complex_index.append(tmp_combo);
 
         cur += sizeof(header_t)+combo_body_size;    
     }
+
+
+
+
+
     assert(cur == length);
-    //global_complex_index.show();
+
+    vector<MultiLevel::ChunkMap>::iterator iter; 
+    for ( iter = global_multilevel_index.chunkmap.begin() ;
+          iter != global_multilevel_index.chunkmap.end() ;
+          iter++ )
+    {
+        ostringstream oss;
+        oss << "checking " << iter->original_chunk_id << ", " 
+            << iter->new_chunk_id << endl;
+        mlog(IDX_WARN, "%s", oss.str().c_str());
+        if ( known_chunks.find(iter->original_chunk_id) 
+                == known_chunks.end() ) 
+        {
+            ostringstream oss;
+            oss<< "Adding new: chunk_id:" << chunk_id;
+            mlog(IDX_WARN, "%s", oss.str().c_str());
+
+            ChunkFile cf;
+            cf.path = Container::chunkPathFromIndexPath
+                                 (hostindex, iter->original_chunk_id);
+            cf.fd   = -1;
+            chunk_map.push_back( cf );
+            known_chunks[iter->original_chunk_id] = chunk_id++;
+            assert( (size_t)chunk_id == chunk_map.size() );
+            mlog(IDX_DCOMMON, "Inserting chunk %s (%lu)", cf.path.c_str(),
+                    (unsigned long)chunk_map.size());
+        }
+        iter->new_chunk_id = known_chunks[iter->original_chunk_id];
+    }
+
+
+    mlog(IDX_WARN, "after readIndex(): %s", global_multilevel_index.show().c_str());
     return cleanupReadIndex(fd, maddr, length, 0, "DONE in readMultiLevelIndex",
                             hostindex.c_str());
 }
