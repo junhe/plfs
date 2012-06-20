@@ -676,7 +676,7 @@ find_read_tasks(Index *index, list<ReadTask> *tasks, size_t size, off_t offset,
                                       &(task.hole),
                                       &(task.chunk_id),
                                       offset+bytes_traversed);
-        } else {
+        } else if ( index->type == COMPLEXPATTERN) {
             ret = index->globalComplexLookup(&(task.fd),
                                       &(task.chunk_offset),
                                       &(task.length),
@@ -684,6 +684,16 @@ find_read_tasks(Index *index, list<ReadTask> *tasks, size_t size, off_t offset,
                                       &(task.hole),
                                       &(task.chunk_id),
                                       offset+bytes_traversed);
+        } else if ( index->type == MULTILEVEL) {
+            ret = index->globalMultiLevelLookup(&(task.fd),
+                                      &(task.chunk_offset),
+                                      &(task.length),
+                                      task.path,
+                                      &(task.hole),
+                                      &(task.chunk_id),
+                                      offset+bytes_traversed);
+        } else {
+            assert(0);
         }
         
         // make sure it's good
