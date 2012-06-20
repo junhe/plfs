@@ -897,13 +897,18 @@ namespace MultiLevel {
                     assert( (*oit)->cnt == 1 );
                     assert( (*tit)->cnt == 1 );
 
-                    if ( (*oit)->isLeaf() ) {
+                    if ( oit == other->children.begin() ) {
                         assert( (*tit)->isLeaf() );
                         (*tit)->elements.insert( 
                                 (*tit)->elements.end(),
                                 (*oit)->elements.begin(),
                                 (*oit)->elements.end() );
                     } else {
+                        DeltaNode padding;
+                        padding.pushElement(0);
+                        padding.cnt = 1;
+                        (*tit)->pushCopy( &padding );
+                        
                         assert( !(*tit)->isLeaf() );
                         vector<DeltaNode *>::const_iterator ooit;
                         for ( ooit = (*oit)->children.begin() ;
