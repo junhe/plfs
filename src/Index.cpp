@@ -506,6 +506,9 @@ Index::merge(Index *other)
             entry.new_chunk_id += chunk_map_shift;
             insertGlobal( &entry );  
         }        
+    } else if ( type == MULTILEVEL ) {
+        global_multilevel_index.append( 
+                other->global_multilevel_index );
     } else {
         mlog(IDX_ERR, "In %s. Unknown type", __FUNCTION__);
         exit(-1);
