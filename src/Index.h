@@ -161,6 +161,9 @@ class Index : public Metadata
         int chunkFound( int *fd, off_t *chunk_off, size_t *chunk_len,
                 off_t shift, string& path, pid_t *chunk_id,
                 IdxSigEntry *entry, int pos );
+        int chunkFound( int *fd, off_t *chunk_off, size_t *chunk_len,
+                off_t shift, string& path, pid_t *chunk_id,
+                off_t log, off_t len, off_t phy, pid_t newid );
         int readComplexIndex( string hostindex );
         int readMultiLevelIndex( string hostindex );
         int cleanupReadIndex(int, void *, off_t, int, const char *,
@@ -235,6 +238,20 @@ int Index::globalMultiLevelLookup( int *fd, off_t *chunk_off, size_t *chunk_len,
 {
     *hole = false;
     *chunk_id = (pid_t)-1;
+
+    off_t log, len, phy;
+    pid_t id;
+    if ( global_multilevel_index.contains( logical, log, len, phy, id ) ) {
+        return chunkFound( fd, chunk_off, chunk_len,
+            logical - log , path,
+            chunk_id, log, len, phy, id );
+    }
+    
+    mlog(IDX_WARN, "%s in a hole. or off the end of the file", __FUNCTION__);
+    
+    *fd = -1;
+    *chunk_len = 0;
+    return 0;
 }
 
 

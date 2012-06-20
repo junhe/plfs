@@ -85,7 +85,7 @@ namespace MultiLevel {
                          vector<off_t>::const_iterator last );
             void pushCopy( DeltaNode *nd );
             void pushCopy( off_t elm );
-            string serialize();
+            string serialize() const;
             void deSerialize( string buf );
             off_t recoverPos( const int pos );
             LeafTuple getLeafTupleByPos( const int pos );
@@ -104,6 +104,7 @@ namespace MultiLevel {
             bool isCompressionRatioGood();
             void expandMe();
             void clear();
+            DeltaNode &operator=(const DeltaNode &other);
     };
 
 
@@ -138,6 +139,11 @@ namespace MultiLevel {
             bool expandBadCompression();
             void saveToFile( const int fd );
             void clear();
+            bool contains( const off_t logical,
+                                 off_t &ological,
+                                 off_t &olength,
+                                 off_t &ophysical_offset,
+                                 pid_t &newid);
     };
 
 

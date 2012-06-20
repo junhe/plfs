@@ -10,6 +10,15 @@ namespace MultiLevel {
     ////////////////////////////////////////////////////////////////
     //  MISC
     ////////////////////////////////////////////////////////////////
+
+    inline bool isContain( off_t off, off_t offset, off_t length )
+    {
+        //ostringstream oss;
+        //oss << "isContain(" << off << ", " << offset << ", " << length << ")" <<  endl;
+        //mlog(IDX_WARN, "%s", oss.str().c_str());
+        return ( offset <= off && off < offset+length );
+    }
+
     inline
     off_t sumVector( vector<off_t> seq )
     {
@@ -292,7 +301,7 @@ namespace MultiLevel {
         push(elm);
     }
 
-    string DeltaNode::serialize()
+    string DeltaNode::serialize() const
     {
         string buf;
         //cout << "++++++Start Serialzing " << this->show() << endl;
@@ -923,6 +932,15 @@ namespace MultiLevel {
         }
     }
 
+
+    DeltaNode &DeltaNode::operator=(const DeltaNode &other)
+    {
+        if ( this == &other )
+            return *this;
+        clear();
+        this->deSerialize( other.serialize() );
+    }
+
     // This node must not be a leaf
     // expand me from a tree to totally flat sequence of number, just
     // like: [1 2 3 4 5] ^1
@@ -1215,6 +1233,41 @@ namespace MultiLevel {
         logical_offset.clear();
         length.clear();
         physical_offset.clear();
+    }
+
+
+    // if it contains, return true and length and physical_offset
+    bool PatternCombo::contains( const off_t logical, 
+                                 off_t &ological,
+                                 off_t &olength,
+                                 off_t &ophysical_offset,
+                                 pid_t &id) 
+    {
+        int size = logical_offset.getNumOfDeltas()+1;
+        int i;
+        int cur_chunk = 0;
+        int cur_chunk_inside = 0;
+        for ( i = 0 ; i < size ; i++, cur_chunk_inside++ ) {
+            assert(cur_chunk < chunkmap.size());
+            if ( cur_chunk_inside == chunkmap[cur_chunk].cnt ) {
+                cur_chunk++;
+                cur_chunk_inside = 0;
+            }
+
+            off_t lo = logical_offset.recoverPos(i);
+            off_t le = length.recoverPos(i);
+            off_t ph = physical_offset.recoverPos(i);
+
+            if ( isContain(logical, lo, le) ) {
+                ological = lo;
+                olength = le;
+                ophysical_offset = ph;
+                id = chunkmap[cur_chunk].new_chunk_id; 
+                return true;
+            }
+            
+        }
+        return false;
     }
 
     ////////////////////////////////////////////////////////////////
