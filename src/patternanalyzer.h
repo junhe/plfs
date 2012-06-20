@@ -55,6 +55,13 @@ namespace MultiLevel {
         */
     };
 
+    class ChunkMap {
+        public:
+            pid_t original_chunk_id;
+            pid_t new_chunk_id;
+            int cnt;
+    };
+
     // It is a tree structure used to describe patterns
     class DeltaNode: public PatternAbstract {
         public:
@@ -105,15 +112,10 @@ namespace MultiLevel {
             void expandMe();
             void clear();
             DeltaNode &operator=(const DeltaNode &other);
+            ChunkMap getChunkByPos( const int pos );
     };
 
 
-    class ChunkMap {
-        public:
-            pid_t original_chunk_id;
-            pid_t new_chunk_id;
-            int cnt;
-    };
 
     class PatternCombo {
         public:
@@ -144,6 +146,7 @@ namespace MultiLevel {
                                  off_t &olength,
                                  off_t &ophysical_offset,
                                  pid_t &newid);
+            ChunkMap getChunkByPos( const int pos );
     };
 
 

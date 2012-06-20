@@ -1093,6 +1093,8 @@ int Index::global_to_stream( string &buf )
     //mlog(IDX_WARN, "%s: %s", __FUNCTION__, 
     //        global_complex_index_list.show().c_str());
     } else if ( type == MULTILEVEL ) {
+        mlog(IDX_WARN, "%s: %s", __FUNCTION__, 
+            global_multilevel_index.show().c_str());
         buf = global_multilevel_index.serialize();
     }
 
@@ -1647,6 +1649,8 @@ int Index::globalLookup( int *fd, off_t *chunk_off, size_t *chunk_len,
     ostringstream os;
     os << __FUNCTION__ << ": " << this << " using index.";
     mlog(IDX_DAPI, "%s", os.str().c_str() );
+
+    mlog(IDX_WARN, "globalLookup");
 
     if ( type == COMPLEXPATTERN ) {
         return globalComplexLookup(fd, chunk_off, chunk_len,

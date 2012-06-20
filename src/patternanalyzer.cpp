@@ -1240,6 +1240,21 @@ namespace MultiLevel {
         physical_offset.clear();
     }
 
+    ChunkMap PatternCombo::getChunkByPos( const int pos )
+    {
+        vector<ChunkMap>::const_iterator it;
+        int sum = 0;
+        for ( it = chunkmap.begin() ;
+              it != chunkmap.end() ;
+              it++ )
+        {
+            if ( sum <= pos && pos < sum + it->cnt ) {
+                return *it;
+            } else {
+                sum += it->cnt;
+            }
+        }
+    }
 
     // if it contains, return true and length and physical_offset
     bool PatternCombo::contains( const off_t logical, 
@@ -1249,9 +1264,103 @@ namespace MultiLevel {
                                  pid_t &id) 
     {
         mlog(IDX_WARN, "Entering %s", __FUNCTION__ );
+        if ( logical_offset.isLeaf() ) {
+            mlog(IDX_WARN, "isLeaf()");
+            // this is the messies
+            assert(0);
+        } else {
+            mlog(IDX_WARN, "not Leaf()");
+            assert( logical_offset.children.size() == 2 ); // only handle this at this time
+            mlog(IDX_WARN, "after assertion");
+            // for each leaf in the second child, check if the logical is inside
+            vector<DeltaNode *>::const_iterator pit;
+            vector<off_t>::const_iterator iit;
+            int ppos = 0; // how many elements before this child
+            for ( iit =  logical_offset.children[0]->elements.begin(),
+                  pit =  logical_offset.children[1]->children.begin();
+                  iit != logical_offset.children[0]->elements.end();
+                  iit++,pit++ ) 
+            {
+                mlog(IDX_WARN, "for loop, input logical is:%lld, init is %lld", 
+                        logical, *iit);
+                // init: *iit
+                // seq: pit->elements
+                // cnt: pit->cnt
+                off_t offset_init = *iit; // for short
+
+                if ( logical < offset_init ) {
+                    mlog(IDX_WARN, "logical < offset_init. %lld<%lld", logical, offset_init);
+                } else if (  pit ==  logical_offset.children[1]->children.end()
+                     || (*pit)->elements.size() * (*pit)->cnt <= 1
+                     || offset_init == logical
+                     ) {
+                    mlog(IDX_WARN, "check only the init");
+                    off_t len = length.recoverPos( ppos );
+                    if ( isContain( logical, offset_init, len ) ) {
+                        ological = offset_init;
+                        olength = len;
+                        ophysical_offset = physical_offset.recoverPos( ppos );
+                        id = getChunkByPos(ppos).new_chunk_id;
+                        return true;
+                    }
+                } else {
+                    ostringstream oss;
+                    oss << "CHECKING init:" << offset_init << endl 
+                        << (*pit)->show() << endl;
+                    mlog(IDX_WARN, "%s", oss.str().c_str());
+              
+                    off_t delta_sum = sumVector( (*pit)->elements );
+                    off_t roffset = logical - offset_init;
+                    off_t col = roffset % delta_sum;
+                    off_t row = roffset / delta_sum;
+                    int pos = 0;
+                    mlog(IDX_WARN, "col:%lld, row:%lld, delta_sum:%lld", 
+                            col, row, delta_sum);
+
+                    if ( row >= (*pit)->cnt ) {
+                        mlog(IDX_WARN, "row >= (*pit)->cnt");
+                        pos = ppos + (*pit)->elements.size() * (*pit)->cnt - 1;
+                        ological = offset_init + 
+                                   delta_sum * (*pit)->cnt - (*pit)->elements.back();
+                    } else {
+                        off_t sum = 0;
+                        int col_pos = 0;
+                        for ( col_pos = 0;
+                              sum <= col;
+                              col_pos++ )
+                        {
+                            sum += (*pit)->elements[col_pos];
+                        }
+                        sum = sum - (*pit)->elements[col_pos-1];// the last one
+                        col_pos--;
+                        mlog(IDX_WARN, "col_pos:%d. sum:%lld", col_pos, sum);
+                        ological = offset_init + 
+                                   delta_sum * row + sum;
+                        pos = ppos + col_pos + row*(*pit)->elements.size();
+                    }
+                    mlog(IDX_WARN, "pos: %d, ological: %lld.", 
+                            pos, ological);
+                    olength = length.recoverPos(pos);
+                    ophysical_offset = physical_offset.recoverPos(pos);
+                    mlog(IDX_WARN, "olength:%lld, ophysical_offset:%lld.", 
+                            olength, ophysical_offset);
+                    if ( isContain(logical, ological, olength) ) {
+                        mlog(IDX_WARN, "isContain() == true");
+                        id = getChunkByPos(ppos).new_chunk_id;
+                        return true;
+                    }
+                }
+                ppos += (*pit)->elements.size() * (*pit)->cnt;          
+            }
+            mlog(IDX_WARN, "cannot find it here");
+            return false;
+        }
+        assert(0);
+        
+        
+        ////////////////////////////////
         int size = logical_offset.children.back()->getNumOfDeltas() + 1; //TODO:WRNING. This is not working for many other case.
 
-        mlog(IDX_WARN, "size is %d", size );
         int i;
         int cur_chunk = 0;
         int cur_chunk_inside = 0;
