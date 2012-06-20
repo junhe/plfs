@@ -1520,14 +1520,13 @@ Index::setChunkFd( pid_t chunk_id, int fd )
     return 0;
 }
 
-inline
 int
 Index::chunkFound( int *fd, off_t *chunk_off, size_t *chunk_len,
         off_t shift, string& path, pid_t *chunk_id,
         off_t log, off_t len, off_t phy, pid_t newid )
 {
     ChunkFile *cf_ptr = &(chunk_map[newid]); // typing shortcut
-    *chunk_off  = log + shift;
+    *chunk_off  = phy + shift;
     *chunk_len  = len  - shift;
     //ostringstream oss;
     //oss << "length.getValByPos(" << pos << ")=" << entry->length.getValByPos(pos)
