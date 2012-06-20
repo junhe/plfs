@@ -1248,7 +1248,10 @@ namespace MultiLevel {
                                  off_t &ophysical_offset,
                                  pid_t &id) 
     {
-        int size = logical_offset.getNumOfDeltas()+1;
+        mlog(IDX_WARN, "Entering %s", __FUNCTION__ );
+        int size = logical_offset.children.back()->getNumOfDeltas() + 1; //TODO:WRNING. This is not working for many other case.
+
+        mlog(IDX_WARN, "size is %d", size );
         int i;
         int cur_chunk = 0;
         int cur_chunk_inside = 0;
@@ -1267,6 +1270,7 @@ namespace MultiLevel {
                 ological = lo;
                 olength = le;
                 ophysical_offset = ph;
+                assert(cur_chunk < chunkmap.size());
                 id = chunkmap[cur_chunk].new_chunk_id; 
                 return true;
             }
