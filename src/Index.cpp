@@ -507,8 +507,15 @@ Index::merge(Index *other)
             insertGlobal( &entry );  
         }        
     } else if ( type == MULTILEVEL ) {
-        global_multilevel_index.append( 
-                other->global_multilevel_index );
+        MultiLevel::PatternCombo oglobal = other->global_multilevel_index;
+        vector<MultiLevel::ChunkMap>::iterator it;
+        for ( it =  oglobal.chunkmap.begin() ;
+              it != oglobal.chunkmap.end() ;
+              it++ )
+        {
+            it->new_chunk_id += chunk_map_shift;
+        }
+        global_multilevel_index.append( oglobal ); 
     } else {
         mlog(IDX_ERR, "In %s. Unknown type", __FUNCTION__);
         exit(-1);
