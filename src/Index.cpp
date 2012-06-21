@@ -661,16 +661,16 @@ int Index::readMultiLevelIndex( string hostindex )
           iter != global_multilevel_index.chunkmap.end() ;
           iter++ )
     {
-        ostringstream oss;
-        oss << "checking " << iter->original_chunk_id << ", " 
-            << iter->new_chunk_id << endl;
+        //ostringstream oss;
+        //oss << "checking " << iter->original_chunk_id << ", " 
+        //    << iter->new_chunk_id << endl;
         mlog(IDX_WARN, "%s", oss.str().c_str());
         if ( known_chunks.find(iter->original_chunk_id) 
                 == known_chunks.end() ) 
         {
-            ostringstream oss;
-            oss<< "Adding new: chunk_id:" << chunk_id;
-            mlog(IDX_WARN, "%s", oss.str().c_str());
+            //ostringstream oss;
+            //oss<< "Adding new: chunk_id:" << chunk_id;
+            //mlog(IDX_WARN, "%s", oss.str().c_str());
 
             ChunkFile cf;
             cf.path = Container::chunkPathFromIndexPath

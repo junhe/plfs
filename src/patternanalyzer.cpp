@@ -1263,15 +1263,15 @@ namespace MultiLevel {
                                  off_t &ophysical_offset,
                                  pid_t &id) 
     {
-        mlog(IDX_WARN, "Entering %s", __FUNCTION__ );
+        //mlog(IDX_WARN, "Entering %s", __FUNCTION__ );
         if ( logical_offset.isLeaf() ) {
-            mlog(IDX_WARN, "isLeaf()");
+            //mlog(IDX_WARN, "isLeaf()");
             // this is the messies
             assert(0);
         } else {
-            mlog(IDX_WARN, "not Leaf()");
+            //mlog(IDX_WARN, "not Leaf()");
             assert( logical_offset.children.size() == 2 ); // only handle this at this time
-            mlog(IDX_WARN, "after assertion");
+            //mlog(IDX_WARN, "after assertion");
             // for each leaf in the second child, check if the logical is inside
             vector<DeltaNode *>::const_iterator pit;
             vector<off_t>::const_iterator iit;
@@ -1281,20 +1281,20 @@ namespace MultiLevel {
                   iit != logical_offset.children[0]->elements.end();
                   iit++,pit++ ) 
             {
-                mlog(IDX_WARN, "for loop, input logical is:%lld, init is %lld", 
-                        logical, *iit);
+                //mlog(IDX_WARN, "for loop, input logical is:%lld, init is %lld", 
+                //        logical, *iit);
                 // init: *iit
                 // seq: pit->elements
                 // cnt: pit->cnt
                 off_t offset_init = *iit; // for short
 
                 if ( logical < offset_init ) {
-                    mlog(IDX_WARN, "logical < offset_init. %lld<%lld", logical, offset_init);
+                    //mlog(IDX_WARN, "logical < offset_init. %lld<%lld", logical, offset_init);
                 } else if (  pit ==  logical_offset.children[1]->children.end()
                      || (*pit)->elements.size() * (*pit)->cnt <= 1
                      || offset_init == logical
                      ) {
-                    mlog(IDX_WARN, "check only the init");
+                    //mlog(IDX_WARN, "check only the init");
                     off_t len = length.recoverPos( ppos );
                     if ( isContain( logical, offset_init, len ) ) {
                         ological = offset_init;
@@ -1304,21 +1304,21 @@ namespace MultiLevel {
                         return true;
                     }
                 } else {
-                    ostringstream oss;
-                    oss << "CHECKING init:" << offset_init << endl 
-                        << (*pit)->show() << endl;
-                    mlog(IDX_WARN, "%s", oss.str().c_str());
+                    //ostringstream oss;
+                    //oss << "CHECKING init:" << offset_init << endl 
+                    //    << (*pit)->show() << endl;
+                    //mlog(IDX_WARN, "%s", oss.str().c_str());
               
                     off_t delta_sum = sumVector( (*pit)->elements );
                     off_t roffset = logical - offset_init;
                     off_t col = roffset % delta_sum;
                     off_t row = roffset / delta_sum;
                     int pos = 0;
-                    mlog(IDX_WARN, "col:%lld, row:%lld, delta_sum:%lld", 
-                            col, row, delta_sum);
+                    //mlog(IDX_WARN, "col:%lld, row:%lld, delta_sum:%lld", 
+                    //        col, row, delta_sum);
 
                     if ( row >= (*pit)->cnt ) {
-                        mlog(IDX_WARN, "row >= (*pit)->cnt");
+                        //mlog(IDX_WARN, "row >= (*pit)->cnt");
                         pos = ppos + (*pit)->elements.size() * (*pit)->cnt - 1;
                         ological = offset_init + 
                                    delta_sum * (*pit)->cnt - (*pit)->elements.back();
@@ -1333,19 +1333,19 @@ namespace MultiLevel {
                         }
                         sum = sum - (*pit)->elements[col_pos-1];// the last one
                         col_pos--;
-                        mlog(IDX_WARN, "col_pos:%d. sum:%lld", col_pos, sum);
+                        //mlog(IDX_WARN, "col_pos:%d. sum:%lld", col_pos, sum);
                         ological = offset_init + 
                                    delta_sum * row + sum;
                         pos = ppos + col_pos + row*(*pit)->elements.size();
                     }
-                    mlog(IDX_WARN, "pos: %d, ological: %lld.", 
-                            pos, ological);
+                    //mlog(IDX_WARN, "pos: %d, ological: %lld.", 
+                    //        pos, ological);
                     olength = length.recoverPos(pos);
                     ophysical_offset = physical_offset.recoverPos(pos);
-                    mlog(IDX_WARN, "olength:%lld, ophysical_offset:%lld.", 
-                            olength, ophysical_offset);
+                    //mlog(IDX_WARN, "olength:%lld, ophysical_offset:%lld.", 
+                    //        olength, ophysical_offset);
                     if ( isContain(logical, ological, olength) ) {
-                        mlog(IDX_WARN, "isContain() == true");
+                        //mlog(IDX_WARN, "isContain() == true");
                         id = getChunkByPos(ppos).new_chunk_id;
                         return true;
                     }

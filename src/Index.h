@@ -241,16 +241,16 @@ int Index::globalMultiLevelLookup( int *fd, off_t *chunk_off, size_t *chunk_len,
     *hole = false;
     *chunk_id = (pid_t)-1;
 
-    mlog(IDX_WARN, "Print before lookup:%s", 
-                   global_multilevel_index.show().c_str());
+    //mlog(IDX_WARN, "Print before lookup:%s", 
+    //               global_multilevel_index.show().c_str());
 
     off_t log, len, phy;
     pid_t id;
     if ( global_multilevel_index.contains( logical, log, len, phy, id ) ) {
-        ostringstream oss;
-        oss << "Looking for: "<< logical << ". returned: log:" << log << ", len:"
-            << len << ", physical" << phy << ", chunkid [" << id << "]" << endl;
-        mlog(IDX_WARN, "%s", oss.str().c_str());
+        //ostringstream oss;
+        //oss << "Looking for: "<< logical << ". returned: log:" << log << ", len:"
+        //    << len << ", physical" << phy << ", chunkid [" << id << "]" << endl;
+        //mlog(IDX_WARN, "%s", oss.str().c_str());
         return chunkFound( fd, chunk_off, chunk_len, logical - log , path, chunk_id, log, len, phy, id );
     }
     
