@@ -664,7 +664,7 @@ int Index::readMultiLevelIndex( string hostindex )
         //ostringstream oss;
         //oss << "checking " << iter->original_chunk_id << ", " 
         //    << iter->new_chunk_id << endl;
-        mlog(IDX_WARN, "%s", oss.str().c_str());
+        //mlog(IDX_WARN, "%s", oss.str().c_str());
         if ( known_chunks.find(iter->original_chunk_id) 
                 == known_chunks.end() ) 
         {
