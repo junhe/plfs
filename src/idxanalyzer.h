@@ -293,6 +293,8 @@ class IdxSigEntryList {
         void saveListToFile(const int fd);
         void clear();
         string serialize();
+        string & serializeMessies( string &buf );
+        void deSerializeMessies( string &buf );
         void deSerialize(string buf);
         int bodySize();
 };

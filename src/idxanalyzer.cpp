@@ -500,6 +500,37 @@ void IdxSigEntryList::saveMessiesToFile(const int fd)
     return ;
 }
 
+// It appends to the buffer, to save time on copying
+string &IdxSigEntryList::serializeMessies( string &buf )
+{
+    header_t entrybodysize = sizeof(HostEntry)*messies.size();
+    char entrytype = 'M'; //means Messies
+
+    appendToBuffer(buf, &entrybodysize, sizeof(entrybodysize));
+    appendToBuffer(buf, &entrytype, sizeof(entrytype));
+
+    if ( entrybodysize > 0 ) {
+        appendToBuffer(buf, &messies[0], entrybodysize);
+    }   
+    return buf;
+}
+
+
+void IdxSigEntryList::deSerializeMessies( string &buf )
+{
+    header_t entrybodysize;
+    char entrytype; //means Messies
+    int cur = 0;
+
+    readFromBuf(buf, &entrybodysize, cur, sizeof(entrybodysize));
+    readFromBuf(buf, &entrytype, cur, sizeof(entrytype));
+    messies.resize( entrybodysize/sizeof(HostEntry) );
+
+    if ( entrybodysize > 0 ) {
+        readFromBuf(buf, &messies[0], cur, entrybodysize);
+    }
+    return;
+}
 
 
 void IdxSigEntryList::saveListToFile(const int fd)
@@ -532,7 +563,7 @@ void appendToBuffer( string &to, const void *from, const int size )
 }
 
 //Note that this function will increase start
-void readFromBuf( string &from, void *to, int &start, const int size )
+void readFromBuf( const string &from, void *to, int &start, const int size )
 {
     //'to' has to be treated as plain memory
     memcpy(to, &from[start], size);

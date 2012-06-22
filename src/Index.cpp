@@ -860,14 +860,18 @@ int Index::global_from_stream(void *addr)
     if ( type == COMPLEXPATTERN ) {
         //mlog(IDX_WARN, "Entering %s. Type: ComplexPattern",
         //        __FUNCTION__);
+        // [patterns][messies][chunks]
         header_t list_body_size;
+        char entrytype;
         string header_and_body_buf;
         IdxSigEntryList tmp_list;
         
         memcpy(&list_body_size, addr, sizeof(header_t));
+        memcpy(&entrytype, addr+sizeof(list_body_size), sizeof(entrytype));
 
-        appendToBuffer(header_and_body_buf, addr,
-                       sizeof(header_t)+list_body_size);
+        header_t header_and_body_size = 
+                       sizeof(header_t) + sizeof(entrytype) + sizeof(list_body_size);
+        appendToBuffer(header_and_body_buf, addr, header_and_body_size);
         tmp_list.deSerialize(header_and_body_buf); 
         
         //mlog(IDX_WARN, "tttt%sttttt\n%s", 
@@ -880,8 +884,29 @@ int Index::global_from_stream(void *addr)
         {
             insertGlobalEntry(&(*iter));
         }
-        
-        addr += header_and_body_buf.size(); //point to chunks
+
+        /////////////////////////////
+        addr += header_and_body_buf.size(); //point to messies
+
+        memcpy(&list_body_size, addr, sizeof(header_t));
+        memcpy(&entrytype, addr+sizeof(list_body_size), sizeof(entrytype));
+
+        addr += sizeof(list_body_size)+sizeof(entrytype); //skip header
+        ContainerEntry *entries = (ContainerEntry *)addr;
+        size_t quant = list_body_size/sizeof(ContainerEntry);
+        for(size_t i=0; i<quant; i++) {
+            ContainerEntry e = entries[i];
+            // just put it right into place. no need to worry about overlap
+            // since the global index on disk was already pruned
+            // UPDATE : The global index may never touch the disk
+            // this happens on our broadcast on close optimization
+            // Something fishy here we insert the address of the entry
+            // in the insertGlobal code
+            //global_index[e.logical_offset] = e;
+            insertGlobalEntry(&e);
+        }
+
+        addr = &entries[quant]; //point to chunks
         vector<string> chunk_paths;
         Util::tokenize((char *)addr,"\n",chunk_paths); // might be inefficient...
         for( size_t i = 0; i < chunk_paths.size(); i++ ) {
@@ -1001,14 +1026,28 @@ int Index::global_to_file(int fd)
     return ret;
 }
 
-
+// stream format: 
+// [complex pattern:[serialized complex pattern][messies:[bodysize][type][body]][chunks]
 int Index::global_to_stream( string &buf ) 
 {
     flushHostIndexBuf();    
     buf = global_complex_index_list.serialize();
-    //mlog(IDX_WARN, "%s: %s", __FUNCTION__, 
-    //        global_complex_index_list.show().c_str());
-   
+
+
+    ////////////
+    size_t  centry_length = sizeof(ContainerEntry);
+    header_t bodysize = centry_length * global_index.size();
+    char entrytype = 'M'; 
+    appendToBuffer(buf, &bodysize, sizeof(bodysize));
+    appendToBuffer(buf, &entrytype, sizeof(entrytype));
+
+    map<off_t,ContainerEntry>::iterator itr;
+    for( itr = global_index.begin(); itr != global_index.end(); itr++ ) {
+        void *start = &(itr->second);
+        appendToBuffer(buf, start, centry_length);
+    }
+
+
     ostringstream chunks;
     for(unsigned i = 0; i < chunk_map.size(); i++ ) {
         chunks << chunk_map[i].path << endl;
