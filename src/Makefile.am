@@ -74,6 +74,7 @@ LogicalFD.h \
 FlatFileFS.h \
 FlatFileFD.h \
 idxanalyzer.h \
+patternanalyzer.h \
 $(include_HEADERS) \
 $(dist_pkginclude_HEADERS)
 
@@ -93,6 +94,7 @@ FlatFileFD_FS.cpp \
 plfs_private.cpp \
 container_internals.cpp \
 idxanalyzer.cpp \
+patternanalyzer.cpp \
 plfs.cpp
 
 libplfs_la_SOURCES = \
