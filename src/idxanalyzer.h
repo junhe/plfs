@@ -280,7 +280,8 @@ class IdxSigEntry {
 
 class IdxSigEntryList {
     public:
-        vector<IdxSigEntry> list;
+        vector<IdxSigEntry> list; // the pattern list
+        vector<HostEntry> messies;
 
     public:
         void append(IdxSigEntryList other);
@@ -288,6 +289,8 @@ class IdxSigEntryList {
         void append(vector<IdxSigEntry> &other);
         string show();
         void saveToFile(const int fd);
+        void saveMessiesToFile(const int fd);
+        void saveListToFile(const int fd);
         void clear();
         string serialize();
         void deSerialize(string buf);

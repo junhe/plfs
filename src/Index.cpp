@@ -298,7 +298,7 @@ ostream& operator <<(ostream& os, Index& ndx )
         os << "# " << i << " " << ndx.chunk_map[i].path << endl;
     }
 
-    if ( ndx.type == SINGLEHOST ) {
+    if ( ndx.type == SINGLEHOST || ndx.type == COMPLEXPATTERN ) {
         map<off_t,ContainerEntry>::const_iterator itr;
         os << "# Entry Count: " << ndx.global_index.size() << endl;
         os << "# ID Logical_offset Length Begin_timestamp End_timestamp "
@@ -306,10 +306,13 @@ ostream& operator <<(ostream& os, Index& ndx )
         for(itr = ndx.global_index.begin(); itr != ndx.global_index.end(); itr++) {
             os << itr->second << endl;
         }
-    } else if (ndx.type == COMPLEXPATTERN) {
+    } 
+    
+    if (ndx.type == COMPLEXPATTERN) {
         os << ndx.global_complex_index_list.show() << endl;
     } else {
         mlog(IDX_ERR, "%s: unknown index type", __FUNCTION__);
+        assert(0);
     }
         
     return os;
@@ -619,61 +622,117 @@ int Index::readComplexIndex( string hostindex )
     off_t cur = 0;
     while ( cur < length ) {
         header_t list_body_size;
+        char entrytype;
         IdxSigEntryList tmp_list;
         string header_and_body_buf;
 
+        // check the header to see what type it is
         memcpy(&list_body_size, maddr+cur, sizeof(header_t));
-        //mlog(IDX_WARN, "list_body_size:%d", list_body_size);
-        appendToBuffer(header_and_body_buf, maddr+cur, 
-                       sizeof(header_t)+list_body_size);
-        tmp_list.deSerialize(header_and_body_buf); 
+        memcpy(&entrytype, maddr+cur+sizeof(list_body_size), sizeof(entrytype));
         
-        // Now the entries are in tmp_list   
-        // Since there may be entries for several PIDs,
-        // we iterate and handl them one by one
-        vector<IdxSigEntry>::iterator iter; 
-        for ( iter = tmp_list.list.begin() ;
-              iter != tmp_list.list.end() ;
-              iter++ )
-        {
-            if ( known_chunks.find(iter->original_chunk) 
-                    == known_chunks.end() ) 
-            {
-                ChunkFile cf;
-                cf.path = Container::chunkPathFromIndexPath
-                                     (hostindex, iter->original_chunk);
-                cf.fd   = -1;
-                chunk_map.push_back( cf );
-                known_chunks[iter->original_chunk] = chunk_id++;
-                assert( (size_t)chunk_id == chunk_map.size() );
-                mlog(IDX_DCOMMON, "Inserting chunk %s (%lu)", cf.path.c_str(),
-                        (unsigned long)chunk_map.size());
-            }
-            iter->new_chunk_id = known_chunks[iter->original_chunk];
-       
-            global_complex_index_list.list.push_back(*iter);
+        if ( entrytype == 'P' ) {
+            //mlog(IDX_WARN, "list_body_size:%d", list_body_size);
+            appendToBuffer(header_and_body_buf, maddr+cur, 
+                           sizeof(header_t) + sizeof(entrytype) + list_body_size);
+            tmp_list.deSerialize(header_and_body_buf); 
             
-            int lastinlist = global_complex_index_list.list.size() - 1;
-            int pos;
-            int total = iter->logical_offset.cnt 
-                        * iter->logical_offset.seq.size();
-            if ( total == 0 ) {
-                total = 1;
-            }
+            // Now the entries are in tmp_list   
+            // Since there may be entries for several PIDs,
+            // we iterate and handl them one by one
+            vector<IdxSigEntry>::iterator iter; 
+            for ( iter = tmp_list.list.begin() ;
+                  iter != tmp_list.list.end() ;
+                  iter++ )
+            {
+                if ( known_chunks.find(iter->original_chunk) 
+                        == known_chunks.end() ) 
+                {
+                    ChunkFile cf;
+                    cf.path = Container::chunkPathFromIndexPath
+                                         (hostindex, iter->original_chunk);
+                    cf.fd   = -1;
+                    chunk_map.push_back( cf );
+                    known_chunks[iter->original_chunk] = chunk_id++;
+                    assert( (size_t)chunk_id == chunk_map.size() );
+                    mlog(IDX_DCOMMON, "Inserting chunk %s (%lu)", cf.path.c_str(),
+                            (unsigned long)chunk_map.size());
+                }
+                iter->new_chunk_id = known_chunks[iter->original_chunk];
            
-            if ( enable_hash_lookup == true ) {
-                for ( pos = 0 ; pos < total ; pos++ ) {
-                    global_complex_index_map.insert(
-                        pair<off_t, int> 
-                        (iter->logical_offset.getValByPos(pos),
-                         lastinlist) );
+                global_complex_index_list.list.push_back(*iter);
+                
+                int lastinlist = global_complex_index_list.list.size() - 1;
+                int pos;
+                int total = iter->logical_offset.cnt 
+                            * iter->logical_offset.seq.size();
+                if ( total == 0 ) {
+                    total = 1;
+                }
+               
+                if ( enable_hash_lookup == true ) {
+                    for ( pos = 0 ; pos < total ; pos++ ) {
+                        global_complex_index_map.insert(
+                            pair<off_t, int> 
+                            (iter->logical_offset.getValByPos(pos),
+                             lastinlist) );
+                    }
                 }
             }
-        }
-        
-        //global_complex_index.append(tmp_list);
+            
+            //global_complex_index.append(tmp_list);
+        } else if ( entrytype == 'M' ) {
+            cur += sizeof(list_body_size) + sizeof(entrytype);
 
-        cur += sizeof(header_t)+list_body_size;    
+            // so we have an index mapped in, let's read it and create
+            // mappings to chunk files in our chunk map
+            HostEntry *h_index = (HostEntry *)(maddr+cur);
+            size_t entries     = list_body_size / sizeof(HostEntry); // shouldn't be partials
+            // but any will be ignored
+            mlog(IDX_DCOMMON, "There are %lu in %s",
+                    (unsigned long)entries, hostindex.c_str() );
+            for( size_t i = 0; i < entries; i++ ) {
+                ContainerEntry c_entry;
+                HostEntry      h_entry = h_index[i];
+                //  too verbose
+                //mlog(IDX_DCOMMON, "Checking chunk %s", chunkpath.c_str());
+                // remember the mapping of a chunkpath to a chunkid
+                // and set the initial offset
+                if( known_chunks.find(h_entry.id) == known_chunks.end() ) {
+                    ChunkFile cf;
+                    cf.path = Container::chunkPathFromIndexPath(hostindex,h_entry.id);
+                    cf.fd   = -1;
+                    chunk_map.push_back( cf );
+                    known_chunks[h_entry.id]  = chunk_id++;
+                    // chunk_map is indexed by chunk_id so these need to be the same
+                    assert( (size_t)chunk_id == chunk_map.size() );
+                    mlog(IDX_DCOMMON, "Inserting chunk %s (%lu)", cf.path.c_str(),
+                            (unsigned long)chunk_map.size());
+                }
+                // copy all info from the host entry to the global and advance
+                // the chunk offset
+                // we need to remember the original chunk so we can reverse
+                // this process and rewrite an index dropping from an index
+                // in-memory data structure
+                c_entry.logical_offset    = h_entry.logical_offset;
+                c_entry.length            = h_entry.length;
+                c_entry.id                = known_chunks[h_entry.id];
+                c_entry.original_chunk    = h_entry.id;
+                c_entry.physical_offset   = h_entry.physical_offset;
+                c_entry.begin_timestamp   = h_entry.begin_timestamp;
+                c_entry.end_timestamp     = h_entry.end_timestamp;
+                int ret = insertGlobal( &c_entry );
+                if ( ret != 0 ) {
+                    return cleanupReadIndex( fd, maddr, length, ret, "insertGlobal",
+                            hostindex.c_str() );
+                }
+            }
+            mlog(IDX_DAPI, "After %s in %p, now are %lu chunks",
+                    __FUNCTION__,this,(unsigned long)chunk_map.size());
+
+        } else {
+            assert(0);
+        }
+        cur += sizeof(header_t) + sizeof(entrytype) + list_body_size;    
     }
     assert(cur == length);
     //global_complex_index.show();

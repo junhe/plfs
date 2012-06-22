@@ -485,15 +485,36 @@ IdxSigEntryList::show()
     return showstr.str();
 }
 
+// [bodysize][type][body:[entry0][entry1]...]
+void IdxSigEntryList::saveMessiesToFile(const int fd)
+{
+    header_t entrybodysize = sizeof(HostEntry)*messies.size();
+    char entrytype = 'M'; //means Messies
+
+    Util::Writen(fd, &entrybodysize, sizeof(entrybodysize));
+    Util::Writen(fd, &entrytype, sizeof(entrytype));
+
+    if ( entrybodysize > 0 ) {
+        Util::Writen(fd, &messies[0], entrybodysize);
+    }
+    return ;
+}
 
 
 
-void IdxSigEntryList::saveToFile(const int fd)
+void IdxSigEntryList::saveListToFile(const int fd)
 {
     string buf = serialize();
     if ( buf.size() > 0 ) {
         Util::Writen(fd, &buf[0], buf.size());
     }
+}
+
+
+
+void IdxSigEntryList::saveToFile(const int fd)
+{
+    saveListToFile(fd);
 }
 
 
@@ -752,12 +773,14 @@ void IdxSigEntry::deSerialize(string buf)
 string IdxSigEntryList::serialize()
 {
     header_t bodysize, realbodysize = 0;
+    char entrytype = 'P'; // means Pattern
     string buf;
     vector<IdxSigEntry>::iterator iter;
     
     bodysize = bodySize();
 
     appendToBuffer(buf, &bodysize, sizeof(bodysize));
+    appendToBuffer(buf, &entrytype, sizeof(entrytype));
     
     //cout << "list body put in: " << bodysize << endl;
 
@@ -781,11 +804,13 @@ string IdxSigEntryList::serialize()
 void IdxSigEntryList::deSerialize(string buf)
 {
     header_t bodysize, bufsize;
+    char entrytype;
     int cur_start = 0;
 
     list.clear();
     
     readFromBuf(buf, &bodysize, cur_start, sizeof(bodysize));
+    readFromBuf(buf, &entrytype, cur_start, sizeof(entrytype));
    
     bufsize = buf.size();
     assert(bufsize == bodysize + sizeof(bodysize));
@@ -821,6 +846,8 @@ int IdxSigEntryList::bodySize()
 
     return bodysize;
 }
+
+
 
 //return number of elements in total
 int PatternUnit::size() const 
