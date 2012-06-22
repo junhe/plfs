@@ -21,6 +21,21 @@ string printIdxEntries( vector<IdxSigEntry> &idx_entry_list )
     return showstr.str();
 }
 
+string printVector( vector<off_t> vec )
+{
+    ostringstream oss;
+    oss << "PrintVector: " ;
+    vector<off_t>::const_iterator it;
+    for ( it =  vec.begin() ;
+          it != vec.end() ;
+          it++ )
+    {
+        oss << *it << "," ;
+    }
+    oss << endl;
+    return oss.str();
+}
+
 vector<off_t> buildDeltas( vector<off_t> seq ) 
 {
     vector<off_t>::iterator it;
@@ -80,17 +95,17 @@ IdxSigEntryList IdxSignature::generateIdxSignature(
         exit(-1);
     }
 
-    logical_offset_delta = buildDeltas(logical_offset);
-    length_delta = buildDeltas(length);
-    physical_offset_delta = buildDeltas(physical_offset);
-
-    SigStack<IdxSigUnit> offset_sig = 
-        discoverSigPattern(logical_offset_delta, logical_offset);
+    SigStack<IdxSigUnit> offset_sig = generateComplexPatterns(logical_offset);
     //offset_sig.show();
     //cout << "Just showed offset_sig" << endl;
     //Now, go through offset_sig one by one and build the IdxSigEntry s
     vector<IdxSigEntry>idx_entry_list;
     vector<IdxSigUnit>::const_iterator stack_iter;
+
+    ostringstream oss;
+    oss << "offset patterns:" << offset_sig.show() << endl;
+    oss << "offsets: " << printVector( logical_offset ) << endl;
+    mlog(IDX_WARN, "%s", oss.str().c_str());
 
     int range_start = 0, range_end; //the range currently processing
     for (stack_iter = offset_sig.begin();
@@ -99,43 +114,22 @@ IdxSigEntryList IdxSignature::generateIdxSignature(
     {
         //cout << stack_iter->init << " " ;
         IdxSigEntry idx_entry;
-        range_end = range_start + stack_iter->size();
+        range_end = range_start 
+                    + max( int(stack_iter->cnt * stack_iter->seq.size()), 1 );
         mlog(IDX_WARN, "range_start:%d, range_end:%d, logical_offset.size():%d",
                 range_start, range_end, logical_offset.size());
         assert( range_end <= logical_offset.size() );
 
-        vector<off_t>::iterator lstart, lend; //iterator used for length_delta
-        lstart = length_delta.begin() + range_start;
-        if ( range_end == length.end() - length.begin() ) {
-            lend = length_delta.begin() + range_end - 1;
-        } else {
-            lend = length_delta.begin() + range_end;
-        }
-        
-        SigStack<IdxSigUnit> length_stack = 
-            discoverSigPattern( 
-                    vector<off_t> (lstart, lend),
-                    vector<off_t> (length.begin()+range_start,
-                        length.begin()+range_end) ); //this one pointed by length.begin()+range_end 
-                                                     //won't be paseed in. The total size passed is
-                                                     //stack_iter.size();
-        //cout << "************End length" << endl;
-
-        vector<off_t>::iterator phystart, phyend;
-        phystart = physical_offset_delta.begin() + 
-                   (lstart - length_delta.begin());
-        phyend = physical_offset_delta.begin() +
-                 (lend - length_delta.begin());
-        SigStack<IdxSigUnit> physical_offset_stack = 
-            discoverSigPattern( 
-                    vector<off_t>(phystart, phyend),
-                    vector<off_t> (physical_offset.begin()+range_start,
-                        physical_offset.begin()+range_end) );
-
         idx_entry.original_chunk = proc;
         idx_entry.logical_offset = *stack_iter;
-        idx_entry.length = length_stack;
-        idx_entry.physical_offset = physical_offset_stack;
+        
+        vector<off_t> length_seg(length.begin()+range_start,
+                                 length.begin()+range_end);
+        idx_entry.length = generateComplexPatterns(length_seg);
+
+        vector<off_t> physical_offset_seg( physical_offset.begin()+range_start,
+                                           physical_offset.begin()+range_end);
+        idx_entry.physical_offset = generateComplexPatterns(physical_offset_seg);
         
         idx_entry_list.push_back( idx_entry);
 
@@ -214,6 +208,125 @@ void IdxSignature::discoverPattern(  vector<off_t> const &seq )
         }
         //pattern_stack.show();
     }
+
+}
+
+SigStack<IdxSigUnit> IdxSignature::generateComplexPatterns( vector<off_t> inits )
+{
+    mlog(IDX_WARN, "Entering %s. inits: %s", __FUNCTION__, printVector(inits).c_str());
+    vector<off_t> deltas = buildDeltas(inits);
+    SigStack<IdxSigUnit> pattern;
+
+    pattern = findPattern( deltas );
+    int pos = 0;
+    vector<IdxSigUnit>::iterator it;
+    for ( it = pattern.the_stack.begin() ;
+          it != pattern.the_stack.end() ;
+          it++ )
+    {
+        it->init = inits[pos];
+        pos += it->seq.size() * it->cnt;
+    }
+    // handle the missing last
+    if ( ! inits.empty() && ! pattern.the_stack.empty() ) {
+        IdxSigUnit last = pattern.the_stack.back(); //for short
+        if ( last.seq.size() == 1 && 
+             last.init + last.seq[0]*last.cnt  == inits.back() ) 
+        {
+            pattern.the_stack.back().cnt++;
+        } else {        
+            IdxSigUnit punit;
+            punit.init = inits.back();
+            punit.cnt = 1;
+            pattern.push(punit);
+        }
+    }    
+    
+    ostringstream oss;
+    oss << pattern.show() << endl; 
+    mlog(IDX_WARN, "Leaving %s:{%s}", __FUNCTION__, oss.str().c_str());
+
+    return pattern;
+}
+
+
+
+SigStack<IdxSigUnit> IdxSignature::findPattern( vector<off_t> deltas )
+{
+    // pointer(iterator) to the lookahead window, bot should move together
+    mlog(IDX_WARN, "Entering %s", __FUNCTION__);
+    mlog(IDX_WARN, "deltas: %s", printVector(deltas).c_str());
+    vector<off_t>::const_iterator p_lookahead_win;
+    SigStack<IdxSigUnit> pattern_stack;
+
+    p_lookahead_win = deltas.begin();
+    pattern_stack.clear();
+
+    while ( p_lookahead_win < deltas.end() ) {
+        //lookahead window is not empty
+        mlog(IDX_WARN, "window position:%d", p_lookahead_win - deltas.begin());
+        Tuple cur_tuple = searchNeighbor( deltas, p_lookahead_win );
+        mlog(IDX_WARN, "%s", cur_tuple.show().c_str());
+        if ( cur_tuple.isRepeatingNeighbor() ) {
+            if ( pattern_stack.isPopSafe( cur_tuple.length ) ) {
+                mlog(IDX_WARN, "SAFE" );
+                //safe
+                pattern_stack.popElem( cur_tuple.length );
+
+                vector<off_t>::const_iterator first, last;
+                first = p_lookahead_win;
+                last = p_lookahead_win + cur_tuple.length;
+
+                IdxSigUnit pu;
+                pu.seq.assign(first, last);
+                pu.cnt = 2;
+
+                pattern_stack.push( pu );
+                p_lookahead_win += cur_tuple.length;
+            } else {
+                //unsafe
+                mlog(IDX_WARN, "UNSAFE" );
+                IdxSigUnit pu = pattern_stack.top();
+
+                if ( cur_tuple.length % pu.seq.size() == 0
+                     && cur_tuple.length <= pu.seq.size() * pu.cnt ) {
+                    mlog(IDX_WARN, "-REPEATING LAST Pattern");
+                    //the subseq in lookahead window repeats
+                    //the top pattern in stack.
+                    //initial remains the same.
+                    pu.cnt += cur_tuple.length / pu.seq.size() ;
+                    pattern_stack.popPattern();
+                    pattern_stack.push(pu);
+                    //tmp debug.
+
+                    p_lookahead_win += cur_tuple.length;
+                } else {
+                    mlog(IDX_WARN, "-Just Pust it in");
+                    //cannot pop out cur_tuple.length elems without
+                    //totally breaking any pattern.
+                    //So we simply add one elem to the stack
+                    IdxSigUnit pu;
+                    pu.seq.push_back( *p_lookahead_win );
+                    pu.cnt = 1;
+                    pattern_stack.push(pu);
+                    p_lookahead_win++;
+                }
+            }
+        } else {
+            //(0,0,x)
+            IdxSigUnit pu;
+            pu.seq.push_back(cur_tuple.next_symbol);
+            pu.cnt = 1;
+
+            pattern_stack.push(pu); 
+            p_lookahead_win++;
+        }
+        pattern_stack.the_stack.back().compressRepeats();
+        mlog(IDX_WARN, "LOOP: %s", pattern_stack.show().c_str());
+    }
+   
+    mlog(IDX_WARN, "Leaving %s:%s", __FUNCTION__, pattern_stack.show().c_str());
+    return pattern_stack;
 
 }
 
@@ -365,6 +478,7 @@ SigStack<IdxSigUnit> IdxSignature::discoverSigPattern( vector<off_t> const &seq,
         //oss << pattern_stack_compressed.show();
         //mlog(IDX_WARN, "%s", oss.str().c_str());
     }
+   
     
 
     if ( pattern_stack.size() != orig.size() ) {
@@ -478,10 +592,33 @@ void IdxSigEntryList::append( IdxSigEntry other, bool compress )
 }
 
 string 
-IdxSigEntryList::show()
+IdxSigEntryList::show() 
 {
     ostringstream showstr;
     showstr << printIdxEntries(list);
+
+    vector<HostEntry>::const_iterator it;
+    for ( it = messies.begin() ;
+          it != messies.end() ;
+          it++ ) 
+    {
+        double begin_timestamp = 0, end_timestamp = 0;
+        begin_timestamp = (*it).begin_timestamp;
+        end_timestamp  = (*it).end_timestamp;
+        showstr  << setw(5)
+            << (*it).id             << " w "
+            << setw(16)
+            << (*it).logical_offset << " "
+            << setw(8) << (*it).length << " "
+            << setw(16) << fixed << setprecision(16)
+            << begin_timestamp << " "
+            << setw(16) << fixed << setprecision(16)
+            << end_timestamp   << " "
+            << setw(16)
+            << (*it).logical_tail() << " "
+            << " [" << setw(10) << (*it).physical_offset << "]";
+    }
+
     return showstr.str();
 }
 
@@ -489,6 +626,10 @@ IdxSigEntryList::show()
 void IdxSigEntryList::saveMessiesToFile(const int fd)
 {
     header_t entrybodysize = sizeof(HostEntry)*messies.size();
+    if ( entrybodysize == 0 ) {
+        return;
+
+    }
     char entrytype = 'M'; //means Messies
 
     Util::Writen(fd, &entrybodysize, sizeof(entrybodysize));
@@ -546,12 +687,14 @@ void IdxSigEntryList::saveListToFile(const int fd)
 void IdxSigEntryList::saveToFile(const int fd)
 {
     saveListToFile(fd);
+    saveMessiesToFile(fd);
 }
 
 
 void IdxSigEntryList::clear()
 {
     list.clear();
+    messies.clear();
 }
 
 
@@ -563,7 +706,7 @@ void appendToBuffer( string &to, const void *from, const int size )
 }
 
 //Note that this function will increase start
-void readFromBuf( const string &from, void *to, int &start, const int size )
+void readFromBuf( string &from, void *to, int &start, const int size )
 {
     //'to' has to be treated as plain memory
     memcpy(to, &from[start], size);
@@ -662,7 +805,6 @@ bool IdxSigUnit::isSeqRepeating()
 
 void IdxSigUnit::compressRepeats()
 {
-    
     if ( isSeqRepeating() && size() > 1 ) {
         cnt = size();
         off_t tmp = seq[0];

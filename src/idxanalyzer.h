@@ -104,14 +104,14 @@ class SigStack: public PatternStack <T>
                     iter++ )
             {
                 vector<off_t>::const_iterator off_iter;
-                showstr << iter->init << "- " ;
+                showstr << iter->init << "- (" ;
                 for ( off_iter = (iter->seq).begin();
                         off_iter != (iter->seq).end();
                         off_iter++ )
                 {
                     showstr << *off_iter << ", ";
                 }
-                showstr << "^" << iter->cnt << endl;
+                showstr << ")^" << iter->cnt << endl;
             }
             return showstr.str(); 
         }
@@ -231,6 +231,7 @@ class HostEntry
 
         friend class Index;
         friend class IdxSignature;
+        friend class IdxSigEntryList;
         friend class MultiLevel::PatternCombo;
 };
 
@@ -246,6 +247,8 @@ class IdxSignature {
         //It takes in a entry buffer like in PLFS,
         //analyzes it and generate Index Signature Entries
         IdxSigEntryList generateIdxSignature(vector<HostEntry> &entry_buf, int proc);
+        SigStack<IdxSigUnit> findPattern( vector<off_t> deltas );
+        SigStack<IdxSigUnit> generateComplexPatterns( vector<off_t> inits );
     private:
         int win_size; //window size
         Tuple searchNeighbor( vector<off_t> const &seq,
@@ -287,7 +290,7 @@ class IdxSigEntryList {
         void append(IdxSigEntryList other);
         void append(IdxSigEntry other, bool compress=false);
         void append(vector<IdxSigEntry> &other);
-        string show();
+        string show() ;
         void saveToFile(const int fd);
         void saveMessiesToFile(const int fd);
         void saveListToFile(const int fd);
