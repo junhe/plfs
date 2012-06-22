@@ -296,11 +296,12 @@ SigStack<IdxSigUnit> IdxSignature::discoverSigPattern( vector<off_t> const &seq,
                 //unsafe
                 IdxSigUnit pu = pattern_stack.top();
 
-                if ( pu.seq.size() == cur_tuple.length ) {
+                if ( cur_tuple.length % pu.seq.size()
+                     && cur_tuple.length <= pu.seq.size() * pu.cnt ) {
                     //the subseq in lookahead window repeats
                     //the top pattern in stack.
                     //initial remains the same.
-                    pu.cnt++;
+                    pu.cnt += cur_tuple.length / pu.seq.size() ;
                     pattern_stack.popPattern();
                     pattern_stack.push(pu);
                     pu.init = *p_lookahead_win_orig; //should delete this. keep if only for 
