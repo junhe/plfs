@@ -1021,8 +1021,14 @@ int IdxSigEntryList::bodySize()
 
 void IdxSigEntryList::dumpMessies()
 {
-    while( ! list.empty() ) {
-        IdxSigEntry &patternentry = list.back();
+    vector<IdxSigEntry> nicepatterns;
+    vector<IdxSigEntry>::iterator it;
+
+    for ( it =  list.begin() ;
+          it != list.end() ;
+          it++ )
+    {
+        IdxSigEntry &patternentry = *it;
         if ( patternentry.logical_offset.size() <= 1 ) {
             //this is mess that had not been compressed
             HostEntry hentry;
@@ -1037,8 +1043,11 @@ void IdxSigEntryList::dumpMessies()
 
             messies.push_back(hentry);
             list.pop_back();
+        } else {
+            nicepatterns.push_back(patternentry);
         }
     }
+    list = nicepatterns;
 }
 
 
