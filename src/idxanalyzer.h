@@ -300,6 +300,7 @@ class IdxSigEntryList {
         void deSerializeMessies( string &buf );
         void deSerialize(string buf);
         int bodySize();
+        void dumpMessies();
 };
 
 string printIdxEntries( vector<IdxSigEntry> &idx_entry_list );

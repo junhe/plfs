@@ -629,9 +629,9 @@ int Index::readComplexIndex( string hostindex )
         // check the header to see what type it is
         memcpy(&list_body_size, maddr+cur, sizeof(header_t));
         memcpy(&entrytype, maddr+cur+sizeof(list_body_size), sizeof(entrytype));
+        mlog(IDX_WARN, "list_body_size:%d. type:%c", list_body_size, entrytype);
         
         if ( entrytype == 'P' ) {
-            //mlog(IDX_WARN, "list_body_size:%d", list_body_size);
             appendToBuffer(header_and_body_buf, maddr+cur, 
                            sizeof(header_t) + sizeof(entrytype) + list_body_size);
             tmp_list.deSerialize(header_and_body_buf); 
@@ -1890,7 +1890,9 @@ Index::flushComplexIndexBuf()
     //mlog(IDX_WARN, "in %s", __FUNCTION__);
     //There may be some entries left in HostIndexBuf
     flushHostIndexBuf();
-    
+   
+    complexIndexBuf.dumpMessies();
+
     complexIndexBuf.saveToFile(fd);
     //ostringstream oss;
     //oss << complexIndexBuf.show();

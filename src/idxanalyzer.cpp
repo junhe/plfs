@@ -981,12 +981,11 @@ void IdxSigEntryList::deSerialize(string buf)
     int cur_start = 0;
 
     list.clear();
-    
     readFromBuf(buf, &bodysize, cur_start, sizeof(bodysize));
     readFromBuf(buf, &entrytype, cur_start, sizeof(entrytype));
-   
+    assert(entrytype == 'P'); 
     bufsize = buf.size();
-    assert(bufsize == bodysize + sizeof(bodysize));
+    assert(bufsize == bodysize + sizeof(bodysize) + sizeof(entrytype));
     while ( cur_start < bufsize ) {
         header_t unitbodysize, sizeofheadandbody;
         string unitbuf;
@@ -1020,6 +1019,27 @@ int IdxSigEntryList::bodySize()
     return bodysize;
 }
 
+void IdxSigEntryList::dumpMessies()
+{
+    while( ! list.empty() ) {
+        IdxSigEntry &patternentry = list.back();
+        if ( patternentry.logical_offset.size() <= 1 ) {
+            //this is mess that had not been compressed
+            HostEntry hentry;
+            hentry.logical_offset = patternentry.logical_offset.init;
+            assert( patternentry.length.the_stack.size() > 0 );
+            hentry.length = patternentry.length.the_stack.front().init;
+            assert( patternentry.physical_offset.the_stack.size() > 0 );
+            hentry.physical_offset = patternentry.physical_offset.the_stack.front().init;
+            hentry.begin_timestamp = 0; //TODO add timestamp to Sig Entry
+            hentry.end_timestamp = 0;
+            hentry.id = patternentry.original_chunk;
+
+            messies.push_back(hentry);
+            list.pop_back();
+        }
+    }
+}
 
 
 //return number of elements in total
