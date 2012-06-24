@@ -870,7 +870,7 @@ int Index::global_from_stream(void *addr)
         memcpy(&entrytype, addr+sizeof(list_body_size), sizeof(entrytype));
 
         header_t header_and_body_size = 
-                       sizeof(header_t) + sizeof(entrytype) + sizeof(list_body_size);
+                       sizeof(header_t) + sizeof(entrytype) + list_body_size;
         appendToBuffer(header_and_body_buf, addr, header_and_body_size);
         tmp_list.deSerialize(header_and_body_buf); 
         
