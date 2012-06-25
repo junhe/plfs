@@ -228,10 +228,12 @@ SigStack<IdxSigUnit> IdxSignature::generateComplexPatterns( vector<off_t> inits 
         pos += it->seq.size() * it->cnt;
     }
     // handle the missing last
-    if ( ! inits.empty() && ! pattern.the_stack.empty() ) {
-        IdxSigUnit last = pattern.the_stack.back(); //for short
-        if ( last.seq.size() == 1 && 
-             last.init + last.seq[0]*last.cnt  == inits.back() ) 
+    if ( ! inits.empty() ) {
+        if ( ! pattern.the_stack.empty() 
+             && pattern.the_stack.back().seq.size() == 1 
+             && pattern.the_stack.back().init + 
+                pattern.the_stack.back().seq[0] * pattern.the_stack.back().cnt 
+                 == inits.back() ) 
         {
             pattern.the_stack.back().cnt++;
         } else {        
@@ -1031,6 +1033,9 @@ void IdxSigEntryList::dumpMessies()
         IdxSigEntry &patternentry = *it;
         if ( patternentry.logical_offset.size() <= 1 ) {
             //this is mess that had not been compressed
+            //cout << "************************************************" << endl;
+            //cout << patternentry.show() << endl;
+            
             HostEntry hentry;
             hentry.logical_offset = patternentry.logical_offset.init;
             assert( patternentry.length.the_stack.size() > 0 );
@@ -1042,12 +1047,12 @@ void IdxSigEntryList::dumpMessies()
             hentry.id = patternentry.original_chunk;
 
             messies.push_back(hentry);
-            list.pop_back();
         } else {
             nicepatterns.push_back(patternentry);
         }
     }
     list = nicepatterns;
+    //cout << "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF" << endl;
 }
 
 

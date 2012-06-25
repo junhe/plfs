@@ -1887,13 +1887,15 @@ Index::flushHostIndexBuf()
 void
 Index::flushComplexIndexBuf()
 {
-    //mlog(IDX_WARN, "in %s", __FUNCTION__);
+    mlog(IDX_WARN, "in %s", __FUNCTION__);
     //There may be some entries left in HostIndexBuf
     flushHostIndexBuf();
    
-    complexIndexBuf.dumpMessies();
-
+    //complexIndexBuf.dumpMessies();
+    mlog(IDX_WARN, "before saveToFile()::: %s", 
+            complexIndexBuf.show().c_str());
     complexIndexBuf.saveToFile(fd);
+    mlog(IDX_WARN, "After saveToFile():::");
     //ostringstream oss;
     //oss << complexIndexBuf.show();
     //mlog(IDX_WARN, "%s", oss.str().c_str());
