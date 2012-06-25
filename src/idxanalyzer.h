@@ -268,6 +268,8 @@ class IdxSigEntry {
                                //it should only be serialized in
                                //the context of global complex index
                                //Now serialized
+        double begin_timestamp;
+        double end_timestamp;
         IdxSigUnit logical_offset;
         SigStack<IdxSigUnit> length;
         SigStack<IdxSigUnit> physical_offset;

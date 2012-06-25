@@ -884,6 +884,8 @@ string IdxSigEntry::serialize()
     appendToBuffer(buf, &totalsize, sizeof(totalsize));
     appendToBuffer(buf, &original_chunk, sizeof(original_chunk));
     appendToBuffer(buf, &new_chunk_id, sizeof(new_chunk_id));
+    appendToBuffer(buf, &begin_timestamp, sizeof(begin_timestamp));
+    appendToBuffer(buf, &end_timestamp, sizeof(end_timestamp));
     //cout << "IdxSigEntry original_chunk put in: " << original_chunk << endl; 
     
     //this tmpbuf includes [data size][data]
@@ -916,6 +918,8 @@ void IdxSigEntry::deSerialize(string buf)
     //cout << "IdxSigEntry id read out: " << id << endl; 
     
     readFromBuf(buf, &new_chunk_id, cur_start, sizeof(new_chunk_id));
+    readFromBuf(buf, &begin_timestamp, cur_start, sizeof(begin_timestamp));
+    readFromBuf(buf, &end_timestamp, cur_start, sizeof(end_timestamp));
    
     tmpbuf.clear();
     readFromBuf(buf, &datasize, cur_start, sizeof(datasize));
