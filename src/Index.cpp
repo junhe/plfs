@@ -1564,20 +1564,11 @@ int Index::globalLookup( int *fd, off_t *chunk_off, size_t *chunk_len,
 {
     ostringstream os;
     os << __FUNCTION__ << ": " << this << " using index.";
-    os << "Size of complex pattern: "<< global_complex_index_list.list.size() << endl;
-    os << "Size of mess global: " << global_index.size() << endl;
+    //os << "Size of complex pattern: "<< global_complex_index_list.list.size() << endl;
+    //os << "Size of mess global: " << global_index.size() << endl;
 
     mlog(IDX_WARN, "%s", os.str().c_str() );
 
-    if ( type == COMPLEXPATTERN ) {
-        int ret =  globalComplexLookup(fd, chunk_off, chunk_len,
-                path, hole, chunk_id, logical);
-        if ( *fd != -1 ) {
-            // found it in complex pattern
-            return 0;
-        }
-    }
-    mlog(IDX_WARN, "canot find in complex pattern. Try to look it up in the messies");
 
     *hole = false;
     *chunk_id = (pid_t)-1;
@@ -1635,6 +1626,20 @@ int Index::globalLookup( int *fd, off_t *chunk_off, size_t *chunk_len,
                     chunk_id, &previous );
         }
     }
+
+    mlog(IDX_WARN, "canot find in messies. Try to look it up in the patterns");
+    if ( type == COMPLEXPATTERN ) {
+        int ret =  globalComplexLookup(fd, chunk_off, chunk_len,
+                path, hole, chunk_id, logical);
+        if ( *fd != -1 ) {
+            // found it in complex pattern
+            return 0;
+        }
+    }
+
+
+
+
     // now it's either before entry and in a hole or after entry and off
     // the end of the file
     // case 4: within a hole

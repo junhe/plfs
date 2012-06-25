@@ -102,10 +102,12 @@ IdxSigEntryList IdxSignature::generateIdxSignature(
     vector<IdxSigEntry>idx_entry_list;
     vector<IdxSigUnit>::const_iterator stack_iter;
 
+    /*
     ostringstream oss;
     oss << "offset patterns:" << offset_sig.show() << endl;
     oss << "offsets: " << printVector( logical_offset ) << endl;
     mlog(IDX_WARN, "%s", oss.str().c_str());
+    */
 
     int range_start = 0, range_end; //the range currently processing
     for (stack_iter = offset_sig.begin();
@@ -213,7 +215,7 @@ void IdxSignature::discoverPattern(  vector<off_t> const &seq )
 
 SigStack<IdxSigUnit> IdxSignature::generateComplexPatterns( vector<off_t> inits )
 {
-    mlog(IDX_WARN, "Entering %s. inits: %s", __FUNCTION__, printVector(inits).c_str());
+    //mlog(IDX_WARN, "Entering %s. inits: %s", __FUNCTION__, printVector(inits).c_str());
     vector<off_t> deltas = buildDeltas(inits);
     SigStack<IdxSigUnit> pattern;
 
@@ -244,9 +246,11 @@ SigStack<IdxSigUnit> IdxSignature::generateComplexPatterns( vector<off_t> inits 
         }
     }    
     
+    /*
     ostringstream oss;
     oss << pattern.show() << endl; 
     mlog(IDX_WARN, "Leaving %s:{%s}", __FUNCTION__, oss.str().c_str());
+    */
 
     return pattern;
 }
