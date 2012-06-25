@@ -277,7 +277,7 @@ int Index::globalComplexLookup( int *fd, off_t *chunk_off, size_t *chunk_len,
         }
 
         //TODO: handle it...
-        mlog(IDX_WARN, "%s in a hole. or off the end of the file", __FUNCTION__);
+        mlog(IDX_WARN, "%s in a hhhhole. or off the end of the file", __FUNCTION__);
         
         *fd = -1;
         *chunk_len = 0;
@@ -334,7 +334,7 @@ int Index::globalComplexLookup( int *fd, off_t *chunk_off, size_t *chunk_len,
         }
 
         //TODO: handle it...
-        mlog(IDX_WARN, "%s in a hole. or off the end of the file", __FUNCTION__);
+        mlog(IDX_WARN, "%s in a HHHhole. or off the end of the file", __FUNCTION__);
         
         *fd = -1;
         *chunk_len = 0;

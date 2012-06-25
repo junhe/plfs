@@ -668,24 +668,14 @@ find_read_tasks(Index *index, list<ReadTask> *tasks, size_t size, off_t offset,
     ReadTask task;
     do {
         // find a read task
-        if ( index->type == SINGLEHOST ) {
-            ret = index->globalLookup(&(task.fd),
-                                      &(task.chunk_offset),
-                                      &(task.length),
-                                      task.path,
-                                      &(task.hole),
-                                      &(task.chunk_id),
-                                      offset+bytes_traversed);
-        } else {
-            ret = index->globalComplexLookup(&(task.fd),
-                                      &(task.chunk_offset),
-                                      &(task.length),
-                                      task.path,
-                                      &(task.hole),
-                                      &(task.chunk_id),
-                                      offset+bytes_traversed);
-        }
-        
+        ret = index->globalLookup(&(task.fd),
+                                  &(task.chunk_offset),
+                                  &(task.length),
+                                  task.path,
+                                  &(task.hole),
+                                  &(task.chunk_id),
+                                  offset+bytes_traversed);
+    
         // make sure it's good
         if ( ret == 0 ) {
             task.length = min(bytes_remaining,(ssize_t)task.length);

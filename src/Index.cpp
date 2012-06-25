@@ -485,7 +485,7 @@ Index::merge(Index *other)
         chunk_map.push_back(*itr);
     }
 
-    if ( type == SINGLEHOST ) {
+    if ( type == SINGLEHOST || type == COMPLEXPATTERN) {
         // copy over the other's container entries but shift the index
         // so they index into the new larger chunk_map
         map<off_t,ContainerEntry>::const_iterator ce_itr;
@@ -496,7 +496,8 @@ Index::merge(Index *other)
             entry.id += chunk_map_shift;
             insertGlobal(&entry);
         }
-    } else if ( type == COMPLEXPATTERN ) {
+    } 
+    if ( type == COMPLEXPATTERN ) {
         vector<IdxSigEntry>::iterator oth_entry;
         for ( oth_entry = other->global_complex_index_list.list.begin();
               oth_entry != other->global_complex_index_list.list.end();
@@ -506,9 +507,6 @@ Index::merge(Index *other)
             entry.new_chunk_id += chunk_map_shift;
             insertGlobal( &entry );  
         }        
-    } else {
-        mlog(IDX_ERR, "In %s. Unknown type", __FUNCTION__);
-        exit(-1);
     }
 }
 
@@ -728,6 +726,7 @@ int Index::readComplexIndex( string hostindex )
             }
             mlog(IDX_DAPI, "After %s in %p, now are %lu chunks",
                     __FUNCTION__,this,(unsigned long)chunk_map.size());
+            mlog(IDX_DAPI, "Size of global_index: %d", global_index.size());
 
         } else {
             assert(0);
@@ -858,8 +857,8 @@ int Index::readIndex( string hostindex )
 int Index::global_from_stream(void *addr)
 {
     if ( type == COMPLEXPATTERN ) {
-        //mlog(IDX_WARN, "Entering %s. Type: ComplexPattern",
-        //        __FUNCTION__);
+        mlog(IDX_WARN, "Entering %s. Type: ComplexPattern",
+                __FUNCTION__);
         // [patterns][messies][chunks]
         header_t list_body_size;
         char entrytype;
@@ -890,10 +889,11 @@ int Index::global_from_stream(void *addr)
 
         memcpy(&list_body_size, addr, sizeof(header_t));
         memcpy(&entrytype, addr+sizeof(list_body_size), sizeof(entrytype));
-
+        assert( entrytype == 'M' );
         addr += sizeof(list_body_size)+sizeof(entrytype); //skip header
         ContainerEntry *entries = (ContainerEntry *)addr;
         size_t quant = list_body_size/sizeof(ContainerEntry);
+        mlog(IDX_WARN, "number of messies:%d", quant);
         for(size_t i=0; i<quant; i++) {
             ContainerEntry e = entries[i];
             // just put it right into place. no need to worry about overlap
@@ -905,6 +905,7 @@ int Index::global_from_stream(void *addr)
             //global_index[e.logical_offset] = e;
             insertGlobalEntry(&e);
         }
+        mlog(IDX_WARN, "number of global_index messies:%d", global_index.size());
 
         addr = &entries[quant]; //point to chunks
         vector<string> chunk_paths;
@@ -1563,12 +1564,20 @@ int Index::globalLookup( int *fd, off_t *chunk_off, size_t *chunk_len,
 {
     ostringstream os;
     os << __FUNCTION__ << ": " << this << " using index.";
-    mlog(IDX_DAPI, "%s", os.str().c_str() );
+    os << "Size of complex pattern: "<< global_complex_index_list.list.size() << endl;
+    os << "Size of mess global: " << global_index.size() << endl;
+
+    mlog(IDX_WARN, "%s", os.str().c_str() );
 
     if ( type == COMPLEXPATTERN ) {
-        return globalComplexLookup(fd, chunk_off, chunk_len,
+        int ret =  globalComplexLookup(fd, chunk_off, chunk_len,
                 path, hole, chunk_id, logical);
+        if ( *fd != -1 ) {
+            // found it in complex pattern
+            return 0;
+        }
     }
+    mlog(IDX_WARN, "canot find in complex pattern. Try to look it up in the messies");
 
     *hole = false;
     *chunk_id = (pid_t)-1;
