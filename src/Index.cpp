@@ -1891,7 +1891,7 @@ Index::flushComplexIndexBuf()
     //There may be some entries left in HostIndexBuf
     flushHostIndexBuf();
    
-    //complexIndexBuf.dumpMessies();
+    complexIndexBuf.dumpMessies();
     mlog(IDX_WARN, "before saveToFile()::: %s", 
             complexIndexBuf.show().c_str());
     complexIndexBuf.saveToFile(fd);
