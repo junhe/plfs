@@ -1351,27 +1351,72 @@ string ContainerIdxSigEntry::show() const
     return showstr.str();
 }
 
-// This is where we build cross-proc patterns
-void ContainerIdxSigEntryList::insertGlobal( ContainerIdxSigEntry &entry )
+
+// [e2] is after [e1]: returen true
+bool isAbut( ContainerIdxSigEntry e1, ContainerIdxSigEntry e2 )
 {
-    /*
-    map<off_t, ContainerIdxSigEntry*>::iterator before, after;
-    after = listmap.lower_bound( entry.logical_offset.init );
-    
-    ContainerIdxSigEntry *afterenry = after->second; //for short
-    
-
-    if ( after != listmap.begin() ) {
-        before = after - 1;
+    if (    e1.logical_offset.seq.size() == 1
+         && e2.logical_offset.seq.size() == 1
+         && e1.length.the_stack.size() == 1
+         && e2.length.the_stack.size() == 1
+         && e1.length.the_stack[0].seq.size() == 1 
+         && e2.length.the_stack[0].seq.size() == 1 
+         && e1.length.the_stack[0].seq[0] 
+            == e2.length.the_stack[0].seq[0] 
+         && e1.length.the_stack[0].cnt 
+            == e2.length.the_stack[0].cnt
+         && e1.physical_offset.the_stack.size() == 1
+         && e2.physical_offset.the_stack.size() == 1
+         && e1.physical_offset.the_stack[0].seq.size() == 1 
+         && e2.physical_offset.the_stack[0].seq.size() == 1 
+         && e1.physical_offset.the_stack[0].seq[0]
+            == e2.physical_offset.the_stack[0].seq[0]
+         && e1.physical_offset.the_stack[0].cnt
+            == e2.physical_offset.the_stack[0].cnt
+         
+         && e1.logical_offset.init 
+              + e1.logical_offset.seq[0] * e1.chunkmap.size()
+            == e2.logical_offset.init
+        )
+    {
+        // Only handle very simple case:
+        //   e2 as the exactly same pattern, but different logical offset
+        //   and they abut
+        return true;
     }
-
-    list.push_back(entry);
-    listmap[entry.logical_offset.init] = &list.back()
-    */
-    listmap[entry.logical_offset.init] = entry;
+    return false;
 }
 
-void ContainerIdxSigEntryList::insertEntry( ContainerIdxSigEntry &entry )
+// This is where we build cross-proc patterns
+void ContainerIdxSigEntryList::insertGlobal( const ContainerIdxSigEntry &entry )
+{
+    map<off_t, ContainerIdxSigEntry>::iterator before, after;
+    after = listmap.lower_bound( entry.logical_offset.init );
+    
+    if ( isAbut(entry, after->second) ) {
+        ContainerIdxSigEntry con_entry = entry;
+        con_entry.chunkmap.insert( con_entry.chunkmap.end(),
+                                   after->second.chunkmap.begin(),
+                                   after->second.chunkmap.end() );
+        listmap.erase( after );
+        listmap[con_entry.logical_offset.init] = con_entry;
+        return;
+    }
+
+
+    if ( after != listmap.begin() ) {
+        before = after--;
+        if ( isAbut( before->second, entry ) ) {
+            before->second.chunkmap.insert( before->second.chunkmap.end(),
+                                            entry.chunkmap.begin(),
+                                            entry.chunkmap.end() );
+            return;
+        }
+    }
+    insertEntry( entry );
+}
+
+void ContainerIdxSigEntryList::insertEntry( const ContainerIdxSigEntry &entry )
 {
     /*
     map<off_t, ContainerIdxSigEntry*>::iterator before, after;
