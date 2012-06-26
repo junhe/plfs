@@ -865,6 +865,8 @@ int IdxSigEntry::bodySize()
     int totalsize = 0;
     totalsize += sizeof(original_chunk);
     totalsize += sizeof(new_chunk_id);
+    totalsize += sizeof(begin_timestamp);
+    totalsize += sizeof(end_timestamp);
     totalsize += sizeof(header_t) * 3; //the header size of the following 
     totalsize += logical_offset.bodySize();
     totalsize += length.bodySize();
