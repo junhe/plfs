@@ -309,10 +309,7 @@ ostream& operator <<(ostream& os, Index& ndx )
     } 
     
     if (ndx.type == COMPLEXPATTERN) {
-        os << ndx.global_complex_index_list.show() << endl;
-    } else {
-        mlog(IDX_ERR, "%s: unknown index type", __FUNCTION__);
-        assert(0);
+        os << ndx.global_con_index_list.show() << endl;
     }
         
     return os;
@@ -657,8 +654,24 @@ int Index::readComplexIndex( string hostindex )
                 }
                 iter->new_chunk_id = known_chunks[iter->original_chunk];
            
-                global_complex_index_list.list.push_back(*iter);
+                //global_complex_index_list.list.push_back(*iter);
+                // Now use complex with cross-proc pattern
+                ContainerIdxSigEntry con_entry;
+                con_entry.begin_timestamp = iter->begin_timestamp;
+                con_entry.end_timestamp = iter->end_timestamp;
                 
+                SigChunkMap sigchunkmap;
+                sigchunkmap.original_chunk_id = iter->original_chunk;
+                sigchunkmap.new_chunk_id =  known_chunks[iter->original_chunk];
+                con_entry.chunkmap.push_back(sigchunkmap);
+                
+                con_entry.logical_offset = iter->logical_offset;
+                con_entry.length = iter->length;
+                con_entry.physical_offset = iter->physical_offset;
+
+                global_con_index_list.insert(con_entry);
+
+                /*
                 int lastinlist = global_complex_index_list.list.size() - 1;
                 int pos;
                 int total = iter->logical_offset.cnt 
@@ -675,6 +688,7 @@ int Index::readComplexIndex( string hostindex )
                              lastinlist) );
                     }
                 }
+                */
             }
             
             //global_complex_index.append(tmp_list);

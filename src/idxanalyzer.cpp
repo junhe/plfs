@@ -1311,6 +1311,64 @@ void ContainerIdxSigEntry::deSerialize(string buf)
     physical_offset.deSerialize(tmpbuf);   
 }
 
+string ContainerIdxSigEntry::show() const
+{
+    ostringstream showstr;
+
+    showstr << "{";
+    vector<SigChunkMap>::const_iterator it;
+    for ( it =  chunkmap.begin() ;
+          it != chunkmap.end() ;
+          it++ )
+    {
+        showstr << "[" << it->original_chunk_id;
+        showstr << "," << it->new_chunk_id << "]";
+    }
+    showstr << "}" << endl;
+
+    showstr << "----Logical Offset----" << endl;
+    showstr << logical_offset.show();
+    
+    vector<IdxSigUnit>::const_iterator iter2;
+
+    showstr << "----Length----" << endl;
+    for (iter2 = length.begin();
+            iter2 != length.end();
+            iter2++ )
+    {
+        showstr << iter2->show(); 
+    }
+
+    showstr << "----Physical Offset----" << endl;
+    for (iter2 = physical_offset.begin();
+            iter2 != physical_offset.end();
+            iter2++ )
+    {
+        showstr << iter2->show(); 
+    }
+    showstr << "-------------------------------------" << endl;
+
+    return showstr.str();
+}
+
+void ContainerIdxSigEntryList::insert( ContainerIdxSigEntry &entry )
+{
+    list.push_back(entry);
+}
+
+string ContainerIdxSigEntryList::show() const
+{
+    ostringstream oshowstr;
+    vector<ContainerIdxSigEntry>:: const_iterator it;
+    for ( it =  list.begin() ; 
+          it != list.end() ;
+          it++ )
+    {
+        oshowstr << it->show() << endl;
+    }
+    return oshowstr.str();
+}
+
 
 
 

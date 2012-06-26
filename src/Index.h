@@ -182,7 +182,8 @@ class Index : public Metadata
         map< off_t, int > global_complex_index_map; // map from logical offset to its
                                                     // position in global_complex_index_list
         IdxSigEntryList global_complex_index_list;
-        
+       
+        ContainerIdxSigEntryList global_con_index_list; //global pattern with complex pattern
 
         IdxSignature complexIndexUtil;    //a tool class to analyze pattern
 

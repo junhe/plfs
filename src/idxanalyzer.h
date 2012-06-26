@@ -284,8 +284,9 @@ class IdxSigEntry {
 };
 
 class SigChunkMap {
-    pid_t original_chunk_id;
-    pid_t new_chunk_id;
+    public:
+        pid_t original_chunk_id;
+        pid_t new_chunk_id;
 };
 
 
@@ -303,9 +304,18 @@ class ContainerIdxSigEntry {
         void deSerialize(string buf);
         int bodySize();
         //bool contains( const off_t &offset, int &pos );
-        //string show();
+        string show() const;
         //bool append(IdxSigEntry &other);
-        //friend ostream& operator <<(ostream&, IdxSigEntry&);
+        friend ostream& operator <<(ostream&, ContainerIdxSigEntry&);
+};
+
+class ContainerIdxSigEntryList {
+    public:
+        vector<ContainerIdxSigEntry> list;
+
+        void insert(ContainerIdxSigEntry &entry);
+        string show() const;
+        //string serialize();
 };
 
 
