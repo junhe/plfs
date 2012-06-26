@@ -2,6 +2,7 @@
 #define __idxanalyzer_h__
 
 #include <vector>
+#include <map>
 #include <string>
 #include <iostream>
 #include <fstream>
@@ -311,9 +312,10 @@ class ContainerIdxSigEntry {
 
 class ContainerIdxSigEntryList {
     public:
-        vector<ContainerIdxSigEntry> list;
+        map<off_t, ContainerIdxSigEntry> listmap;
 
         void insert(ContainerIdxSigEntry &entry);
+        void insertEntry(ContainerIdxSigEntry &entry);
         string show() const;
         string serialize();
         void deSerialize(string buf);

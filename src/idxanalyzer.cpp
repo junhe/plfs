@@ -1353,18 +1353,52 @@ string ContainerIdxSigEntry::show() const
 
 void ContainerIdxSigEntryList::insert( ContainerIdxSigEntry &entry )
 {
+    /*
+    map<off_t, ContainerIdxSigEntry*>::iterator before, after;
+    after = listmap.lower_bound( entry.logical_offset.init );
+    
+    ContainerIdxSigEntry *afterenry = after->second; //for short
+    
+
+    if ( after != listmap.begin() ) {
+        before = after - 1;
+    }
+
     list.push_back(entry);
+    listmap[entry.logical_offset.init] = &list.back()
+    */
+    listmap[entry.logical_offset.init] = entry;
 }
+
+void ContainerIdxSigEntryList::insertEntry( ContainerIdxSigEntry &entry )
+{
+    /*
+    map<off_t, ContainerIdxSigEntry*>::iterator before, after;
+    after = listmap.lower_bound( entry.logical_offset.init );
+    
+    ContainerIdxSigEntry *afterenry = after->second; //for short
+    
+
+    if ( after != listmap.begin() ) {
+        before = after - 1;
+    }
+
+    list.push_back(entry);
+    listmap[entry.logical_offset.init] = &list.back()
+    */
+    listmap[entry.logical_offset.init] = entry;
+}
+
 
 string ContainerIdxSigEntryList::show() const
 {
     ostringstream oshowstr;
-    vector<ContainerIdxSigEntry>:: const_iterator it;
-    for ( it =  list.begin() ; 
-          it != list.end() ;
+    map<off_t,ContainerIdxSigEntry>:: const_iterator it;
+    for ( it =  listmap.begin() ; 
+          it != listmap.end() ;
           it++ )
     {
-        oshowstr << it->show() << endl;
+        oshowstr << it->second.show();
     }
     return oshowstr.str();
 }
@@ -1372,13 +1406,13 @@ string ContainerIdxSigEntryList::show() const
 int ContainerIdxSigEntryList::bodySize()
 {
     int bodysize = 0;
-    vector<ContainerIdxSigEntry>::iterator iter;
+    map<off_t,ContainerIdxSigEntry>::iterator iter;
     
-    for ( iter = list.begin() ;
-          iter != list.end() ;
+    for ( iter = listmap.begin() ;
+          iter != listmap.end() ;
           iter++ )
     {
-        bodysize += iter->bodySize() + sizeof(header_t);
+        bodysize += iter->second.bodySize() + sizeof(header_t);
     }
 
     return bodysize;
@@ -1390,7 +1424,7 @@ string ContainerIdxSigEntryList::serialize()
     header_t bodysize, realbodysize = 0;
     char entrytype = 'C'; // means Container pattern
     string buf;
-    vector<ContainerIdxSigEntry>::iterator iter;
+    map<off_t,ContainerIdxSigEntry>:: iterator iter;
     
     bodysize = bodySize();
 
@@ -1399,12 +1433,12 @@ string ContainerIdxSigEntryList::serialize()
     
     //cout << "list body put in: " << bodysize << endl;
 
-    for ( iter = list.begin() ;
-          iter != list.end() ;
+    for ( iter = listmap.begin() ;
+          iter != listmap.end() ;
           iter++ )
     {
         string tmpbuf;
-        tmpbuf = iter->serialize();
+        tmpbuf = iter->second.serialize();
         if ( tmpbuf.size() > 0 ) {
             appendToBuffer(buf, &tmpbuf[0], tmpbuf.size());
         }
@@ -1422,7 +1456,7 @@ void ContainerIdxSigEntryList::deSerialize(string buf)
     char entrytype;
     int cur_start = 0;
 
-    list.clear();
+    listmap.clear();
     readFromBuf(buf, &bodysize, cur_start, sizeof(bodysize));
     readFromBuf(buf, &entrytype, cur_start, sizeof(entrytype));
     assert(entrytype == 'C'); 
@@ -1441,7 +1475,7 @@ void ContainerIdxSigEntryList::deSerialize(string buf)
             readFromBuf(buf, &unitbuf[0], cur_start, sizeofheadandbody);
         }
         unitentry.deSerialize(unitbuf);
-        list.push_back(unitentry); //it is OK to push a empty entry
+        insertEntry(unitentry); //it is OK to push a empty entry
     }
     assert(cur_start==bufsize);
 }

@@ -890,12 +890,12 @@ int Index::global_from_stream(void *addr)
         //mlog(IDX_WARN, "tttt%sttttt\n%s", 
         //        __FUNCTION__, tmp_list.show().c_str());
 
-        vector<ContainerIdxSigEntry>::iterator iter; 
-        for ( iter = tmp_list.list.begin() ;
-              iter != tmp_list.list.end() ;
+        map<off_t, ContainerIdxSigEntry>::iterator iter; 
+        for ( iter = tmp_list.listmap.begin() ;
+              iter != tmp_list.listmap.end() ;
               iter++ )
         {
-            global_con_index_list.insert( *iter );
+            global_con_index_list.insertEntry( iter->second );
         }
 
         /////////////////////////////
