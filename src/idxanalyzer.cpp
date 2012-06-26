@@ -1211,6 +1211,107 @@ bool IdxSigEntry::append(IdxSigEntry &other)
     }
 }
 
+int ContainerIdxSigEntry::bodySize()
+{
+    int totalsize = 0;
+    totalsize += sizeof(begin_timestamp);
+    totalsize += sizeof(end_timestamp);
+    totalsize += sizeof(header_t) * 4; //the header size of the following 
+    totalsize += sizeof(SigChunkMap) * chunkmap.size();
+    totalsize += logical_offset.bodySize();
+    totalsize += length.bodySize();
+    totalsize += physical_offset.bodySize();
+
+    return totalsize;
+}
+
+string ContainerIdxSigEntry::serialize()
+{
+    header_t totalsize = 0;
+    string buf, tmpbuf;
+    header_t datasize;
+    header_t chunkmapsize = sizeof(SigChunkMap)*chunkmap.size();
+    
+    totalsize = bodySize();
+    //cout << "IdxSigEntry totalsize put in: " << totalsize << endl;
+    appendToBuffer(buf, &totalsize, sizeof(totalsize));
+    appendToBuffer(buf, &begin_timestamp, sizeof(begin_timestamp));
+    appendToBuffer(buf, &end_timestamp, sizeof(end_timestamp));
+    
+    appendToBuffer(buf, &chunkmapsize, sizeof(chunkmapsize));
+    if ( chunkmapsize > 0 ) {
+        appendToBuffer(buf, &chunkmap[0], chunkmapsize);
+    }
+    
+    tmpbuf = logical_offset.serialize(); 
+    appendToBuffer(buf, &tmpbuf[0], tmpbuf.size());
+    
+    tmpbuf = length.serialize();
+    appendToBuffer(buf, &tmpbuf[0], tmpbuf.size());
+
+    tmpbuf = physical_offset.serialize();
+    appendToBuffer(buf, &tmpbuf[0], tmpbuf.size());
+
+    return buf;
+}
+
+
+void ContainerIdxSigEntry::deSerialize(string buf)
+{
+    header_t totalsize = 0; 
+    int cur_start = 0;
+    header_t datasize = 0;
+    string tmpbuf;
+
+
+    readFromBuf(buf, &totalsize, cur_start, sizeof(totalsize));
+    //cout << "IdxSigEntry totalsize read out: " << totalsize << endl;
+    
+    readFromBuf(buf, &begin_timestamp, cur_start, sizeof(begin_timestamp));
+    readFromBuf(buf, &end_timestamp, cur_start, sizeof(end_timestamp));
+  
+    header_t chunkmapsize;
+    readFromBuf(buf, &chunkmapsize, cur_start, sizeof(chunkmapsize));
+    
+    if ( chunkmapsize > 0 ) {
+        chunkmap.resize( chunkmapsize/sizeof(SigChunkMap) );
+        readFromBuf(buf, &chunkmap[0], cur_start, chunkmapsize);
+    }
+
+
+    tmpbuf.clear();
+    readFromBuf(buf, &datasize, cur_start, sizeof(datasize));
+    if ( datasize > 0 ) {
+        int headanddatasize = sizeof(datasize) + datasize;
+        tmpbuf.resize(headanddatasize);
+        cur_start -= sizeof(datasize);
+        readFromBuf(buf, &tmpbuf[0], cur_start, headanddatasize); 
+    }
+    logical_offset.deSerialize(tmpbuf);
+    //cout << "deSerialized logical offset data size: " << datasize << endl;
+    
+    tmpbuf.clear();
+    readFromBuf(buf, &datasize, cur_start, sizeof(datasize));
+    if ( datasize > 0 ) {
+        int headanddatasize = sizeof(datasize) + datasize;
+        tmpbuf.resize(headanddatasize);
+        cur_start -= sizeof(datasize);
+        readFromBuf(buf, &tmpbuf[0], cur_start, headanddatasize); 
+    }
+    length.deSerialize(tmpbuf);
+
+    tmpbuf.clear();
+    readFromBuf(buf, &datasize, cur_start, sizeof(datasize));
+    if ( datasize > 0 ) {
+        int headanddatasize = sizeof(datasize) + datasize;
+        tmpbuf.resize(headanddatasize);
+        cur_start -= sizeof(datasize);
+        readFromBuf(buf, &tmpbuf[0], cur_start, headanddatasize); 
+    }
+    physical_offset.deSerialize(tmpbuf);   
+}
+
+
 
 
 

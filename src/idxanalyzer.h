@@ -20,6 +20,7 @@ class IdxSigEntryList;
 class HostEntry;
 namespace MultiLevel {
     class PatternCombo;
+    class ChunkMap;
 }
 
 typedef int32_t header_t; //the type to hold the body size in serialization
@@ -280,6 +281,31 @@ class IdxSigEntry {
         string show();
         bool append(IdxSigEntry &other);
         friend ostream& operator <<(ostream&, IdxSigEntry&);
+};
+
+class SigChunkMap {
+    pid_t original_chunk_id;
+    pid_t new_chunk_id;
+};
+
+
+// For reading
+class ContainerIdxSigEntry {
+    public:
+        double begin_timestamp;
+        double end_timestamp;
+        vector<SigChunkMap> chunkmap;
+        IdxSigUnit logical_offset;
+        SigStack<IdxSigUnit> length;
+        SigStack<IdxSigUnit> physical_offset;
+        
+        string serialize();        
+        void deSerialize(string buf);
+        int bodySize();
+        //bool contains( const off_t &offset, int &pos );
+        //string show();
+        //bool append(IdxSigEntry &other);
+        //friend ostream& operator <<(ostream&, IdxSigEntry&);
 };
 
 
