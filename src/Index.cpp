@@ -877,7 +877,7 @@ int Index::global_from_stream(void *addr)
         header_t list_body_size;
         char entrytype;
         string header_and_body_buf;
-        IdxSigEntryList tmp_list;
+        ContainerIdxSigEntryList tmp_list;
         
         memcpy(&list_body_size, addr, sizeof(header_t));
         memcpy(&entrytype, addr+sizeof(list_body_size), sizeof(entrytype));
@@ -890,12 +890,12 @@ int Index::global_from_stream(void *addr)
         //mlog(IDX_WARN, "tttt%sttttt\n%s", 
         //        __FUNCTION__, tmp_list.show().c_str());
 
-        vector<IdxSigEntry>::iterator iter; 
+        vector<ContainerIdxSigEntry>::iterator iter; 
         for ( iter = tmp_list.list.begin() ;
               iter != tmp_list.list.end() ;
               iter++ )
         {
-            insertGlobalEntry(&(*iter));
+            global_con_index_list.insert( *iter );
         }
 
         /////////////////////////////
@@ -1045,9 +1045,7 @@ int Index::global_to_file(int fd)
 // [complex pattern:[serialized complex pattern][messies:[bodysize][type][body]][chunks]
 int Index::global_to_stream( string &buf ) 
 {
-    flushHostIndexBuf();    
-    buf = global_complex_index_list.serialize();
-
+    buf = global_con_index_list.serialize();
 
     ////////////
     size_t  centry_length = sizeof(ContainerEntry);
