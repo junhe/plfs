@@ -495,14 +495,15 @@ Index::merge(Index *other)
         }
     } 
     if ( type == COMPLEXPATTERN ) {
-        vector<IdxSigEntry>::iterator oth_entry;
-        for ( oth_entry = other->global_complex_index_list.list.begin();
-              oth_entry != other->global_complex_index_list.list.end();
+        map<off_t,ContainerIdxSigEntry>::const_iterator oth_entry;
+        for ( oth_entry = other->global_con_index_list.listmap.begin();
+              oth_entry != other->global_con_index_list.listmap.end();
               oth_entry++ )
         {
-            IdxSigEntry entry = *oth_entry;
-            entry.new_chunk_id += chunk_map_shift;
-            insertGlobal( &entry );  
+            ContainerIdxSigEntry entry = oth_entry->second;
+            assert(entry.chunkmap.size() == 1);
+            entry.chunkmap[0].new_chunk_id += chunk_map_shift;
+            global_con_index_list.insertGlobal( entry );  
         }        
     }
 }
@@ -669,7 +670,7 @@ int Index::readComplexIndex( string hostindex )
                 con_entry.length = iter->length;
                 con_entry.physical_offset = iter->physical_offset;
 
-                global_con_index_list.insert(con_entry);
+                global_con_index_list.insertEntry(con_entry);
 
                 /*
                 int lastinlist = global_complex_index_list.list.size() - 1;

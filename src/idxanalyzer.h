@@ -314,7 +314,7 @@ class ContainerIdxSigEntryList {
     public:
         map<off_t, ContainerIdxSigEntry> listmap;
 
-        void insert(ContainerIdxSigEntry &entry);
+        void insertGlobal(ContainerIdxSigEntry &entry);
         void insertEntry(ContainerIdxSigEntry &entry);
         string show() const;
         string serialize();

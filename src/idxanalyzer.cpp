@@ -1351,7 +1351,8 @@ string ContainerIdxSigEntry::show() const
     return showstr.str();
 }
 
-void ContainerIdxSigEntryList::insert( ContainerIdxSigEntry &entry )
+// This is where we build cross-proc patterns
+void ContainerIdxSigEntryList::insertGlobal( ContainerIdxSigEntry &entry )
 {
     /*
     map<off_t, ContainerIdxSigEntry*>::iterator before, after;
