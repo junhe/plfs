@@ -315,7 +315,9 @@ class ContainerIdxSigEntryList {
 
         void insert(ContainerIdxSigEntry &entry);
         string show() const;
-        //string serialize();
+        string serialize();
+        void deSerialize(string buf);
+        int bodySize();
 };
 
 

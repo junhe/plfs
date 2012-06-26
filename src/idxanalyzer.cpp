@@ -1369,6 +1369,82 @@ string ContainerIdxSigEntryList::show() const
     return oshowstr.str();
 }
 
+int ContainerIdxSigEntryList::bodySize()
+{
+    int bodysize = 0;
+    vector<ContainerIdxSigEntry>::iterator iter;
+    
+    for ( iter = list.begin() ;
+          iter != list.end() ;
+          iter++ )
+    {
+        bodysize += iter->bodySize() + sizeof(header_t);
+    }
+
+    return bodysize;
+}
+
+
+string ContainerIdxSigEntryList::serialize()
+{
+    header_t bodysize, realbodysize = 0;
+    char entrytype = 'C'; // means Container pattern
+    string buf;
+    vector<ContainerIdxSigEntry>::iterator iter;
+    
+    bodysize = bodySize();
+
+    appendToBuffer(buf, &bodysize, sizeof(bodysize));
+    appendToBuffer(buf, &entrytype, sizeof(entrytype));
+    
+    //cout << "list body put in: " << bodysize << endl;
+
+    for ( iter = list.begin() ;
+          iter != list.end() ;
+          iter++ )
+    {
+        string tmpbuf;
+        tmpbuf = iter->serialize();
+        if ( tmpbuf.size() > 0 ) {
+            appendToBuffer(buf, &tmpbuf[0], tmpbuf.size());
+        }
+        realbodysize += tmpbuf.size();
+    }
+    assert(realbodysize == bodysize);
+    //cout << realbodysize << "==" << bodysize << endl;
+
+    return buf;
+}
+
+void ContainerIdxSigEntryList::deSerialize(string buf)
+{
+    header_t bodysize, bufsize;
+    char entrytype;
+    int cur_start = 0;
+
+    list.clear();
+    readFromBuf(buf, &bodysize, cur_start, sizeof(bodysize));
+    readFromBuf(buf, &entrytype, cur_start, sizeof(entrytype));
+    assert(entrytype == 'C'); 
+    bufsize = buf.size();
+    assert(bufsize == bodysize + sizeof(bodysize) + sizeof(entrytype));
+    while ( cur_start < bufsize ) {
+        header_t unitbodysize, sizeofheadandbody;
+        string unitbuf;
+        ContainerIdxSigEntry unitentry;
+
+        readFromBuf(buf, &unitbodysize, cur_start, sizeof(unitbodysize));
+        sizeofheadandbody = sizeof(unitbodysize) + unitbodysize; 
+        unitbuf.resize(sizeofheadandbody);
+        if ( unitbodysize > 0 ) {
+            cur_start -= sizeof(unitbodysize);
+            readFromBuf(buf, &unitbuf[0], cur_start, sizeofheadandbody);
+        }
+        unitentry.deSerialize(unitbuf);
+        list.push_back(unitentry); //it is OK to push a empty entry
+    }
+    assert(cur_start==bufsize);
+}
 
 
 
