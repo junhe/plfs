@@ -303,6 +303,7 @@ class IdxSigEntryList {
         void deSerialize(string buf);
         int bodySize();
         void dumpMessies();
+        void messiesToPatterns();
 };
 
 string printIdxEntries( vector<IdxSigEntry> &idx_entry_list );

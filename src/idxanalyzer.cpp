@@ -1063,6 +1063,32 @@ void IdxSigEntryList::dumpMessies()
     //cout << "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF" << endl;
 }
 
+void IdxSigEntryList::messiesToPatterns()
+{
+    // Let me be lazy
+    // Found out how what proc are in messies
+    set<pid_t> procs;
+
+    vector<HostEntry>::const_iterator iter;
+    for ( iter = messies.begin() ;
+          iter != messies.end() ;
+          iter++ )
+    {
+        procs.insert( iter->id );
+    }
+
+    IdxSignature sigUtil; 
+
+    set<pid_t>::const_iterator pid;
+    for ( pid = procs.begin() ;
+          pid != procs.end() ;
+          pid++ )
+    {
+        append(sigUtil.generateIdxSignature(messies, *pid));
+    }
+    messies.clear();
+}
+
 
 //return number of elements in total
 int PatternUnit::size() const 
