@@ -217,7 +217,7 @@ SigStack<IdxSigUnit> IdxSignature::generateComplexPatterns( vector<off_t> inits 
 {
     //mlog(IDX_WARN, "Entering %s. inits: %s", __FUNCTION__, printVector(inits).c_str());
     vector<off_t> deltas = buildDeltas(inits);
-    SigStack<IdxSigUnit> pattern;
+    SigStack<IdxSigUnit> pattern, patterntrim;
 
     pattern = findPattern( deltas );
     int pos = 0;
@@ -244,7 +244,35 @@ SigStack<IdxSigUnit> IdxSignature::generateComplexPatterns( vector<off_t> inits 
             punit.cnt = 1;
             pattern.push(punit);
         }
-    }    
+    }
+
+    // delete the unecessary single patterns
+    for ( it = pattern.the_stack.begin() ;
+          it != pattern.the_stack.end() ;
+          it++ )
+    {
+        ostringstream oss;
+        oss << it->show() ;
+        mlog(IDX_WARN, "TRIM:%s", oss.str().c_str());
+        
+        if ( it != pattern.the_stack.begin()
+             && it->cnt * it->seq.size() <= 1
+             && patterntrim.the_stack.back().seq.size() == 1
+             && patterntrim.the_stack.back().cnt > 1
+             && patterntrim.the_stack.back().init
+                + patterntrim.the_stack.back().seq[0]
+                * patterntrim.the_stack.back().cnt == it->init
+             ) 
+        {
+            // it can be represented by the last pattern.
+            mlog(IDX_WARN, "in back++");
+            patterntrim.the_stack.back().cnt++;
+        } else {
+            mlog(IDX_WARN, "in push");
+            patterntrim.push(*it);
+        }
+    }
+   
     
     /*
     ostringstream oss;
@@ -252,7 +280,7 @@ SigStack<IdxSigUnit> IdxSignature::generateComplexPatterns( vector<off_t> inits 
     mlog(IDX_WARN, "Leaving %s:{%s}", __FUNCTION__, oss.str().c_str());
     */
 
-    return pattern;
+    return patterntrim;
 }
 
 
