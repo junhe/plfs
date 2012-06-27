@@ -304,7 +304,11 @@ class ContainerIdxSigEntry {
         string serialize();        
         void deSerialize(string buf);
         int bodySize();
-        //bool contains( const off_t &offset, int &pos );
+        bool contains( const off_t &req_offset,
+                                     off_t &o_offset,
+                                     off_t &o_length,
+                                     off_t &o_physical,
+                                     off_t &o_new_chunk_id);
         string show() const;
         //bool append(IdxSigEntry &other);
         friend ostream& operator <<(ostream&, ContainerIdxSigEntry&);

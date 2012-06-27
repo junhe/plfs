@@ -1563,4 +1563,132 @@ void ContainerIdxSigEntryList::crossProcMerge()
 
 }
 
+bool ContainerIdxSigEntry::contains( const off_t &req_offset,
+                                     off_t &o_offset,
+                                     off_t &o_length,
+                                     off_t &o_physical,
+                                     off_t &o_new_chunk_id)
+{
+    if ( chunkmap.size() == 1 ) {
+        off_t delta_sum;
+        
+        if ( req_offset < logical_offset.init ) {
+            //mlog(IDX_WARN, "offset < init");
+            return false;
+        }
+
+       if (  logical_offset.seq.size() * logical_offset.cnt <= 1 
+             || logical_offset.init == req_offset ) 
+       {
+            // Only one offset in logical_offset, just check that one
+            // Note that 5, [2]^1 and 5, []^0 are the same, they represent only 5
+            //mlog(IDX_WARN, "check the only one");
+            o_length = length.getValByPos(0);
+            if ( isContain(req_offset, logical_offset.init, o_length) ) {
+                o_offset = logical_offset.init;
+                o_physical = physical_offset.getValByPos(0);
+                o_new_chunk_id = chunkmap[0].new_chunk_id;
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        delta_sum = sumVector(logical_offset.seq);
+        assert (delta_sum > 0); //let's not handl this at this time. TODO:
+        
+        off_t roffset = req_offset - logical_offset.init; //logical offset starts from init
+        off_t col = roffset % delta_sum; 
+        off_t row = roffset / delta_sum; 
+
+        if ( row >= logical_offset.cnt ) {
+            int last_pos = logical_offset.cnt * logical_offset.seq.size() - 1;
+            o_offset = logical_offset.getValByPos(last_pos);
+            o_length = length.getValByPos(last_pos);
+            if ( isContain(req_offset, o_offset, o_length) ) {
+                o_physical = physical_offset.getValByPos(last_pos);
+                o_new_chunk_id = chunkmap[0].new_chunk_id;
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            off_t sum = 0;
+            int col_pos;
+
+            for ( col_pos = 0 ; 
+                  sum <= col ;
+                  col_pos++ )
+            {
+                sum += logical_offset.seq[col_pos];
+            }
+            col_pos--;
+            int pos = col_pos + row * logical_offset.seq.size();
+
+            o_offset = logical_offset.getValByPos(pos);
+            o_length = length.getValByPos(pos);
+            if ( isContain(req_offset, o_offset, o_length ) ) {
+                o_physical = physical_offset.getValByPos(pos);
+                o_new_chunk_id = chunkmap[0].new_chunk_id;
+                return true;
+            } else {
+                return false;
+            }
+        }
+    } else {
+        // Cross-proc pattern
+        if ( req_offset < logical_offset.init ) {
+            //mlog(IDX_WARN, "offset < init");
+            return false;
+        }
+
+        int nproc = chunkmap.size();
+        assert(nproc > 0);
+        off_t proc_length = length.the_stack[0].seq[0];
+        off_t cross_length = proc_length * nproc;
+
+        off_t roffset = req_offset - logical_offset.init; //logical offset starts from init
+
+        if (  logical_offset.seq.size() * logical_offset.cnt <= 1 
+              || logical_offset.init == req_offset )
+        {
+            if ( isContain(req_offset, logical_offset.init, cross_length) ) {
+                int chunkpos = (roffset % cross_length) / proc_length;
+                o_offset = logical_offset.init + proc_length*chunkpos;
+                o_length = proc_length;
+                o_physical = physical_offset.getValByPos(0);
+                assert(chunkpos < chunkpos.size());
+                o_new_chunk_id = chunkmap[chunkpos].new_chunk_id;
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        off_t delta_sum = logical_offset.seq[0];
+        off_t col = roffset % delta_sum; 
+        off_t row = roffset / delta_sum; 
+
+        int chkpos;
+        if ( row >= logical_offset.cnt ) {
+            chkpos = logical_offset.cnt - 1; //last pos (last row)
+        } else {
+            chkpos = row;
+        }
+        
+        off_t chk_offset = logical_offset.init + logical_offset.seq[0] * chkpos;
+        if ( isContain(req_offset, chk_offset, cross_length) ) {
+            int chunkpos = ((req_offset - chk_offset) % cross_length) / proc_length;
+            o_offset = chk_offset + proc_length * chunkpos;
+            o_length = proc_length;
+            o_physical = physical_offset.getValByPos(chkpos);
+            o_new_chunk_id = chunkmap[chunkpos].new_chunk_id;
+            return true;
+        } else {
+            return false;
+        }       
+    }
+}
+
+
 
