@@ -1355,7 +1355,7 @@ string ContainerIdxSigEntry::show() const
 // [e2] is after [e1]: returen true
 bool isAbut( ContainerIdxSigEntry e1, ContainerIdxSigEntry e2 )
 {
-    mlog(IDX_WARN, "in %s", __FUNCTION__);
+    //mlog(IDX_WARN, "in %s", __FUNCTION__);
     if (    e1.logical_offset.seq.size() == 1
          && e2.logical_offset.seq.size() == 1
          && e1.length.the_stack.size() == 1
@@ -1395,6 +1395,7 @@ void ContainerIdxSigEntryList::insertGlobal( const ContainerIdxSigEntry &entry )
     map<off_t, ContainerIdxSigEntry>::iterator before, after;
     after = listmap.lower_bound( entry.logical_offset.init );
   
+    /*
     ostringstream oss;
     oss << "We are in " << __FUNCTION__ << endl;
     oss << "to be insert:" << entry.show() << endl;
@@ -1403,10 +1404,11 @@ void ContainerIdxSigEntryList::insertGlobal( const ContainerIdxSigEntry &entry )
     if ( after != listmap.end() ) {
         mlog(IDX_WARN, "AFTER is :%s", after->second.show().c_str());
     }
+    */
 
     if ( after != listmap.end() 
          &&  isAbut(entry, after->second) ) {
-        mlog(IDX_WARN, "abut after");
+        //mlog(IDX_WARN, "abut after");
         ContainerIdxSigEntry con_entry = entry;
         con_entry.chunkmap.insert( con_entry.chunkmap.end(),
                                    after->second.chunkmap.begin(),
@@ -1417,23 +1419,23 @@ void ContainerIdxSigEntryList::insertGlobal( const ContainerIdxSigEntry &entry )
     }
 
     if ( after != listmap.begin() && listmap.size() > 0 ) {
-        mlog(IDX_WARN, "There is a before");
+        //mlog(IDX_WARN, "There is a before");
         before = after;
         before--;
 
         if ( before != listmap.end() ) {
-            mlog(IDX_WARN, "BEFORe is :%s", before->second.show().c_str());
+            //mlog(IDX_WARN, "BEFORe is :%s", before->second.show().c_str());
         }
 
         if ( isAbut( before->second, entry ) ) {
-            mlog(IDX_WARN, "abut before");
+            //mlog(IDX_WARN, "abut before");
             before->second.chunkmap.insert( before->second.chunkmap.end(),
                                             entry.chunkmap.begin(),
                                             entry.chunkmap.end() );
             return;
         }
     }
-    mlog(IDX_WARN, "not abut at all");
+    //mlog(IDX_WARN, "not abut at all");
     insertEntry( entry );
 }
 
@@ -1569,7 +1571,7 @@ bool ContainerIdxSigEntry::contains( const off_t &req_offset,
                                      off_t &o_physical,
                                      off_t &o_new_chunk_id)
 {
-    mlog(IDX_WARN, "In %s", __FUNCTION__);
+    //mlog(IDX_WARN, "In %s", __FUNCTION__);
     if ( chunkmap.size() == 1 ) {
         off_t delta_sum;
         
@@ -1639,7 +1641,7 @@ bool ContainerIdxSigEntry::contains( const off_t &req_offset,
     } else {
         // Cross-proc pattern
         if ( req_offset < logical_offset.init ) {
-            mlog(IDX_WARN, "offset < init");
+            //mlog(IDX_WARN, "offset < init");
             return false;
         }
 
@@ -1653,7 +1655,7 @@ bool ContainerIdxSigEntry::contains( const off_t &req_offset,
         if (  logical_offset.seq.size() * logical_offset.cnt <= 1 
               || logical_offset.init == req_offset )
         {
-            mlog(IDX_WARN, "ONLY one to check, or just hit the init");
+            //mlog(IDX_WARN, "ONLY one to check, or just hit the init");
             if ( isContain(req_offset, logical_offset.init, cross_length) ) {
                 int chunkpos = (roffset % cross_length) / proc_length;
                 o_offset = logical_offset.init + proc_length*chunkpos;
@@ -1670,18 +1672,18 @@ bool ContainerIdxSigEntry::contains( const off_t &req_offset,
         off_t delta_sum = logical_offset.seq[0];
         off_t col = roffset % delta_sum; 
         off_t row = roffset / delta_sum; 
-        mlog (IDX_WARN, "col:%lld, row:%lld.", col, row);
+        //mlog (IDX_WARN, "col:%lld, row:%lld.", col, row);
         int chkpos;
         if ( row >= logical_offset.cnt ) {
             chkpos = logical_offset.cnt - 1; //last pos (last row)
         } else {
             chkpos = row;
         }
-        mlog(IDX_WARN, "chkpos: %d", chkpos); 
+        //mlog(IDX_WARN, "chkpos: %d", chkpos); 
         off_t chk_offset = logical_offset.init + logical_offset.seq[0] * chkpos;
         if ( isContain(req_offset, chk_offset, cross_length) ) {
             int chunkpos = ((req_offset - chk_offset) % cross_length) / proc_length;
-            mlog(IDX_WARN, "chunkpos: %d", chunkpos);
+            //mlog(IDX_WARN, "chunkpos: %d", chunkpos);
             o_offset = chk_offset + proc_length * chunkpos;
             o_length = proc_length;
             o_physical = physical_offset.getValByPos(chkpos);
@@ -1705,14 +1707,13 @@ bool ContainerIdxSigEntryList::lookup( const off_t &req_offset,
 
     map<off_t, ContainerIdxSigEntry>::iterator entry_to_chk;
     entry_to_chk = listmap.upper_bound( req_offset );
-    if ( entry_to_chk != listmap.end() ) {
-        mlog(IDX_WARN, "first to check:%s", entry_to_chk->second.show().c_str());
-    }
+    //if ( entry_to_chk != listmap.end() ) {
+    //    mlog(IDX_WARN, "first to check:%s", entry_to_chk->second.show().c_str());
+    //}
 
-    mlog(IDX_WARN, "In ContainerIdxSigEntryList lookup. Lookup [%lld]", req_offset);
+    //mlog(IDX_WARN, "In ContainerIdxSigEntryList lookup. Lookup [%lld]", req_offset);
     if ( entry_to_chk == listmap.begin() ) {
-        mlog(IDX_WARN, "every one is bigger than req_off");
-
+        //mlog(IDX_WARN, "every one is bigger than req_off");
         return false;
     } else {
         // check begin() to entry_to_chk
@@ -1721,7 +1722,7 @@ bool ContainerIdxSigEntryList::lookup( const off_t &req_offset,
         // so entry_to_chk-- is safe
         entry_to_chk--;
         do {
-            mlog(IDX_WARN, "In Loop to check %s", 
+            //mlog(IDX_WARN, "In Loop to check %s", 
                     entry_to_chk->second.show().c_str() );
 
             if ( entry_to_chk->second.contains( 

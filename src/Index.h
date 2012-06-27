@@ -265,10 +265,10 @@ int Index::globalComplexLookup( int *fd, off_t *chunk_off, size_t *chunk_len,
                                            onewchunkid) ) 
         {
             // Found it
-            ostringstream oss;
-            oss << "Lookup: off:" << ooffset << ", len:" << olength
-                << ", physical:" << ophysical << ", newid:" << onewchunkid ;
-            mlog(IDX_WARN, "%s", oss.str().c_str());
+            //ostringstream oss;
+            //oss << "Lookup: off:" << ooffset << ", len:" << olength
+            //    << ", physical:" << ophysical << ", newid:" << onewchunkid ;
+            //mlog(IDX_WARN, "%s", oss.str().c_str());
             return chunkFound( fd, chunk_off, chunk_len,
                                logical - ooffset, path, chunk_id,
                                ooffset, olength, ophysical, onewchunkid );

@@ -768,9 +768,9 @@ off_t sumVector( vector<off_t> seq )
 
 inline bool isContain( off_t off, off_t offset, off_t length )
 {
-    ostringstream oss;
-    oss << "isContain(" << off << ", " << offset << ", " << length << ")" <<  endl;
-    mlog(IDX_WARN, "%s", oss.str().c_str());
+    //ostringstream oss;
+    //oss << "isContain(" << off << ", " << offset << ", " << length << ")" <<  endl;
+    //mlog(IDX_WARN, "%s", oss.str().c_str());
     return ( offset <= off && off < offset+length );
 }
 
