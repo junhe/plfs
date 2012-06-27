@@ -476,6 +476,7 @@ Index::merge(Index *other)
     // an index into that chunk_map
     // copy over the other's chunk_map and remember how many chunks
     // we had originally
+    mlog(IDX_WARN, "Entering %s", __FUNCTION__);
     size_t chunk_map_shift = chunk_map.size();
     vector<ChunkFile>::iterator itr;
     for(itr = other->chunk_map.begin(); itr != other->chunk_map.end(); itr++) {
@@ -670,7 +671,7 @@ int Index::readComplexIndex( string hostindex )
                 con_entry.length = iter->length;
                 con_entry.physical_offset = iter->physical_offset;
 
-                global_con_index_list.insertEntry(con_entry);
+                global_con_index_list.insertGlobal(con_entry);
 
                 /*
                 int lastinlist = global_complex_index_list.list.size() - 1;

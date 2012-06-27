@@ -1355,12 +1355,14 @@ string ContainerIdxSigEntry::show() const
 // [e2] is after [e1]: returen true
 bool isAbut( ContainerIdxSigEntry e1, ContainerIdxSigEntry e2 )
 {
+    mlog(IDX_WARN, "in %s", __FUNCTION__);
     if (    e1.logical_offset.seq.size() == 1
          && e2.logical_offset.seq.size() == 1
          && e1.length.the_stack.size() == 1
          && e2.length.the_stack.size() == 1
          && e1.length.the_stack[0].seq.size() == 1 
          && e2.length.the_stack[0].seq.size() == 1 
+         && e1.length.the_stack[0].seq[0] == 0 
          && e1.length.the_stack[0].seq[0] 
             == e2.length.the_stack[0].seq[0] 
          && e1.length.the_stack[0].cnt 
@@ -1375,7 +1377,7 @@ bool isAbut( ContainerIdxSigEntry e1, ContainerIdxSigEntry e2 )
             == e2.physical_offset.the_stack[0].cnt
          
          && e1.logical_offset.init 
-              + e1.logical_offset.seq[0] * e1.chunkmap.size()
+              + e1.length.the_stack[0].init * e1.chunkmap.size()
             == e2.logical_offset.init
         )
     {
@@ -1392,8 +1394,15 @@ void ContainerIdxSigEntryList::insertGlobal( const ContainerIdxSigEntry &entry )
 {
     map<off_t, ContainerIdxSigEntry>::iterator before, after;
     after = listmap.lower_bound( entry.logical_offset.init );
-    
-    if ( isAbut(entry, after->second) ) {
+  
+    ostringstream oss;
+    oss << "We are in " << __FUNCTION__ << endl;
+    oss << "to be insert:" << entry.show() << endl;
+    mlog(IDX_WARN, "%s", oss.str().c_str());
+
+    if ( after != listmap.end() 
+         &&  isAbut(entry, after->second) ) {
+        mlog(IDX_WARN, "abut after");
         ContainerIdxSigEntry con_entry = entry;
         con_entry.chunkmap.insert( con_entry.chunkmap.end(),
                                    after->second.chunkmap.begin(),
@@ -1403,16 +1412,19 @@ void ContainerIdxSigEntryList::insertGlobal( const ContainerIdxSigEntry &entry )
         return;
     }
 
-
-    if ( after != listmap.begin() ) {
-        before = after--;
+    if ( after != listmap.begin() && listmap.size() > 0 ) {
+        mlog(IDX_WARN, "There is a before");
+        before = after;
+        before--;
         if ( isAbut( before->second, entry ) ) {
+            mlog(IDX_WARN, "abut before");
             before->second.chunkmap.insert( before->second.chunkmap.end(),
                                             entry.chunkmap.begin(),
                                             entry.chunkmap.end() );
             return;
         }
     }
+    mlog(IDX_WARN, "not abut at all");
     insertEntry( entry );
 }
 
