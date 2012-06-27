@@ -1720,8 +1720,8 @@ bool ContainerIdxSigEntryList::lookup( const off_t &req_offset,
         mlog(IDX_WARN, "starts to check something");
         // It it is here, it can not be begin(),
         // so entry_to_chk-- is safe
-        entry_to_chk--;
         do {
+            entry_to_chk--;
             //mlog(IDX_WARN, "In Loop to check %s", 
             //        entry_to_chk->second.show().c_str() );
 

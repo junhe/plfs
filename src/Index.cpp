@@ -1579,7 +1579,7 @@ int Index::globalLookup( int *fd, off_t *chunk_off, size_t *chunk_len,
         off_t logical )
 {
     ostringstream os;
-    os << __FUNCTION__ << ": " << this << " using index.";
+    os << __FUNCTION__ << ": " << this << " using index. Looking for" << logical;
     //os << "Size of complex pattern: "<< global_complex_index_list.list.size() << endl;
     //os << "Size of mess global: " << global_index.size() << endl;
 
@@ -1599,9 +1599,9 @@ int Index::globalLookup( int *fd, off_t *chunk_off, size_t *chunk_len,
     // 2) within a chunk
     // 3) off the end of the file
     // 4) in a hole
-    itr = global_index.lower_bound( logical ); //itr->first >= x
     
     if ( global_index.size() > 0 ) {
+        itr = global_index.lower_bound( logical ); //itr->first >= x
         // back up if we went off the end
         if ( itr == global_index.end() ) {
             // this is safe because we know the size is >= 1

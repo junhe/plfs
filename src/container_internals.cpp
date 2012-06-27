@@ -717,6 +717,11 @@ find_read_tasks(Index *index, list<ReadTask> *tasks, size_t size, off_t offset,
             mlog(INT_DCOMMON, "%s", oss.str().c_str() );
             tasks->push_back(task);
         }
+        /*
+        ostringstream oss;
+        oss << bytes_traversed ;
+        mlog(INT_ERR, "bytes_remaining:%s", oss.str().c_str());
+        */
         // when chunk_length is 0, that means EOF
     } while(bytes_remaining && ret == 0 && task.length);
     PLFS_EXIT(ret);
