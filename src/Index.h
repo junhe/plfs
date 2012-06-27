@@ -155,6 +155,9 @@ class Index : public Metadata
         int chunkFound( int *fd, off_t *chunk_off, size_t *chunk_len,
                 off_t shift, string& path, pid_t *chunk_id,
                 IdxSigEntry *entry, int pos );
+        int chunkFound( int *fd, off_t *chunk_off, size_t *chunk_len,
+                        off_t shift, string& path, pid_t *chunk_id,
+                        off_t log, off_t len, off_t phy, pid_t newid );
         int readComplexIndex( string hostindex );
         int cleanupReadIndex(int, void *, off_t, int, const char *,
                 const char *);
@@ -251,12 +254,33 @@ int Index::globalComplexLookup( int *fd, off_t *chunk_off, size_t *chunk_len,
     //////////////////////////////////////////
     /////////// without hashtable  /////////////////////////
     if ( enable_hash_lookup == false ) {
+        if ( global_con_index_list.listmap.size() == 0 ) {
+            *fd = -1;
+            *chunk_len = 0;
+            return 0;
+        }
+
+        
         off_t ooffset, olength, ophysical, onewchunkid;
         
-       
+        if ( global_con_index_list.lookup( logical,
+                                           ooffset,
+                                           olength,
+                                           ophysical,
+                                           onewchunkid) ) 
+        {
+            // Found it
+            return chunkFound( fd, chunk_off, chunk_len,
+                               logical - ooffset, path, chunk_id,
+                               ooffset, olength, ophysical, onewchunkid );
+        } else {
+            *fd = -1;
+            *chunk_len = 0;
+            return 0;
+        }
+                                          
 
-
-        
+        /*
         /// For old global complex pattern
         vector<IdxSigEntry>::iterator itr;
 
@@ -290,6 +314,7 @@ int Index::globalComplexLookup( int *fd, off_t *chunk_off, size_t *chunk_len,
         *fd = -1;
         *chunk_len = 0;
         return 0;
+        */
     } else {
         //////////////////////////////////////////
         /////////// with hashtable  /////////////////////////

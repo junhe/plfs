@@ -1957,4 +1957,37 @@ Index::getHostIndexSize()
     return hostIndex.size();
 }
 
-
+int 
+Index::chunkFound( int *fd, off_t *chunk_off, size_t *chunk_len,
+        off_t shift, string& path, pid_t *chunk_id,
+        off_t log, off_t len, off_t phy, pid_t newid )
+{
+    ChunkFile *cf_ptr = &(chunk_map[newid]); // typing shortcut
+    *chunk_off  = phy + shift;
+    *chunk_len  = len  - shift;
+    //ostringstream oss;
+    //oss << "length.getValByPos(" << pos << ")=" << entry->length.getValByPos(pos)
+    //    << ", shift=" << shift << endl;
+    //mlog(IDX_WARN, "%s", oss.str().c_str());
+    *chunk_id   = newid;
+    if( cf_ptr->fd < 0 ) {
+        // I'm not sure why we used to open the chunk file here and
+        // now we don't.  If you figure it out, pls explain it here.
+        // we must have done the open elsewhere.  But where and why not here?
+        // ok, I figured it out (johnbent 8/27/2011):
+        // this function is a helper to globalLookup which returns information
+        // about in which physical data chunk some logical data resides
+        // we stash that location info here but don't do the open.  we changed
+        // this when we made reads be multi-threaded.  since we postpone the
+        // opens and do them in the threads we give them a better chance to
+        // be parallelized.  However, it turns out that the opens are then
+        // later mutex'ed so they're actually parallized.  But we've done the
+        // best that we can here at least.
+        mlog(IDX_DRARE, "Not opening chunk file %s yet", cf_ptr->path.c_str());
+    }
+    mlog(IDX_DCOMMON, "Will read from chunk %s at off %ld (shift %ld)",
+            cf_ptr->path.c_str(), (long)*chunk_off, (long)shift );
+    *fd = cf_ptr->fd;
+    path = cf_ptr->path;
+    return 0;
+}
