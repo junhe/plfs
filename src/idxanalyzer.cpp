@@ -1657,7 +1657,7 @@ bool ContainerIdxSigEntry::contains( const off_t &req_offset,
                 o_offset = logical_offset.init + proc_length*chunkpos;
                 o_length = proc_length;
                 o_physical = physical_offset.getValByPos(0);
-                assert(chunkpos < chunkpos.size());
+                assert(chunkpos < chunkmap.size());
                 o_new_chunk_id = chunkmap[chunkpos].new_chunk_id;
                 return true;
             } else {
@@ -1689,6 +1689,45 @@ bool ContainerIdxSigEntry::contains( const off_t &req_offset,
         }       
     }
 }
+
+bool ContainerIdxSigEntryList::lookup( const off_t &req_offset,
+                             off_t &o_offset,
+                             off_t &o_length,
+                             off_t &o_physical,
+                             off_t &o_new_chunk_id)
+{
+    map<off_t, ContainerIdxSigEntry>::iterator entry_to_chk;
+    entry_to_chk = listmap.upper_bound( req_offset );
+
+    if ( entry_to_chk == listmap.begin() ) {
+        // every one is bigger than req_off
+        return false;
+    } else {
+        // check begin() to entry_to_chk
+        map<off_t, ContainerIdxSigEntry>::iterator rend;
+        rend = listmap.begin();
+        rend--;
+        for ( entry_to_chk-- ; 
+              entry_to_chk != rend ;
+              entry_to_chk-- ) 
+        {
+            if ( entry_to_chk->second.contains( 
+                                        req_offset,
+                                        o_offset,
+                                        o_length,
+                                        o_physical,
+                                        o_new_chunk_id) )
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+}
+
+
+
 
 
 

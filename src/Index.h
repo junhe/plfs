@@ -251,6 +251,13 @@ int Index::globalComplexLookup( int *fd, off_t *chunk_off, size_t *chunk_len,
     //////////////////////////////////////////
     /////////// without hashtable  /////////////////////////
     if ( enable_hash_lookup == false ) {
+        off_t ooffset, olength, ophysical, onewchunkid;
+        
+       
+
+
+        
+        /// For old global complex pattern
         vector<IdxSigEntry>::iterator itr;
 
         if ( global_complex_index_list.list.size() == 0 ) {

@@ -325,6 +325,11 @@ class ContainerIdxSigEntryList {
         void deSerialize(string buf);
         int bodySize();
         void crossProcMerge();
+        bool lookup( const off_t &req_offset,
+                                     off_t &o_offset,
+                                     off_t &o_length,
+                                     off_t &o_physical,
+                                     off_t &o_new_chunk_id);
 };
 
 
@@ -349,6 +354,7 @@ class IdxSigEntryList {
         int bodySize();
         void dumpMessies();
         void messiesToPatterns();
+
 };
 
 string printIdxEntries( vector<IdxSigEntry> &idx_entry_list );
