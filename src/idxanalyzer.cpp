@@ -1400,6 +1400,10 @@ void ContainerIdxSigEntryList::insertGlobal( const ContainerIdxSigEntry &entry )
     oss << "to be insert:" << entry.show() << endl;
     mlog(IDX_WARN, "%s", oss.str().c_str());
 
+    if ( after != listmap.end() ) {
+        mlog(IDX_WARN, "AFTER is :%s", after->second.show().c_str());
+    }
+
     if ( after != listmap.end() 
          &&  isAbut(entry, after->second) ) {
         mlog(IDX_WARN, "abut after");
@@ -1416,6 +1420,11 @@ void ContainerIdxSigEntryList::insertGlobal( const ContainerIdxSigEntry &entry )
         mlog(IDX_WARN, "There is a before");
         before = after;
         before--;
+
+        if ( before != listmap.end() ) {
+            mlog(IDX_WARN, "BEFORe is :%s", before->second.show().c_str());
+        }
+
         if ( isAbut( before->second, entry ) ) {
             mlog(IDX_WARN, "abut before");
             before->second.chunkmap.insert( before->second.chunkmap.end(),
@@ -1538,6 +1547,20 @@ void ContainerIdxSigEntryList::deSerialize(string buf)
     assert(cur_start==bufsize);
 }
 
+void ContainerIdxSigEntryList::crossProcMerge()
+{
+    map<off_t, ContainerIdxSigEntry> tmpmap;
+    tmpmap = listmap;
+    listmap.clear();
 
+    map<off_t, ContainerIdxSigEntry>::iterator it;
+    for ( it =  tmpmap.begin() ;
+          it != tmpmap.end() ;
+          it++ ) 
+    {
+        insertGlobal(it->second);
+    }
+
+}
 
 

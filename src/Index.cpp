@@ -504,7 +504,7 @@ Index::merge(Index *other)
             ContainerIdxSigEntry entry = oth_entry->second;
             assert(entry.chunkmap.size() == 1);
             entry.chunkmap[0].new_chunk_id += chunk_map_shift;
-            global_con_index_list.insertGlobal( entry );  
+            global_con_index_list.insertEntry( entry );  
         }        
     }
 }
@@ -671,7 +671,7 @@ int Index::readComplexIndex( string hostindex )
                 con_entry.length = iter->length;
                 con_entry.physical_offset = iter->physical_offset;
 
-                global_con_index_list.insertGlobal(con_entry);
+                global_con_index_list.insertEntry(con_entry);
 
                 /*
                 int lastinlist = global_complex_index_list.list.size() - 1;
@@ -750,6 +750,8 @@ int Index::readComplexIndex( string hostindex )
         cur += sizeof(header_t) + sizeof(entrytype) + list_body_size;    
     }
     assert(cur == length);
+
+    global_con_index_list.crossProcMerge();
     //global_complex_index.show();
     return cleanupReadIndex(fd, maddr, length, 0, "DONE in readComplexIndex",
                             hostindex.c_str());
@@ -1047,6 +1049,7 @@ int Index::global_to_file(int fd)
 // [complex pattern:[serialized complex pattern][messies:[bodysize][type][body]][chunks]
 int Index::global_to_stream( string &buf ) 
 {
+    global_con_index_list.crossProcMerge();
     buf = global_con_index_list.serialize();
 
     ////////////

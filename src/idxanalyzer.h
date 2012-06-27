@@ -320,6 +320,7 @@ class ContainerIdxSigEntryList {
         string serialize();
         void deSerialize(string buf);
         int bodySize();
+        void crossProcMerge();
 };
 
 
