@@ -1569,6 +1569,7 @@ bool ContainerIdxSigEntry::contains( const off_t &req_offset,
                                      off_t &o_physical,
                                      off_t &o_new_chunk_id)
 {
+    mlog(IDX_WARN, "In %s", __FUNCTION__);
     if ( chunkmap.size() == 1 ) {
         off_t delta_sum;
         
@@ -1638,13 +1639,13 @@ bool ContainerIdxSigEntry::contains( const off_t &req_offset,
     } else {
         // Cross-proc pattern
         if ( req_offset < logical_offset.init ) {
-            //mlog(IDX_WARN, "offset < init");
+            mlog(IDX_WARN, "offset < init");
             return false;
         }
 
         int nproc = chunkmap.size();
         assert(nproc > 0);
-        off_t proc_length = length.the_stack[0].seq[0];
+        off_t proc_length = length.the_stack[0].init;
         off_t cross_length = proc_length * nproc;
 
         off_t roffset = req_offset - logical_offset.init; //logical offset starts from init
@@ -1652,6 +1653,7 @@ bool ContainerIdxSigEntry::contains( const off_t &req_offset,
         if (  logical_offset.seq.size() * logical_offset.cnt <= 1 
               || logical_offset.init == req_offset )
         {
+            mlog(IDX_WARN, "ONLY one to check, or just hit the init");
             if ( isContain(req_offset, logical_offset.init, cross_length) ) {
                 int chunkpos = (roffset % cross_length) / proc_length;
                 o_offset = logical_offset.init + proc_length*chunkpos;
@@ -1668,17 +1670,18 @@ bool ContainerIdxSigEntry::contains( const off_t &req_offset,
         off_t delta_sum = logical_offset.seq[0];
         off_t col = roffset % delta_sum; 
         off_t row = roffset / delta_sum; 
-
+        mlog (IDX_WARN, "col:%lld, row:%lld.", col, row);
         int chkpos;
         if ( row >= logical_offset.cnt ) {
             chkpos = logical_offset.cnt - 1; //last pos (last row)
         } else {
             chkpos = row;
         }
-        
+        mlog(IDX_WARN, "chkpos: %d", chkpos); 
         off_t chk_offset = logical_offset.init + logical_offset.seq[0] * chkpos;
         if ( isContain(req_offset, chk_offset, cross_length) ) {
             int chunkpos = ((req_offset - chk_offset) % cross_length) / proc_length;
+            mlog(IDX_WARN, "chunkpos: %d", chunkpos);
             o_offset = chk_offset + proc_length * chunkpos;
             o_length = proc_length;
             o_physical = physical_offset.getValByPos(chkpos);
@@ -1696,21 +1699,31 @@ bool ContainerIdxSigEntryList::lookup( const off_t &req_offset,
                              off_t &o_physical,
                              off_t &o_new_chunk_id)
 {
+    if ( listmap.empty() ) {
+        return false;
+    }
+
     map<off_t, ContainerIdxSigEntry>::iterator entry_to_chk;
     entry_to_chk = listmap.upper_bound( req_offset );
+    if ( entry_to_chk != listmap.end() ) {
+        mlog(IDX_WARN, "first to check:%s", entry_to_chk->second.show().c_str());
+    }
 
+    mlog(IDX_WARN, "In ContainerIdxSigEntryList lookup. Lookup [%lld]", req_offset);
     if ( entry_to_chk == listmap.begin() ) {
-        // every one is bigger than req_off
+        mlog(IDX_WARN, "every one is bigger than req_off");
+
         return false;
     } else {
         // check begin() to entry_to_chk
-        map<off_t, ContainerIdxSigEntry>::iterator rend;
-        rend = listmap.begin();
-        rend--;
-        for ( entry_to_chk-- ; 
-              entry_to_chk != rend ;
-              entry_to_chk-- ) 
-        {
+        mlog(IDX_WARN, "starts to check something");
+        // It it is here, it can not be begin(),
+        // so entry_to_chk-- is safe
+        entry_to_chk--;
+        do {
+            mlog(IDX_WARN, "In Loop to check %s", 
+                    entry_to_chk->second.show().c_str() );
+
             if ( entry_to_chk->second.contains( 
                                         req_offset,
                                         o_offset,
@@ -1720,7 +1733,7 @@ bool ContainerIdxSigEntryList::lookup( const off_t &req_offset,
             {
                 return true;
             }
-        }
+        } while (entry_to_chk != listmap.begin());
         return false;
     }
     

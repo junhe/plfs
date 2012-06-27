@@ -254,12 +254,7 @@ int Index::globalComplexLookup( int *fd, off_t *chunk_off, size_t *chunk_len,
     //////////////////////////////////////////
     /////////// without hashtable  /////////////////////////
     if ( enable_hash_lookup == false ) {
-        if ( global_con_index_list.listmap.size() == 0 ) {
-            *fd = -1;
-            *chunk_len = 0;
-            return 0;
-        }
-
+        mlog(IDX_WARN, "%s", __FUNCTION__);
         
         off_t ooffset, olength, ophysical, onewchunkid;
         
@@ -270,10 +265,15 @@ int Index::globalComplexLookup( int *fd, off_t *chunk_off, size_t *chunk_len,
                                            onewchunkid) ) 
         {
             // Found it
+            ostringstream oss;
+            oss << "Lookup: off:" << ooffset << ", len:" << olength
+                << ", physical:" << ophysical << ", newid:" << onewchunkid ;
+            mlog(IDX_WARN, "%s", oss.str().c_str());
             return chunkFound( fd, chunk_off, chunk_len,
                                logical - ooffset, path, chunk_id,
                                ooffset, olength, ophysical, onewchunkid );
         } else {
+            mlog(IDX_WARN, "%s in a hhhhole. or off the end of the file", __FUNCTION__);
             *fd = -1;
             *chunk_len = 0;
             return 0;

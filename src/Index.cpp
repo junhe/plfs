@@ -502,7 +502,6 @@ Index::merge(Index *other)
               oth_entry++ )
         {
             ContainerIdxSigEntry entry = oth_entry->second;
-            assert(entry.chunkmap.size() == 1);
             entry.chunkmap[0].new_chunk_id += chunk_map_shift;
             global_con_index_list.insertEntry( entry );  
         }        
@@ -1601,61 +1600,58 @@ int Index::globalLookup( int *fd, off_t *chunk_off, size_t *chunk_len,
     // 3) off the end of the file
     // 4) in a hole
     itr = global_index.lower_bound( logical ); //itr->first >= x
-    // zero length file, nothing to see here, move along
-    if ( global_index.size() == 0 ) {
-        *fd = -1;
-        *chunk_len = 0;
-        return 0;
-    }
-    // back up if we went off the end
-    if ( itr == global_index.end() ) {
-        // this is safe because we know the size is >= 1
-        // so the worst that can happen is we back up to begin()
-        itr--;
-    }
-    if ( itr != global_index.begin() ) {
-        prev = itr;
-        prev--;
-    }
-    entry = itr->second;
-    //ostringstream oss;
-    //oss << "Considering whether chunk " << entry
-    //     << " contains " << logical;
-    //mlog(IDX_DCOMMON, "%s\n", oss.str().c_str() );
-    // case 1 or 2
-    if ( entry.contains( logical ) ) {
+    
+    if ( global_index.size() > 0 ) {
+        // back up if we went off the end
+        if ( itr == global_index.end() ) {
+            // this is safe because we know the size is >= 1
+            // so the worst that can happen is we back up to begin()
+            itr--;
+        }
+        if ( itr != global_index.begin() ) {
+            prev = itr;
+            prev--;
+        }
+        entry = itr->second;
         //ostringstream oss;
-        //oss << "FOUND(1): " << entry << " contains " << logical;
-        //mlog(IDX_DCOMMON, "%s", oss.str().c_str() );
-        return chunkFound( fd, chunk_off, chunk_len,
-                logical - entry.logical_offset, path,
-                chunk_id, &entry );
-    }
-    // case 1 or 2
-    if ( prev != (MAP_ITR)NULL ) {
-        previous = prev->second;
-        if ( previous.contains( logical ) ) {
+        //oss << "Considering whether chunk " << entry
+        //     << " contains " << logical;
+        //mlog(IDX_DCOMMON, "%s\n", oss.str().c_str() );
+        // case 1 or 2
+        if ( entry.contains( logical ) ) {
             //ostringstream oss;
-            //oss << "FOUND(2): "<< previous << " contains " << logical << endl;
+            //oss << "FOUND(1): " << entry << " contains " << logical;
             //mlog(IDX_DCOMMON, "%s", oss.str().c_str() );
             return chunkFound( fd, chunk_off, chunk_len,
-                    logical - previous.logical_offset, path,
-                    chunk_id, &previous );
+                    logical - entry.logical_offset, path,
+                    chunk_id, &entry );
+        }
+        // case 1 or 2
+        if ( prev != (MAP_ITR)NULL ) {
+            previous = prev->second;
+            if ( previous.contains( logical ) ) {
+                //ostringstream oss;
+                //oss << "FOUND(2): "<< previous << " contains " << logical << endl;
+                //mlog(IDX_DCOMMON, "%s", oss.str().c_str() );
+                return chunkFound( fd, chunk_off, chunk_len,
+                        logical - previous.logical_offset, path,
+                        chunk_id, &previous );
+            }
         }
     }
+
+
 
     mlog(IDX_WARN, "canot find in messies. Try to look it up in the patterns");
     if ( type == COMPLEXPATTERN ) {
         int ret =  globalComplexLookup(fd, chunk_off, chunk_len,
                 path, hole, chunk_id, logical);
-        if ( *fd != -1 ) {
-            // found it in complex pattern
-            return 0;
-        }
+        return ret;
     }
 
 
 
+    /*
 
     // now it's either before entry and in a hole or after entry and off
     // the end of the file
@@ -1675,6 +1671,7 @@ int Index::globalLookup( int *fd, off_t *chunk_off, size_t *chunk_len,
     //oss.str("");    // stupid way to clear the buffer
     //oss << "FOUND(3): " <<logical << " is beyond the end of the file" << endl;
     //mlog(IDX_DCOMMON, "%s", oss.str().c_str() );
+    */
     *fd = -1;
     *chunk_len = 0;
     return 0;
