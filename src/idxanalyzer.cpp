@@ -1723,7 +1723,7 @@ bool ContainerIdxSigEntryList::lookup( const off_t &req_offset,
         entry_to_chk--;
         do {
             //mlog(IDX_WARN, "In Loop to check %s", 
-                    entry_to_chk->second.show().c_str() );
+            //        entry_to_chk->second.show().c_str() );
 
             if ( entry_to_chk->second.contains( 
                                         req_offset,
