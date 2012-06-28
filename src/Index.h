@@ -192,6 +192,7 @@ class Index : public Metadata
 
         // this is a global index made by aggregating multiple locals
         map< off_t, ContainerEntry > global_index;
+        map< off_t, ContainerEntry >::iterator global_index_last_hit;
 
 
         // this is a way to associate a integer with a local file

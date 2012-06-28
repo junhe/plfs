@@ -333,6 +333,7 @@ Index::init( string physical )
     global_complex_index_list.clear();
     global_complex_index_map.clear();
     global_index.clear();
+    global_index_last_hit = global_index.end();
     chunk_map.clear();
     pthread_mutex_init( &fd_mux, NULL );
 }
@@ -1601,6 +1602,22 @@ int Index::globalLookup( int *fd, off_t *chunk_off, size_t *chunk_len,
     // 4) in a hole
     
     if ( global_index.size() > 0 ) {
+        
+        // Check the bookmark
+        int i;
+        for ( i = 0 ; 
+              i < 2, global_index_last_hit != global_index.end() ; 
+              i++, global_index_last_hit++  ) 
+        {
+            entry = global_index_last_hit->second;
+            if ( entry.contains( logical ) ) {
+                mlog(IDX_WARN, "Hit messy bookmakr %d :)", i);
+                return chunkFound( fd, chunk_off, chunk_len,
+                        logical - entry.logical_offset, path,
+                        chunk_id, &entry );
+            }
+        }
+
         itr = global_index.lower_bound( logical ); //itr->first >= x
         // back up if we went off the end
         if ( itr == global_index.end() ) {
@@ -1622,6 +1639,7 @@ int Index::globalLookup( int *fd, off_t *chunk_off, size_t *chunk_len,
             //ostringstream oss;
             //oss << "FOUND(1): " << entry << " contains " << logical;
             //mlog(IDX_DCOMMON, "%s", oss.str().c_str() );
+            global_index_last_hit = itr;
             return chunkFound( fd, chunk_off, chunk_len,
                     logical - entry.logical_offset, path,
                     chunk_id, &entry );
@@ -1630,6 +1648,7 @@ int Index::globalLookup( int *fd, off_t *chunk_off, size_t *chunk_len,
         if ( prev != (MAP_ITR)NULL ) {
             previous = prev->second;
             if ( previous.contains( logical ) ) {
+                global_index_last_hit = prev;
                 //ostringstream oss;
                 //oss << "FOUND(2): "<< previous << " contains " << logical << endl;
                 //mlog(IDX_DCOMMON, "%s", oss.str().c_str() );
@@ -1639,6 +1658,7 @@ int Index::globalLookup( int *fd, off_t *chunk_off, size_t *chunk_len,
             }
         }
     }
+    global_index_last_hit = global_index.end();
 
 
 

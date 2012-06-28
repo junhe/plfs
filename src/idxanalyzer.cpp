@@ -1710,10 +1710,7 @@ bool ContainerIdxSigEntryList::lookup( const off_t &req_offset,
         return false;
     }
 
-    int i;
-    for ( i = 0 ;
-          i < 1 && last_hit != listmap.end();
-          i++, last_hit++ ) 
+    if ( last_hit != listmap.end() )
     {
         if ( last_hit->second.contains( 
                                     req_offset,
@@ -1722,6 +1719,7 @@ bool ContainerIdxSigEntryList::lookup( const off_t &req_offset,
                                     o_physical,
                                     o_new_chunk_id) )
         {
+            mlog(IDX_WARN, "Hit pattern bookmark OHYEAR ");
             return true;
         }           
     }
