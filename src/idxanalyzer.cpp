@@ -1733,6 +1733,7 @@ bool ContainerIdxSigEntryList::lookup( const off_t &req_offset,
     //mlog(IDX_WARN, "In ContainerIdxSigEntryList lookup. Lookup [%lld]", req_offset);
     if ( entry_to_chk == listmap.begin() ) {
         //mlog(IDX_WARN, "every one is bigger than req_off");
+        last_hit = listmap.end();
         return false;
     } else {
         // check begin() to entry_to_chk
