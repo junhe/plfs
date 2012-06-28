@@ -193,6 +193,7 @@ class Index : public Metadata
         // this is a global index made by aggregating multiple locals
         map< off_t, ContainerEntry > global_index;
 
+
         // this is a way to associate a integer with a local file
         // so that the aggregated index can just have an int to point
         // to a local file instead of putting the full string in there

@@ -1586,7 +1586,7 @@ bool ContainerIdxSigEntry::contains( const off_t &req_offset,
             // Only one offset in logical_offset, just check that one
             // Note that 5, [2]^1 and 5, []^0 are the same, they represent only 5
             //mlog(IDX_WARN, "check the only one");
-            o_length = length.getValByPos(0);
+            o_length = length.the_stack[0].init;
             if ( isContain(req_offset, logical_offset.init, o_length) ) {
                 o_offset = logical_offset.init;
                 o_physical = physical_offset.getValByPos(0);
@@ -1695,6 +1695,11 @@ bool ContainerIdxSigEntry::contains( const off_t &req_offset,
     }
 }
 
+ContainerIdxSigEntryList::ContainerIdxSigEntryList()
+{
+    last_hit = listmap.end();
+}
+
 bool ContainerIdxSigEntryList::lookup( const off_t &req_offset,
                              off_t &o_offset,
                              off_t &o_length,
@@ -1703,6 +1708,22 @@ bool ContainerIdxSigEntryList::lookup( const off_t &req_offset,
 {
     if ( listmap.empty() ) {
         return false;
+    }
+
+    int i;
+    for ( i = 0 ;
+          i < 1 && last_hit != listmap.end();
+          i++, last_hit++ ) 
+    {
+        if ( last_hit->second.contains( 
+                                    req_offset,
+                                    o_offset,
+                                    o_length,
+                                    o_physical,
+                                    o_new_chunk_id) )
+        {
+            return true;
+        }           
     }
 
     map<off_t, ContainerIdxSigEntry>::iterator entry_to_chk;
@@ -1732,9 +1753,11 @@ bool ContainerIdxSigEntryList::lookup( const off_t &req_offset,
                                         o_physical,
                                         o_new_chunk_id) )
             {
+                last_hit = entry_to_chk;
                 return true;
             }
         } while (entry_to_chk != listmap.begin());
+        last_hit = listmap.end();
         return false;
     }
     

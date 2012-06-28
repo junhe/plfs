@@ -19,6 +19,7 @@ template <class T> class SigStack;
 template <class T> class PatternStack;
 class IdxSigEntryList;
 class HostEntry;
+class ContainerIdxSigEntry;
 namespace MultiLevel {
     class PatternCombo;
     class ChunkMap;
@@ -314,10 +315,14 @@ class ContainerIdxSigEntry {
         friend ostream& operator <<(ostream&, ContainerIdxSigEntry&);
 };
 
+
+
 class ContainerIdxSigEntryList {
     public:
         map<off_t, ContainerIdxSigEntry> listmap;
+        map<off_t, ContainerIdxSigEntry>::iterator last_hit;
 
+        ContainerIdxSigEntryList();
         void insertGlobal(const ContainerIdxSigEntry &entry);
         void insertEntry(const ContainerIdxSigEntry &entry);
         string show() const;
