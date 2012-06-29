@@ -1611,7 +1611,7 @@ int Index::globalLookup( int *fd, off_t *chunk_off, size_t *chunk_len,
         {
             entry = global_index_last_hit->second;
             if ( entry.contains( logical ) ) {
-                mlog(IDX_WARN, "Hit messy bookmakr %d :)", i);
+                //mlog(IDX_WARN, "Hit messy bookmakr %d :)", i);
                 return chunkFound( fd, chunk_off, chunk_len,
                         logical - entry.logical_offset, path,
                         chunk_id, &entry );
@@ -1662,7 +1662,7 @@ int Index::globalLookup( int *fd, off_t *chunk_off, size_t *chunk_len,
 
 
 
-    mlog(IDX_WARN, "canot find in messies. Try to look it up in the patterns");
+    //mlog(IDX_WARN, "canot find in messies. Try to look it up in the patterns");
     if ( type == COMPLEXPATTERN ) {
         int ret =  globalComplexLookup(fd, chunk_off, chunk_len,
                 path, hole, chunk_id, logical);

@@ -1718,7 +1718,7 @@ bool ContainerIdxSigEntryList::lookup( const off_t &req_offset,
                                     o_physical,
                                     o_new_chunk_id) )
         {
-            mlog(IDX_WARN, "Hit pattern bookmark OHYEAR ");
+            //mlog(IDX_WARN, "Hit pattern bookmark OHYEAR ");
             return true;
         }           
     }
@@ -1736,7 +1736,7 @@ bool ContainerIdxSigEntryList::lookup( const off_t &req_offset,
         return false;
     } else {
         // check begin() to entry_to_chk
-        mlog(IDX_WARN, "starts to check something");
+        //mlog(IDX_WARN, "starts to check something");
         // It it is here, it can not be begin(),
         // so entry_to_chk-- is safe
         do {
