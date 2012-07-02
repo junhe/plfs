@@ -1358,6 +1358,8 @@ bool isAbut( ContainerIdxSigEntry e1, ContainerIdxSigEntry e2 )
     //mlog(IDX_WARN, "in %s", __FUNCTION__);
     if (    e1.logical_offset.seq.size() == 1
          && e2.logical_offset.seq.size() == 1
+         && e1.logical_offset.seq[0] 
+            == e2.logical_offset.seq[0]
          && e1.length.the_stack.size() == 1
          && e2.length.the_stack.size() == 1
          && e1.length.the_stack[0].seq.size() == 1 
@@ -1374,17 +1376,37 @@ bool isAbut( ContainerIdxSigEntry e1, ContainerIdxSigEntry e2 )
          && e1.physical_offset.the_stack[0].seq[0]
             == e2.physical_offset.the_stack[0].seq[0]
          && e1.physical_offset.the_stack[0].cnt
-            == e2.physical_offset.the_stack[0].cnt
-         
-         && e1.logical_offset.init 
-              + e1.length.the_stack[0].init * e1.chunkmap.size()
-            == e2.logical_offset.init
-        )
+            == e2.physical_offset.the_stack[0].cnt )
     {
-        // Only handle very simple case:
-        //   e2 as the exactly same pattern, but different logical offset
-        //   and they abut
-        return true;
+        /*
+        // the lengths and physical offsets are identical now
+        if ( e1.logical_offset.init 
+              + e1.length.the_stack[0].init * e1.chunkmap.size()
+             == e2.logical_offset.init )
+        {
+            // Only handle very simple case:
+            //   e2 as the exactly same pattern, but different logical offset
+            //   and they abut
+            return 1;
+        }
+        */
+        
+        off_t stride = e1.logical_offset.seq[0];
+        off_t len = e1.length.the_stack[0].seq[0];
+        int e1mapsize = e1.chunkmap.size();
+        int num_in_seg = len/stride;
+
+        int row = e1mapsize / num_in_seg;
+        int col = e1mapsize % num_in_seg;
+
+        // allways keep e1 solid without hole
+        // return 1 if e1 is solid and no hole between e1 and e2
+        off_t newinit = e1.logical_offset.init 
+                        + e1.logical_offset.seq[0] * e1.logical_offset.cnt * row;
+        if ( newinit + len * col == e2.logical_offset.init ) {
+            return true;
+        }
+
     }
     return false;
 }
