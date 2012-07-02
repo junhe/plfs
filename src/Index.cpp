@@ -294,7 +294,7 @@ ostream& operator <<(ostream& os, Index& ndx )
 {
     os << "# Index of " << ndx.physical_path << endl;
     os << "# Global index size in memory: " << ndx.indexMemSize() 
-       << " bytes." << ndx.indexMemSize()/1024 << " KB"<< endl;
+       << " bytes. (" << ndx.indexMemSize()/1024 << " KB)"<< endl;
     os << "# Data Droppings" << endl;
     for(unsigned i = 0; i < ndx.chunk_map.size(); i++ ) {
         os << "# " << i << " " << ndx.chunk_map[i].path << endl;
@@ -1053,7 +1053,7 @@ int Index::global_to_stream( string &buf )
 {
     global_con_index_list.crossProcMerge();
     buf = global_con_index_list.serialize();
-    cout << "global_con_index_list " << buf.size() << endl;
+    //cout << "global_con_index_list " << buf.size() << endl;
 
     ////////////
     size_t  centry_length = sizeof(ContainerEntry);
