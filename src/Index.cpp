@@ -1051,6 +1051,7 @@ int Index::global_to_stream( string &buf )
 {
     global_con_index_list.crossProcMerge();
     buf = global_con_index_list.serialize();
+    cout << "global_con_index_list " << buf.size() << endl;
 
     ////////////
     size_t  centry_length = sizeof(ContainerEntry);
