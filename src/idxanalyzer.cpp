@@ -1681,7 +1681,7 @@ bool ContainerIdxSigEntry::contains( const off_t &req_offset,
     } else {
         // Cross-proc pattern
         if ( req_offset < logical_offset.init ) {
-            //mlog(IDX_WARN, "offset < init");
+            mlog(IDX_WARN, "offset < init");
             return false;
         }
 
@@ -1694,12 +1694,18 @@ bool ContainerIdxSigEntry::contains( const off_t &req_offset,
         int num_len_in_seg = stride/len;
         off_t roffset = req_offset - logical_offset.init; //logical offset starts from init
 
-        off_t cross_length = (chunkmap.size() % num_len_in_seg) * len;
+        int rsize = chunkmap.size() % num_len_in_seg;
+        off_t cross_length;
+        if ( rsize == 0 ) {
+            cross_length = num_len_in_seg * len;
+        } else {
+            cross_length = (chunkmap.size() % num_len_in_seg) * len;
+        }
 
         if (  logical_offset.seq.size() * logical_offset.cnt <= 1 
               || logical_offset.init == req_offset )
         {
-            //mlog(IDX_WARN, "ONLY one to check, or just hit the init");
+            mlog(IDX_WARN, "ONLY one to check, or just hit the init");
             if ( isContain(req_offset, logical_offset.init, cross_length) ) {
                 int chunkpos = (roffset % stride) / len;
                 o_offset = logical_offset.init + len*chunkpos;
@@ -1719,30 +1725,36 @@ bool ContainerIdxSigEntry::contains( const off_t &req_offset,
         off_t bulk_remain = roffset % bulk_size;
         off_t seg_row = bulk_remain / stride;
         off_t seg_col = bulk_remain % stride;
+        mlog(IDX_WARN, "bulk_pos: %lld, bulk_remain: %lld,\n"
+                       "seg_row: %lld, seg_col: %lld.\n", 
+                       bulk_pos, bulk_remain, seg_row, seg_col);
 
-        int chkpos_inbulk = seg_row * num_len_in_seg + seg_col/len;
+        int chkpos_inbulk = seg_row ;
         int chunkmappos = bulk_pos * num_len_in_seg + (seg_col / len);
         
         off_t chk_offset;
         int whole_bulk_cnt = chunkmap.size() / num_len_in_seg;
+        mlog(IDX_WARN, "chkpos_inbulk: %d, chunkmappos: %d, "
+                       "whole_bulk_cnt, %d", 
+                       chkpos_inbulk, chunkmappos, whole_bulk_cnt);
         if ( bulk_pos <= whole_bulk_cnt ) {
-            chk_offset = roffset 
+            chk_offset = logical_offset.init 
                          + bulk_pos * bulk_size 
                          + seg_row * stride;
         } else {
-            chk_offset = roffset 
+            chk_offset = logical_offset.init
                          + whole_bulk_cnt * bulk_size 
                          + seg_row * stride;
         }
-
+        mlog(IDX_WARN, "chk_offset:%lld.\n", chk_offset);
         if ( isContain(req_offset, chk_offset, cross_length) ) {
             int chunkpos = ((req_offset - chk_offset) % stride) / len;
-            //mlog(IDX_WARN, "chunkpos: %d", chunkpos);
+            mlog(IDX_WARN, "chunkpos: %d", chunkpos);
             o_offset = chk_offset + len * chunkpos;
             o_length = len;
             o_physical = physical_offset.getValByPos(chkpos_inbulk)
                          + physical_offset.the_stack[0].seq[0]
-                           * physical_offset.the_stack[0].cnt; 
+                           * physical_offset.the_stack[0].cnt * bulk_pos; 
             o_new_chunk_id = chunkmap[chunkmappos].new_chunk_id;
             return true;
         } else {
