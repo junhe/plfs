@@ -751,7 +751,7 @@ int Index::readComplexIndex( string hostindex )
     }
     assert(cur == length);
 
-    global_con_index_list.crossProcMerge();
+    //global_con_index_list.crossProcMerge();
     //global_complex_index.show();
     return cleanupReadIndex(fd, maddr, length, 0, "DONE in readComplexIndex",
                             hostindex.c_str());
