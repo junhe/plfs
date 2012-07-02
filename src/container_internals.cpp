@@ -82,6 +82,7 @@ plfs_dump_index( FILE *fp, const char *logical, int compress )
     PLFS_ENTER;
     Index index(path);
     ret = Container::populateIndex(path,&index,true);
+    index.global_con_index_list.crossProcMerge();
     if ( ret == 0 ) {
         if (compress) {
             index.compress();

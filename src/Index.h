@@ -148,6 +148,7 @@ class Index : public Metadata
                               //      can use it. Probably use getType() setType
                               //      Shall I decide the type at the time creating
                               //      object
+        ContainerIdxSigEntryList global_con_index_list; //global pattern with complex pattern
     private:
         void init( string );
         int chunkFound( int *, off_t *, size_t *, off_t,
@@ -186,7 +187,6 @@ class Index : public Metadata
                                                     // position in global_complex_index_list
         IdxSigEntryList global_complex_index_list;
        
-        ContainerIdxSigEntryList global_con_index_list; //global pattern with complex pattern
 
         IdxSignature complexIndexUtil;    //a tool class to analyze pattern
 
