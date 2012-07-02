@@ -91,6 +91,7 @@ class Index : public Metadata
         void addWrite( off_t offset, size_t bytes, pid_t, double, double );
 
         size_t memoryFootprintMBs();    // how much area the index is occupying
+        size_t indexMemSize();
 
         void flushComplexIndexBuf();
         int flushHostIndexBuf();

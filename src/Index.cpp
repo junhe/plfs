@@ -293,6 +293,8 @@ ostream& operator <<(ostream& os, IdxSigEntry& entry)
 ostream& operator <<(ostream& os, Index& ndx )
 {
     os << "# Index of " << ndx.physical_path << endl;
+    os << "# Global index size in memory: " << ndx.indexMemSize() 
+       << " bytes." << ndx.indexMemSize()/1024 << " KB"<< endl;
     os << "# Data Droppings" << endl;
     for(unsigned i = 0; i < ndx.chunk_map.size(); i++ ) {
         os << "# " << i << " " << ndx.chunk_map[i].path << endl;
@@ -1705,10 +1707,19 @@ Index::memoryFootprintMBs()
 {
     double KBs = 0;
     KBs += (hostIndex.size() * sizeof(HostEntry))/1024.0;
-    KBs += (global_index.size()*(sizeof(off_t)+sizeof(ContainerEntry)))/1024.0;
+    KBs += indexMemSize()/1024.0;
     KBs += (chunk_map.size() * sizeof(ChunkFile))/1024.0;
     KBs += (physical_offsets.size() * (sizeof(pid_t)+sizeof(off_t)))/1024.0;
     return size_t(KBs/1024);
+}
+
+size_t
+Index::indexMemSize()
+{
+    size_t bytes = 0;
+    bytes += global_index.size() * (sizeof(off_t)+sizeof(ContainerEntry));
+    bytes += global_con_index_list.bodySize();
+    return bytes;
 }
 
     void
