@@ -1753,8 +1753,8 @@ bool ContainerIdxSigEntry::contains( const off_t &req_offset,
         o_physical = physical_offset.getValByPos(row) 
                     + physical_offset.the_stack[0].seq[0] 
                       * physical_offset.the_stack[0].cnt * bulk_index; // jump to right bulk
-        o_new_chunk_id = bulk_index * num_of_chunks_in_this_bulk 
-                         + chunk_index_in_bulk;
+        o_new_chunk_id = chunkmap[bulk_index * num_of_chunks_in_this_bulk 
+                         + chunk_index_in_bulk].new_chunk_id;
         //mlog( IDX_WARN, "ooffset: %lld, olength: %lld, ophysical: %lld.",
         //                 o_offset, o_length, o_physical );
         return true;    
