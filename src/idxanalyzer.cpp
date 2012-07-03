@@ -118,8 +118,8 @@ IdxSigEntryList IdxSignature::generateIdxSignature(
         IdxSigEntry idx_entry;
         range_end = range_start 
                     + max( int(stack_iter->cnt * stack_iter->seq.size()), 1 );
-        mlog(IDX_WARN, "range_start:%d, range_end:%d, logical_offset.size():%d",
-                range_start, range_end, logical_offset.size());
+//        mlog(IDX_WARN, "range_start:%d, range_end:%d, logical_offset.size():%d",
+//                range_start, range_end, logical_offset.size());
         assert( range_end <= logical_offset.size() );
 
         idx_entry.original_chunk = proc;
@@ -253,7 +253,7 @@ SigStack<IdxSigUnit> IdxSignature::generateComplexPatterns( vector<off_t> inits 
     {
         ostringstream oss;
         oss << it->show() ;
-        mlog(IDX_WARN, "TRIM:%s", oss.str().c_str());
+//        mlog(IDX_WARN, "TRIM:%s", oss.str().c_str());
         
         if ( it != pattern.the_stack.begin()
              && it->cnt * it->seq.size() <= 1
@@ -265,10 +265,10 @@ SigStack<IdxSigUnit> IdxSignature::generateComplexPatterns( vector<off_t> inits 
              ) 
         {
             // it can be represented by the last pattern.
-            mlog(IDX_WARN, "in back++");
+//            mlog(IDX_WARN, "in back++");
             patterntrim.the_stack.back().cnt++;
         } else {
-            mlog(IDX_WARN, "in push");
+//            mlog(IDX_WARN, "in push");
             patterntrim.push(*it);
         }
     }
@@ -288,8 +288,8 @@ SigStack<IdxSigUnit> IdxSignature::generateComplexPatterns( vector<off_t> inits 
 SigStack<IdxSigUnit> IdxSignature::findPattern( vector<off_t> deltas )
 {
     // pointer(iterator) to the lookahead window, bot should move together
-    mlog(IDX_WARN, "Entering %s", __FUNCTION__);
-    mlog(IDX_WARN, "deltas: %s", printVector(deltas).c_str());
+//    mlog(IDX_WARN, "Entering %s", __FUNCTION__);
+//    mlog(IDX_WARN, "deltas: %s", printVector(deltas).c_str());
     vector<off_t>::const_iterator p_lookahead_win;
     SigStack<IdxSigUnit> pattern_stack;
 
@@ -298,12 +298,12 @@ SigStack<IdxSigUnit> IdxSignature::findPattern( vector<off_t> deltas )
 
     while ( p_lookahead_win < deltas.end() ) {
         //lookahead window is not empty
-        mlog(IDX_WARN, "window position:%d", p_lookahead_win - deltas.begin());
+//        mlog(IDX_WARN, "window position:%d", p_lookahead_win - deltas.begin());
         Tuple cur_tuple = searchNeighbor( deltas, p_lookahead_win );
         mlog(IDX_WARN, "%s", cur_tuple.show().c_str());
         if ( cur_tuple.isRepeatingNeighbor() ) {
             if ( pattern_stack.isPopSafe( cur_tuple.length ) ) {
-                mlog(IDX_WARN, "SAFE" );
+//                mlog(IDX_WARN, "SAFE" );
                 //safe
                 pattern_stack.popElem( cur_tuple.length );
 
@@ -319,12 +319,12 @@ SigStack<IdxSigUnit> IdxSignature::findPattern( vector<off_t> deltas )
                 p_lookahead_win += cur_tuple.length;
             } else {
                 //unsafe
-                mlog(IDX_WARN, "UNSAFE" );
+//                mlog(IDX_WARN, "UNSAFE" );
                 IdxSigUnit pu = pattern_stack.top();
 
                 if ( cur_tuple.length % pu.seq.size() == 0
                      && cur_tuple.length <= pu.seq.size() * pu.cnt ) {
-                    mlog(IDX_WARN, "-REPEATING LAST Pattern");
+//                    mlog(IDX_WARN, "-REPEATING LAST Pattern");
                     //the subseq in lookahead window repeats
                     //the top pattern in stack.
                     //initial remains the same.
@@ -335,7 +335,7 @@ SigStack<IdxSigUnit> IdxSignature::findPattern( vector<off_t> deltas )
 
                     p_lookahead_win += cur_tuple.length;
                 } else {
-                    mlog(IDX_WARN, "-Just Pust it in");
+//                    mlog(IDX_WARN, "-Just Pust it in");
                     //cannot pop out cur_tuple.length elems without
                     //totally breaking any pattern.
                     //So we simply add one elem to the stack
@@ -356,10 +356,10 @@ SigStack<IdxSigUnit> IdxSignature::findPattern( vector<off_t> deltas )
             p_lookahead_win++;
         }
         pattern_stack.the_stack.back().compressRepeats();
-        mlog(IDX_WARN, "LOOP: %s", pattern_stack.show().c_str());
+//        mlog(IDX_WARN, "LOOP: %s", pattern_stack.show().c_str());
     }
    
-    mlog(IDX_WARN, "Leaving %s:%s", __FUNCTION__, pattern_stack.show().c_str());
+//    mlog(IDX_WARN, "Leaving %s:%s", __FUNCTION__, pattern_stack.show().c_str());
     return pattern_stack;
 
 }
@@ -767,7 +767,7 @@ header_t IdxSigUnit::bodySize()
 bool IdxSigUnit::append( IdxSigUnit &other )
 {
 
-    mlog(IDX_WARN, "in %s", __FUNCTION__);
+//    mlog(IDX_WARN, "in %s", __FUNCTION__);
 
     if ( this->isSeqRepeating() 
         && other.isSeqRepeating() )
@@ -1355,7 +1355,7 @@ string ContainerIdxSigEntry::show() const
 // [e2] is after [e1]: returen true
 bool isAbut( ContainerIdxSigEntry e1, ContainerIdxSigEntry e2 )
 {
-    mlog(IDX_WARN, "in %s", __FUNCTION__);
+//    mlog(IDX_WARN, "in %s", __FUNCTION__);
     if (    e1.logical_offset.seq.size() == 1
          && e2.logical_offset.seq.size() == 1
          && e1.logical_offset.seq[0] 
@@ -1391,15 +1391,15 @@ bool isAbut( ContainerIdxSigEntry e1, ContainerIdxSigEntry e2 )
             return 1;
         }
         */
-        ostringstream oss;
+//        ostringstream oss;
 
         off_t stride = e1.logical_offset.seq[0];
         off_t len = e1.length.the_stack[0].init;
         int e1mapsize = e1.chunkmap.size();
-        oss << "stride: " << stride 
-            << " len: " << len
-            << " e1mapsize: " << e1mapsize << endl;
-        mlog(IDX_WARN, "%s", oss.str().c_str());
+//        oss << "stride: " << stride 
+//            << " len: " << len
+//            << " e1mapsize: " << e1mapsize << endl;
+//        mlog(IDX_WARN, "%s", oss.str().c_str());
 
         if ( len == 0 || stride%len != 0) {
             // len should be able to fill up the stride evenly
@@ -1410,22 +1410,22 @@ bool isAbut( ContainerIdxSigEntry e1, ContainerIdxSigEntry e2 )
         assert( num_in_seg > 0 );
         int row = e1mapsize / num_in_seg;
         int col = e1mapsize % num_in_seg;
-        oss.clear();
-        oss << "row: " << row 
-            << " col: " << col << endl;
+//        oss.clear();
+//        oss << "row: " << row 
+//            << " col: " << col << endl;
 
         // allways keep e1 solid without hole
         // return 1 if e1 is solid and no hole between e1 and e2
         off_t newinit = e1.logical_offset.init 
                         + e1.logical_offset.seq[0] * e1.logical_offset.cnt * row;
-        oss << "newinit: " << newinit << endl;
-        mlog(IDX_WARN, "%s", oss.str().c_str());
+//        oss << "newinit: " << newinit << endl;
+//        mlog(IDX_WARN, "%s", oss.str().c_str());
         if ( newinit + len * col == e2.logical_offset.init ) {
-            mlog(IDX_WARN, "ITTTT is abut");
+//            mlog(IDX_WARN, "ITTTT is abut");
             return true;
         }
     }
-    mlog(IDX_WARN, "ITTTT is NOT abut");
+//    mlog(IDX_WARN, "ITTTT is NOT abut");
     return false;
 }
 
@@ -1435,18 +1435,18 @@ void ContainerIdxSigEntryList::insertGlobal( const ContainerIdxSigEntry &entry )
     map<off_t, ContainerIdxSigEntry>::iterator before, after;
     after = listmap.lower_bound( entry.logical_offset.init );
   
-    ostringstream oss;
-    oss << "We are in " << __FUNCTION__ << endl;
-    oss << "to be insert:" << entry.show() << endl;
-    mlog(IDX_WARN, "%s", oss.str().c_str());
+//    ostringstream oss;
+//    oss << "We are in " << __FUNCTION__ << endl;
+//    oss << "to be insert:" << entry.show() << endl;
+//    mlog(IDX_WARN, "%s", oss.str().c_str());
 
-    if ( after != listmap.end() ) {
-        mlog(IDX_WARN, "AFTER is :%s", after->second.show().c_str());
-    }
+//    if ( after != listmap.end() ) {
+//        mlog(IDX_WARN, "AFTER is :%s", after->second.show().c_str());
+//    }
 
     if ( after != listmap.end() 
          &&  isAbut(entry, after->second) ) {
-        mlog(IDX_WARN, "abut after");
+//        mlog(IDX_WARN, "abut after");
         ContainerIdxSigEntry con_entry = entry;
         con_entry.chunkmap.insert( con_entry.chunkmap.end(),
                                    after->second.chunkmap.begin(),
@@ -1457,23 +1457,23 @@ void ContainerIdxSigEntryList::insertGlobal( const ContainerIdxSigEntry &entry )
     }
 
     if ( after != listmap.begin() && listmap.size() > 0 ) {
-        mlog(IDX_WARN, "There is a before");
+//        mlog(IDX_WARN, "There is a before");
         before = after;
         before--;
 
         if ( before != listmap.end() ) {
-            mlog(IDX_WARN, "BEFORe is :%s", before->second.show().c_str());
+//            mlog(IDX_WARN, "BEFORe is :%s", before->second.show().c_str());
         }
 
         if ( isAbut( before->second, entry ) ) {
-            mlog(IDX_WARN, "abut before");
+//            mlog(IDX_WARN, "abut before");
             before->second.chunkmap.insert( before->second.chunkmap.end(),
                                             entry.chunkmap.begin(),
                                             entry.chunkmap.end() );
             return;
         }
     }
-    mlog(IDX_WARN, "not abut at all");
+//    mlog(IDX_WARN, "not abut at all");
     insertEntry( entry );
 }
 
