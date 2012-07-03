@@ -1685,7 +1685,7 @@ bool ContainerIdxSigEntry::contains( const off_t &req_offset,
     } else {
         // Repeating cross-proc pattern
         if ( req_offset < logical_offset.init ) {
-            mlog(IDX_WARN, "offset < init");
+            //mlog(IDX_WARN, "offset < init");
             return false;
         }
 
@@ -1726,16 +1726,16 @@ bool ContainerIdxSigEntry::contains( const off_t &req_offset,
             // this is the last bulk
             num_of_chunks_in_this_bulk = last_bulk_chunks;
         }
-        mlog( IDX_WARN, "bulk_index: %lld, num_of_chunks_in_this_bulk: %d.", 
-                bulk_index, num_of_chunks_in_this_bulk);
+        //mlog( IDX_WARN, "bulk_index: %lld, num_of_chunks_in_this_bulk: %d.", 
+        //        bulk_index, num_of_chunks_in_this_bulk);
 
         // Find out the right segment
         off_t bulk_init = bulk_size * bulk_index;
         off_t bulk_roffset = roffset - bulk_init;
         off_t row = bulk_roffset / stride;
         off_t col_remaining = bulk_roffset % stride;
-        mlog( IDX_WARN, "row: %lld, col_remaining: %lld.", 
-                row, col_remaining);
+        //mlog( IDX_WARN, "row: %lld, col_remaining: %lld.", 
+        //        row, col_remaining);
 
 
         // Find out the right chunk
@@ -1743,7 +1743,7 @@ bool ContainerIdxSigEntry::contains( const off_t &req_offset,
         if ( chunk_index_in_bulk >= num_of_chunks_in_this_bulk ) {
             return false;
         }
-        mlog( IDX_WARN, "chunk_index_in_bulk: %d.", chunk_index_in_bulk);
+        //mlog( IDX_WARN, "chunk_index_in_bulk: %d.", chunk_index_in_bulk);
 
         o_offset = logical_offset.init // jump to init
                   + bulk_init         // jump to the right bulk
@@ -1755,8 +1755,8 @@ bool ContainerIdxSigEntry::contains( const off_t &req_offset,
                       * physical_offset.the_stack[0].cnt * bulk_index; // jump to right bulk
         o_new_chunk_id = bulk_index * num_of_chunks_in_this_bulk 
                          + chunk_index_in_bulk;
-        mlog( IDX_WARN, "ooffset: %lld, olength: %lld, ophysical: %lld.",
-                         o_offset, o_length, o_physical );
+        //mlog( IDX_WARN, "ooffset: %lld, olength: %lld, ophysical: %lld.",
+        //                 o_offset, o_length, o_physical );
         return true;    
     }
 }
