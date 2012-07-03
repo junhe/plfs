@@ -1641,6 +1641,10 @@ bool ContainerIdxSigEntry::contains( const off_t &req_offset,
         assert (delta_sum > 0); //let's not handl this at this time. TODO:
         
         off_t roffset = req_offset - logical_offset.init; //logical offset starts from init
+        
+        if ( roffset >= delta_sum * logical_offset.cnt )
+            return false;
+        
         off_t col = roffset % delta_sum; 
         off_t row = roffset / delta_sum; 
 
@@ -1679,87 +1683,81 @@ bool ContainerIdxSigEntry::contains( const off_t &req_offset,
             }
         }
     } else {
-        // Cross-proc pattern
+        // Repeating cross-proc pattern
         if ( req_offset < logical_offset.init ) {
             mlog(IDX_WARN, "offset < init");
             return false;
         }
 
+        // Prepare useful values
         const off_t &len = length.the_stack[0].init;
         if ( len == 0 ) {
             return false;
         }
-
         const off_t &stride = logical_offset.seq[0];
-        int num_len_in_seg = stride/len;
         off_t roffset = req_offset - logical_offset.init; //logical offset starts from init
+        int num_chunks_per_seg = stride/len;
 
-        int rsize = chunkmap.size() % num_len_in_seg;
-        off_t cross_length;
-        if ( rsize == 0 ) {
-            cross_length = num_len_in_seg * len;
-        } else {
-            cross_length = (chunkmap.size() % num_len_in_seg) * len;
-        }
-
-        if (  logical_offset.seq.size() * logical_offset.cnt <= 1 
-              || logical_offset.init == req_offset )
-        {
-            mlog(IDX_WARN, "ONLY one to check, or just hit the init");
-            if ( isContain(req_offset, logical_offset.init, cross_length) ) {
-                int chunkpos = (roffset % stride) / len;
-                o_offset = logical_offset.init + len*chunkpos;
-                o_length = len;
-                o_physical = physical_offset.getValByPos(0);
-                assert(chunkpos < chunkmap.size());
-                o_new_chunk_id = chunkmap[chunkpos].new_chunk_id;
-                return true;
-            } else {
-                return false;
-            }
-        }
         
+        // Find the right bulk
+        assert( logical_offset.cnt > 0 );
         off_t bulk_size = stride * logical_offset.cnt;
-        
-        off_t bulk_pos = roffset / bulk_size;
-        off_t bulk_remain = roffset % bulk_size;
-        off_t seg_row = bulk_remain / stride;
-        off_t seg_col = bulk_remain % stride;
-        mlog(IDX_WARN, "bulk_pos: %lld, bulk_remain: %lld,\n"
-                       "seg_row: %lld, seg_col: %lld.\n", 
-                       bulk_pos, bulk_remain, seg_row, seg_col);
-
-        int chkpos_inbulk = seg_row ;
-        int chunkmappos = bulk_pos * num_len_in_seg + (seg_col / len);
-        
-        off_t chk_offset;
-        int whole_bulk_cnt = chunkmap.size() / num_len_in_seg;
-        mlog(IDX_WARN, "chkpos_inbulk: %d, chunkmappos: %d, "
-                       "whole_bulk_cnt, %d", 
-                       chkpos_inbulk, chunkmappos, whole_bulk_cnt);
-        if ( bulk_pos <= whole_bulk_cnt ) {
-            chk_offset = logical_offset.init 
-                         + bulk_pos * bulk_size 
-                         + seg_row * stride;
+        int   num_of_bulks = chunkmap.size() / num_chunks_per_seg;
+        int last_bulk_chunks = chunkmap.size() % num_chunks_per_seg;
+        if ( last_bulk_chunks != 0 ) {
+            num_of_bulks++;
         } else {
-            chk_offset = logical_offset.init
-                         + whole_bulk_cnt * bulk_size 
-                         + seg_row * stride;
+            last_bulk_chunks = num_chunks_per_seg;
         }
-        mlog(IDX_WARN, "chk_offset:%lld.\n", chk_offset);
-        if ( isContain(req_offset, chk_offset, cross_length) ) {
-            int chunkpos = ((req_offset - chk_offset) % stride) / len;
-            mlog(IDX_WARN, "chunkpos: %d", chunkpos);
-            o_offset = chk_offset + len * chunkpos;
-            o_length = len;
-            o_physical = physical_offset.getValByPos(chkpos_inbulk)
-                         + physical_offset.the_stack[0].seq[0]
-                           * physical_offset.the_stack[0].cnt * bulk_pos; 
-            o_new_chunk_id = chunkmap[chunkmappos].new_chunk_id;
-            return true;
-        } else {
+        
+
+        off_t bulk_index = roffset / bulk_size;
+        
+        if ( bulk_index >= num_of_bulks ) {
+            // out of the bulks
             return false;
-        }       
+        }
+
+        int num_of_chunks_in_this_bulk;
+        if ( bulk_index != num_of_bulks - 1 ) {
+            // this is not the last bulk
+            num_of_chunks_in_this_bulk = num_chunks_per_seg; 
+        } else {
+            // this is the last bulk
+            num_of_chunks_in_this_bulk = last_bulk_chunks;
+        }
+        mlog( IDX_WARN, "bulk_index: %lld, num_of_chunks_in_this_bulk: %d.", 
+                bulk_index, num_of_chunks_in_this_bulk);
+
+        // Find out the right segment
+        off_t bulk_init = bulk_size * bulk_index;
+        off_t bulk_roffset = roffset - bulk_init;
+        off_t row = bulk_roffset / stride;
+        off_t col_remaining = bulk_roffset % stride;
+        mlog( IDX_WARN, "row: %lld, col_remaining: %lld.", 
+                row, col_remaining);
+
+
+        // Find out the right chunk
+        int chunk_index_in_bulk = col_remaining / len;
+        if ( chunk_index_in_bulk >= num_of_chunks_in_this_bulk ) {
+            return false;
+        }
+        mlog( IDX_WARN, "chunk_index_in_bulk: %d.", chunk_index_in_bulk);
+
+        o_offset = logical_offset.init // jump to init
+                  + bulk_init         // jump to the right bulk
+                  + row * stride      // jump to the right row (seg)
+                  + chunk_index_in_bulk * len; // jump to the right chunk
+        o_length = len;
+        o_physical = physical_offset.getValByPos(row) 
+                    + physical_offset.the_stack[0].seq[0] 
+                      * physical_offset.the_stack[0].cnt * bulk_index; // jump to right bulk
+        o_new_chunk_id = bulk_index * num_of_chunks_in_this_bulk 
+                         + chunk_index_in_bulk;
+        mlog( IDX_WARN, "ooffset: %lld, olength: %lld, ophysical: %lld.",
+                         o_offset, o_length, o_physical );
+        return true;    
     }
 }
 
