@@ -301,7 +301,16 @@ class ContainerIdxSigEntry {
         IdxSigUnit logical_offset;
         SigStack<IdxSigUnit> length;
         SigStack<IdxSigUnit> physical_offset;
+        bool  preprocessed;
+        off_t len;
+        off_t stride;
+        int   num_chunks_per_seg;
+        off_t bulk_size;
+        int   num_of_bulks;
+        int   last_bulk_chunks;     
         
+        ContainerIdxSigEntry();
+        void preprocess();
         string serialize();        
         void deSerialize(string buf);
         int bodySize();

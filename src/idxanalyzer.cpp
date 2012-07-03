@@ -1604,6 +1604,33 @@ void ContainerIdxSigEntryList::crossProcMerge()
 
 }
 
+
+ContainerIdxSigEntry::ContainerIdxSigEntry()
+    :preprocessed(false)
+{
+}
+
+inline
+void ContainerIdxSigEntry::preprocess()
+{
+    if (preprocessed == true)
+        return;
+    len = length.the_stack[0].init;
+    stride = logical_offset.seq[0];
+    num_chunks_per_seg = stride/len;
+    bulk_size = stride * logical_offset.cnt;
+    num_of_bulks = chunkmap.size() / num_chunks_per_seg;
+    last_bulk_chunks = chunkmap.size() % num_chunks_per_seg;
+    if ( last_bulk_chunks != 0 ) {
+        num_of_bulks++;
+    } else {
+        last_bulk_chunks = num_chunks_per_seg;
+    }
+
+    preprocessed = true;
+}
+
+
 inline
 bool ContainerIdxSigEntry::contains( const off_t &req_offset,
                                      off_t &o_offset,
@@ -1690,27 +1717,13 @@ bool ContainerIdxSigEntry::contains( const off_t &req_offset,
         }
 
         // Prepare useful values
-        const off_t &len = length.the_stack[0].init;
+        preprocess();
         if ( len == 0 ) {
             return false;
         }
-        const off_t &stride = logical_offset.seq[0];
         off_t roffset = req_offset - logical_offset.init; //logical offset starts from init
-        int num_chunks_per_seg = stride/len;
 
-        
         // Find the right bulk
-        assert( logical_offset.cnt > 0 );
-        off_t bulk_size = stride * logical_offset.cnt;
-        int   num_of_bulks = chunkmap.size() / num_chunks_per_seg;
-        int last_bulk_chunks = chunkmap.size() % num_chunks_per_seg;
-        if ( last_bulk_chunks != 0 ) {
-            num_of_bulks++;
-        } else {
-            last_bulk_chunks = num_chunks_per_seg;
-        }
-        
-
         off_t bulk_index = roffset / bulk_size;
         
         if ( bulk_index >= num_of_bulks ) {
