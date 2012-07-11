@@ -1627,6 +1627,22 @@ void ContainerIdxSigEntry::preprocess()
         last_bulk_chunks = num_chunks_per_seg;
     }
 
+    map<pid_t, int> pidcnt;
+    vector<SigChunkMap>::iterator it;
+    for ( it = chunkmap.begin() ;
+          it != chunkmap.end()  ;
+          it++ )
+    {
+        if ( pidcnt.find( it->new_chunk_id ) == pidcnt.end() ) {
+            pidcnt[it->new_chunk_id] = 0;
+        } else {
+            pidcnt[it->new_chunk_id]++;
+        }
+        it->physical_bulk_id = pidcnt[it->new_chunk_id];
+        mlog(IDX_WARN, "chunkmap: new_id: %d, physical_bulk_id: %d",
+                        it->new_chunk_id, it->physical_bulk_id );
+    }
+
     preprocessed = true;
 }
 
@@ -1763,11 +1779,12 @@ bool ContainerIdxSigEntry::contains( const off_t &req_offset,
                   + row * stride      // jump to the right row (seg)
                   + chunk_index_in_bulk * len; // jump to the right chunk
         o_length = len;
+        int chunkmap_index = bulk_index * num_of_chunks_in_this_bulk + chunk_index_in_bulk;
         o_physical = physical_offset.getValByPos(row) 
                     + physical_offset.the_stack[0].seq[0] 
-                      * physical_offset.the_stack[0].cnt * bulk_index; // jump to right bulk
-        o_new_chunk_id = chunkmap[bulk_index * num_of_chunks_in_this_bulk 
-                         + chunk_index_in_bulk].new_chunk_id;
+                      * physical_offset.the_stack[0].cnt 
+                      * chunkmap[chunkmap_index].physical_bulk_id; // jump to right bulk
+        o_new_chunk_id = chunkmap[chunkmap_index].new_chunk_id;
         //mlog( IDX_WARN, "ooffset: %lld, olength: %lld, ophysical: %lld.",
         //                 o_offset, o_length, o_physical );
         return true;    

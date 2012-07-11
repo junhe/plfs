@@ -289,6 +289,7 @@ class SigChunkMap {
     public:
         pid_t original_chunk_id;
         pid_t new_chunk_id;
+        pid_t physical_bulk_id;
 };
 
 
