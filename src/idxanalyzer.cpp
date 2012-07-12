@@ -1639,8 +1639,8 @@ void ContainerIdxSigEntry::preprocess()
             pidcnt[it->new_chunk_id]++;
         }
         it->physical_bulk_id = pidcnt[it->new_chunk_id];
-        mlog(IDX_WARN, "chunkmap: new_id: %d, physical_bulk_id: %d",
-                        it->new_chunk_id, it->physical_bulk_id );
+        //mlog(IDX_WARN, "chunkmap: new_id: %d, physical_bulk_id: %d",
+        //                it->new_chunk_id, it->physical_bulk_id );
     }
 
     preprocessed = true;
