@@ -698,7 +698,7 @@ find_read_tasks(Index *index, list<ReadTask> *tasks, size_t size, off_t offset,
                                       reqoff);
         } 
 
-        clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time22);
+        clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time2);
         cerr<< "1 million lookups. Time: " << diff(time1,time2).tv_sec<<":"<<diff(time1,time2).tv_nsec<<endl;
 
 
