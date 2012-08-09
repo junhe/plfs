@@ -22,6 +22,7 @@
 #include <sstream>
 #include <stdlib.h>
 #include <ctype.h>
+#include <time.h>
 
 using namespace std;
 
@@ -653,6 +654,19 @@ plfs_recover(const char *logical)
 }
 
 
+timespec diff(timespec start, timespec end)
+{
+	timespec temp;
+	if ((end.tv_nsec-start.tv_nsec)<0) {
+		temp.tv_sec = end.tv_sec-start.tv_sec-1;
+		temp.tv_nsec = 1000000000+end.tv_nsec-start.tv_nsec;
+	} else {
+		temp.tv_sec = end.tv_sec-start.tv_sec;
+		temp.tv_nsec = end.tv_nsec-start.tv_nsec;
+	}
+	return temp;
+}
+
 // a helper routine for read to allow it to be multi-threaded when a single
 // logical read spans multiple chunks
 // tasks needs to be a list and not a queue since sometimes it does pop_back
@@ -668,15 +682,26 @@ find_read_tasks(Index *index, list<ReadTask> *tasks, size_t size, off_t offset,
     int chunk = 0;
     ReadTask task;
     do {
-        // find a read task
-        ret = index->globalLookup(&(task.fd),
-                                  &(task.chunk_offset),
-                                  &(task.length),
-                                  task.path,
-                                  &(task.hole),
-                                  &(task.chunk_id),
-                                  offset+bytes_traversed);
     
+        off_t reqoff;
+        timespec time1, time2;
+        clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time1);
+
+        for ( reqoff = 0 ; reqoff < 1048576 ; reqoff++ ) {
+            // find a read task
+            ret = index->globalLookup(&(task.fd),
+                                      &(task.chunk_offset),
+                                      &(task.length),
+                                      task.path,
+                                      &(task.hole),
+                                      &(task.chunk_id),
+                                      reqoff);
+        } 
+
+        clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time22);
+        cerr<< "1 million lookups. Time: " << diff(time1,time2).tv_sec<<":"<<diff(time1,time2).tv_nsec<<endl;
+
+
         // make sure it's good
         if ( ret == 0 ) {
             task.length = min(bytes_remaining,(ssize_t)task.length);
@@ -2155,3 +2180,4 @@ container_close( Container_OpenFile *pfd, pid_t pid, uid_t uid, int open_flags,
     }
     return ( ret < 0 ? ret : ref_count );
 }
+
