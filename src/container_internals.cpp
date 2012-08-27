@@ -685,18 +685,28 @@ find_read_tasks(Index *index, list<ReadTask> *tasks, size_t size, off_t offset,
     
         off_t reqoff;
         timespec time1, time2;
-        clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time1);
+        
+        off_t filesize = atoi(getenv("TESTFILESIZE"));
+        cerr<<"file size:"<< filesize << endl;
 
-        for ( reqoff = 0 ; reqoff < 1048576 ; reqoff++ ) {
-            // find a read task
-            ret = index->globalLookup(&(task.fd),
-                                      &(task.chunk_offset),
-                                      &(task.length),
-                                      task.path,
-                                      &(task.hole),
-                                      &(task.chunk_id),
-                                      reqoff);
-        } 
+        int loopcnt = 1;
+        //int loopcnt = 1048576/filesize;
+        int i;
+        
+        clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time1);
+        
+        for ( i = 0 ; i < loopcnt ; i++ ) {
+            for ( reqoff = 0 ; reqoff < filesize ; reqoff++ ) {
+                // find a read task
+                ret = index->globalLookup(&(task.fd),
+                                          &(task.chunk_offset),
+                                          &(task.length),
+                                          task.path,
+                                          &(task.hole),
+                                          &(task.chunk_id),
+                                          reqoff);
+            } 
+        }
 
         clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time2);
         cerr<< "1 million lookups. Time: " << diff(time1,time2).tv_sec<<":"<<diff(time1,time2).tv_nsec<<endl;
