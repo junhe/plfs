@@ -747,6 +747,7 @@ int Index::readComplexIndex( string hostindex )
             mlog(IDX_DAPI, "Size of global_index: %d", global_index.size());
 
         } else {
+            cout << "entrytype: " << entrytype << endl;
             assert(0);
         }
         cur += sizeof(header_t) + sizeof(entrytype) + list_body_size;    
