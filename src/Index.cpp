@@ -326,7 +326,7 @@ Index::init( string physical )
     buffer_filled   = false;
     compress_contiguous = true;
     enable_hash_lookup = false;
-    type            = COMPLEXPATTERN;
+    type            = COMPLEXPATTERN; //TODO: should be set by .plfsrc
     chunk_id        = 0;
     last_offset     = 0;
     total_bytes     = 0;
@@ -747,7 +747,8 @@ int Index::readComplexIndex( string hostindex )
             mlog(IDX_DAPI, "Size of global_index: %d", global_index.size());
 
         } else {
-            cout << "entrytype: " << entrytype << endl;
+            cout << "entrytype: " << entrytype << endl; // There is a bug here.
+                                                        // Sometimes it hits here(MILC).
             assert(0);
         }
         cur += sizeof(header_t) + sizeof(entrytype) + list_body_size;    
@@ -787,7 +788,7 @@ int Index::readIndex( string hostindex )
         return readComplexIndex(hostindex);
     } else {
         //mlog(IDX_ERR, "There should not be any other index type.");
-        exit(-1);
+        assert(0);
     }
     
     
@@ -1333,7 +1334,7 @@ Index::insertGlobalEntryHint(
                 *g_entry ) );
 }
 
-    pair<map<off_t,ContainerEntry>::iterator,bool>
+pair<map<off_t,ContainerEntry>::iterator,bool>
 Index::insertGlobalEntry( ContainerEntry *g_entry)
 {
     last_offset = max( (off_t)(g_entry->logical_offset+g_entry->length),
@@ -1372,7 +1373,7 @@ int Index::insertGlobal( IdxSigEntry *g_entry)
     return 0;
 }
 
-    int
+int
 Index::insertGlobal( ContainerEntry *g_entry )
 {
     pair<map<off_t,ContainerEntry>::iterator,bool> ret;
@@ -1441,7 +1442,7 @@ Index::insertGlobal( ContainerEntry *g_entry )
 
 // just a little helper to print an error message and make sure the fd is
 // closed and the mmap is unmap'd
-    int
+int
 Index::cleanupReadIndex( int fd, void *maddr, off_t length, int ret,
         const char *last_func, const char *indexfile )
 {
@@ -1495,7 +1496,7 @@ Index::setChunkFd( pid_t chunk_id, int fd )
 }
 
 
-
+// This is for pattern
 inline
 int
 Index::chunkFound( int *fd, off_t *chunk_off, size_t *chunk_len,
@@ -1541,7 +1542,7 @@ Index::chunkFound( int *fd, off_t *chunk_off, size_t *chunk_len,
 // identifying the physical location of some piece of data
 // we found a chunk containing an offset, return necessary stuff
 // this does not open the fd to the chunk however
-    int
+int
 Index::chunkFound( int *fd, off_t *chunk_off, size_t *chunk_len,
         off_t shift, string& path, pid_t *chunk_id,
         ContainerEntry *entry )
@@ -1606,6 +1607,7 @@ int Index::globalLookup( int *fd, off_t *chunk_off, size_t *chunk_len,
     // 4) in a hole
     
     if ( global_index.size() > 0 ) {
+        // This is for the messies, or the traditional entries.
         
         // Check the bookmark
         int i;
@@ -1813,7 +1815,7 @@ Index::addWrite( off_t offset, size_t length, pid_t pid,
 
 }
 
-    void
+void
 Index::truncate( off_t offset )
 {
     map<off_t,ContainerEntry>::iterator itr, prev;
@@ -1856,7 +1858,7 @@ Index::truncate( off_t offset )
 }
 
 // operates on a host entry which is not sorted
-    void
+void
 Index::truncateHostIndex( off_t offset )
 {
     last_offset = offset;
@@ -2022,3 +2024,4 @@ Index::chunkFound( int *fd, off_t *chunk_off, size_t *chunk_len,
     path = cf_ptr->path;
     return 0;
 }
+

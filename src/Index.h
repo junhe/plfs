@@ -148,7 +148,7 @@ class Index : public Metadata
         IndexEntryType type;  //TODO: figure out when to set this and when 
                               //      can use it. Probably use getType() setType
                               //      Shall I decide the type at the time creating
-                              //      object
+                              //      object?
         ContainerIdxSigEntryList global_con_index_list; //global pattern with complex pattern
     private:
         void init( string );
@@ -225,6 +225,7 @@ class Index : public Metadata
 
 #define MAP_ITR map<off_t,ContainerEntry>::iterator
 #define COMPLEXMAP_ITR map<off_t,int>::iterator
+// This is used in globalLookup()
 inline
 int Index::globalComplexLookup( int *fd, off_t *chunk_off, size_t *chunk_len,
         string& path, bool *hole, pid_t *chunk_id,
