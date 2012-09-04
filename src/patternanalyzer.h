@@ -1,3 +1,9 @@
+/*
+ *  patternanalyzer.h .cpp implement a tree structure for storing data. 
+ *  It is not used any more since the maintenace is hard and it is not fast.
+ *  
+ */
+
 #ifndef __patternanalyzer_h__
 #define __patternanalyzer_h__
 

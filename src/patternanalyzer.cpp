@@ -1,3 +1,8 @@
+/*
+ *  patternanalyzer.h .cpp implement a tree structure for storing data. 
+ *  It is not used any more since the maintenace is hard and it is not fast.
+ */
+
 
 #include "patternanalyzer.h"
 #include "Util.h"

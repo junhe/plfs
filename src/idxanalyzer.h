@@ -20,6 +20,7 @@ template <class T> class PatternStack;
 class IdxSigEntryList;
 class HostEntry;
 class ContainerIdxSigEntry;
+// this namespace is not used anymore
 namespace MultiLevel {
     class PatternCombo;
     class ChunkMap;
@@ -36,8 +37,9 @@ bool isContain( off_t off, off_t offset, off_t length );
 off_t sumVector( vector<off_t> seq );
 
 
-//used to describe a single pattern that found
-//This will be saved in the stack
+//used to describe a single pattern that is found
+//This will be saved in the stack.
+//For example, (seq)^cnt=(3,5,8)^2
 class PatternUnit {
     public:
         vector<off_t> seq;
@@ -54,6 +56,7 @@ class PatternUnit {
 
 //This is used to describ a single repeating
 //pattern, but with starting value
+//Sig is short for Signature(pattern).
 class IdxSigUnit: public PatternUnit {
     public:
         off_t init; // the initial value of 
@@ -135,6 +138,9 @@ class SigStack: public PatternStack <T>
         off_t getValByPos( const int &pos );
 };
 
+
+// This Tuple is a concept in the LZ77 compression algorithm.
+// Please refer to http://jens.quicknote.de/comp/LZ77-JensMueller.pdf for details.
 class Tuple {
     public:
         int offset; //note that this is not the 
@@ -199,8 +205,8 @@ class IdxEntry {
 };
 */
 
-// this is the class that represents the records that get written into the
-// index file for each host.
+// This is actually the old HostEntry. I moved it here for convenience.
+// Not a good practice though.
 // TODO:
 // Move this class somewhere proper. It is impelmented in Index.cpp
 class HostEntry
@@ -238,9 +244,8 @@ class HostEntry
         friend class MultiLevel::PatternCombo;
 };
 
-
-
 // Each index has its own signature
+// This is the utility used to recognize patterns.
 class IdxSignature {
     public:
         IdxSignature():win_size(6) {} 
@@ -258,11 +263,7 @@ class IdxSignature {
                 vector<off_t>::const_iterator p_lookahead_win ); 
 };
 
-//This is the new entry for the new index
-//file using I/O signature. It corresponds to
-//HostEntry in old PLFS.
-//
-//Damn, where can I put the time stamp :(
+// This is the pattern entry.
 class IdxSigEntry {
     public:
         pid_t original_chunk;  //used only when entry is in global
@@ -270,12 +271,13 @@ class IdxSigEntry {
         pid_t new_chunk_id;    //This is not serialized yet.
                                //it should only be serialized in
                                //the context of global complex index
-                               //Now serialized
-        double begin_timestamp;
+                               //Update: Now serialized
+        double begin_timestamp; //it has not been used yet. 
         double end_timestamp;
         IdxSigUnit logical_offset;
         SigStack<IdxSigUnit> length;
         SigStack<IdxSigUnit> physical_offset;
+
         string serialize();
         void deSerialize(string buf);
         int bodySize();
@@ -292,8 +294,7 @@ class SigChunkMap {
         pid_t physical_bulk_id;
 };
 
-
-// For reading
+// This is a pattern entry in meory. 
 class ContainerIdxSigEntry {
     public:
         double begin_timestamp;
@@ -326,7 +327,7 @@ class ContainerIdxSigEntry {
 };
 
 
-
+// This is a list of pattern entries in memory for lookups.
 class ContainerIdxSigEntryList {
     public:
         map<off_t, ContainerIdxSigEntry> listmap;
@@ -351,7 +352,7 @@ class ContainerIdxSigEntryList {
 class IdxSigEntryList {
     public:
         vector<IdxSigEntry> list; // the pattern list
-        vector<HostEntry> messies;
+        vector<HostEntry> messies; // this traditional one-to-one entries.
 
     public:
         void append(IdxSigEntryList other);
@@ -375,6 +376,11 @@ class IdxSigEntryList {
 string printIdxEntries( vector<IdxSigEntry> &idx_entry_list );
 vector<off_t> buildDeltas( vector<off_t> seq );
 
+// Below are some function bodies that we have to put here since
+// template is used.
+
+
+// Serilize a PatternStack to a binary stream
 template <class T>
 string 
 PatternStack<T>::serialize()
@@ -437,6 +443,7 @@ PatternStack<T>::deSerialize( string buf )
 
 }
 
+
 template <class T>
 int
 PatternStack<T>::bodySize()
@@ -465,7 +472,7 @@ void PatternStack<T>::clear()
     the_stack.clear();
 }
 
-//if popping out t elem breaks any patterns
+// if popping out t elements breaks any patterns?
 template <class T>
 bool PatternStack<T>::isPopSafe( int t ) 
 {
@@ -482,8 +489,8 @@ bool PatternStack<T>::isPopSafe( int t )
     return total == t;
 }
 
-//return false if it is not safe
-//t is number of elements, not pattern unit
+// return false if it is not safe
+// t is number of elements, not pattern unit
 template <class T>
 bool PatternStack<T>::popElem ( int t )
 {
@@ -556,6 +563,7 @@ PatternStack<T>::show()
     return showstr.str();
 }
 
+// Get the pos th element in the pattern
 // pos has to be in the range
 template <class T>
 inline

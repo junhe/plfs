@@ -1,10 +1,16 @@
+/*
+ * This is where the pattern recognition and handling happen. 
+ * Somewhere in the code you may see the term "signature", which means 
+ * "pattern" actually. 
+ */
+
 #include "idxanalyzer.h"
 #include "Util.h"
 #include "plfs_private.h"
 
 #include <algorithm>
 
-//for debugging
+// for debugging
 string printIdxEntries( vector<IdxSigEntry> &idx_entry_list )
 {
     vector<IdxSigEntry>::iterator iter;
@@ -36,6 +42,8 @@ string printVector( vector<off_t> vec )
     return oss.str();
 }
 
+
+// delta[i] = seq[i]-seq[i-1]
 vector<off_t> buildDeltas( vector<off_t> seq ) 
 {
     vector<off_t>::iterator it;
@@ -53,25 +61,20 @@ vector<off_t> buildDeltas( vector<off_t> seq )
     return deltas;
 }
 
-//IdxEntry is designed to mimic the HostEntry in PLFS,
-//so later I can easily copy and paste these code to PLFS
-//and make it work.
-//
-//It gets signatures for a proc. 
-//TODO:
-//But do we really need to separate entries by original_chunk at first?
-//Also, have to handle the case that there is only one entry
+// It recognizes the patterns
+// and returens a list of pattern entries.
 IdxSigEntryList IdxSignature::generateIdxSignature(
         vector<HostEntry> &entry_buf, 
         int proc) 
 {
     vector<off_t> logical_offset, length, physical_offset; 
     vector<off_t> logical_offset_delta, 
-                    length_delta, 
-                    physical_offset_delta;
+                  length_delta, 
+                  physical_offset_delta;
     IdxSigEntryList entrylist;
     vector<HostEntry>::const_iterator iter;
-    
+
+    // handle one process at a time.
     for ( iter = entry_buf.begin() ; 
             iter != entry_buf.end() ;
             iter++ )
@@ -84,7 +87,8 @@ IdxSigEntryList IdxSignature::generateIdxSignature(
         length.push_back(iter->length);
         physical_offset.push_back(iter->physical_offset);
     }
-    
+   
+    // only for debuggin. 
     if ( !(logical_offset.size() == length.size() &&
             length.size() == physical_offset.size()) ) {
         ostringstream oss;
@@ -95,9 +99,10 @@ IdxSigEntryList IdxSignature::generateIdxSignature(
         exit(-1);
     }
 
+
+    // Get the patterns of logical offsets first
     SigStack<IdxSigUnit> offset_sig = generateComplexPatterns(logical_offset);
-    //offset_sig.show();
-    //cout << "Just showed offset_sig" << endl;
+
     //Now, go through offset_sig one by one and build the IdxSigEntry s
     vector<IdxSigEntry>idx_entry_list;
     vector<IdxSigUnit>::const_iterator stack_iter;
@@ -117,18 +122,20 @@ IdxSigEntryList IdxSignature::generateIdxSignature(
         //cout << stack_iter->init << " " ;
         IdxSigEntry idx_entry;
         range_end = range_start 
-                    + max( int(stack_iter->cnt * stack_iter->seq.size()), 1 );
+                    + max( int(stack_iter->cnt * stack_iter->seq.size()), 1 );  
 //        mlog(IDX_WARN, "range_start:%d, range_end:%d, logical_offset.size():%d",
 //                range_start, range_end, logical_offset.size());
         assert( range_end <= logical_offset.size() );
 
         idx_entry.original_chunk = proc;
         idx_entry.logical_offset = *stack_iter;
-        
+       
+        // Find the corresponding patterns of lengths
         vector<off_t> length_seg(length.begin()+range_start,
                                  length.begin()+range_end);
         idx_entry.length = generateComplexPatterns(length_seg);
 
+        // Find the corresponding patterns of physical offsets
         vector<off_t> physical_offset_seg( physical_offset.begin()+range_start,
                                            physical_offset.begin()+range_end);
         idx_entry.physical_offset = generateComplexPatterns(physical_offset_seg);
@@ -143,7 +150,7 @@ IdxSigEntryList IdxSignature::generateIdxSignature(
 }
 
 
-
+// *** this function is no longer in use ***
 //find out pattern of a number sequence 
 void IdxSignature::discoverPattern(  vector<off_t> const &seq )
 {
@@ -213,13 +220,20 @@ void IdxSignature::discoverPattern(  vector<off_t> const &seq )
 
 }
 
-SigStack<IdxSigUnit> IdxSignature::generateComplexPatterns( vector<off_t> inits )
+// This is the key function of LZ77. 
+// The input is a sequence of number and 
+// it returns patterns like: i,(x,x,x,..)^r, ...
+SigStack<IdxSigUnit>
+IdxSignature::generateComplexPatterns( vector<off_t> inits )
 {
-    //mlog(IDX_WARN, "Entering %s. inits: %s", __FUNCTION__, printVector(inits).c_str());
+    //mlog(IDX_WARN, "Entering %s. inits: %s", 
+    //     __FUNCTION__, printVector(inits).c_str());
     vector<off_t> deltas = buildDeltas(inits);
     SigStack<IdxSigUnit> pattern, patterntrim;
 
-    pattern = findPattern( deltas );
+    pattern = findPattern( deltas ); // find repeating pattern in deltas
+
+    // Put the init back into the patterns
     int pos = 0;
     vector<IdxSigUnit>::iterator it;
     for ( it = pattern.the_stack.begin() ;
@@ -229,6 +243,8 @@ SigStack<IdxSigUnit> IdxSignature::generateComplexPatterns( vector<off_t> inits 
         it->init = inits[pos];
         pos += it->seq.size() * it->cnt;
     }
+
+
     // handle the missing last
     if ( ! inits.empty() ) {
         if ( ! pattern.the_stack.empty() 
@@ -246,7 +262,7 @@ SigStack<IdxSigUnit> IdxSignature::generateComplexPatterns( vector<off_t> inits 
         }
     }
 
-    // delete the unecessary single patterns
+    // combine the unecessary single patterns
     for ( it = pattern.the_stack.begin() ;
           it != pattern.the_stack.end() ;
           it++ )
@@ -284,10 +300,10 @@ SigStack<IdxSigUnit> IdxSignature::generateComplexPatterns( vector<off_t> inits 
 }
 
 
-
+// It returns repeating patterns of a sequence of numbers. (x,x,x...)^r
 SigStack<IdxSigUnit> IdxSignature::findPattern( vector<off_t> deltas )
 {
-    // pointer(iterator) to the lookahead window, bot should move together
+    // pointer(iterator) to the lookahead window, both should move together
 //    mlog(IDX_WARN, "Entering %s", __FUNCTION__);
 //    mlog(IDX_WARN, "deltas: %s", printVector(deltas).c_str());
     vector<off_t>::const_iterator p_lookahead_win;
@@ -305,6 +321,7 @@ SigStack<IdxSigUnit> IdxSignature::findPattern( vector<off_t> deltas )
             if ( pattern_stack.isPopSafe( cur_tuple.length ) ) {
 //                mlog(IDX_WARN, "SAFE" );
                 //safe
+                //pop out elements without breaking existing patterns
                 pattern_stack.popElem( cur_tuple.length );
 
                 vector<off_t>::const_iterator first, last;
@@ -331,7 +348,6 @@ SigStack<IdxSigUnit> IdxSignature::findPattern( vector<off_t> deltas )
                     pu.cnt += cur_tuple.length / pu.seq.size() ;
                     pattern_stack.popPattern();
                     pattern_stack.push(pu);
-                    //tmp debug.
 
                     p_lookahead_win += cur_tuple.length;
                 } else {
@@ -347,7 +363,7 @@ SigStack<IdxSigUnit> IdxSignature::findPattern( vector<off_t> deltas )
                 }
             }
         } else {
-            //(0,0,x)
+            //(0,0,x), nothing repeats
             IdxSigUnit pu;
             pu.seq.push_back(cur_tuple.next_symbol);
             pu.cnt = 1;
@@ -364,6 +380,8 @@ SigStack<IdxSigUnit> IdxSignature::findPattern( vector<off_t> deltas )
 
 }
 
+
+// *** this function is no longer in use *** 
 //find out pattern of a number sequence(deltas) with its
 //original sequence
 //if seq and orig have the same sizes.
@@ -576,6 +594,7 @@ Tuple IdxSignature::searchNeighbor( vector<off_t> const &seq,
 
     //i points to a element in search buffer where matching starts
     //j is the iterator from the start to the end of search buffer to compare
+    //smarter algorithm can be used better time complexity, like KMP.
     for ( ; i != p_lookahead_win ; i++ ) {
         int search_length = p_lookahead_win - i;
         for ( j = 0 ; j < search_length ; j++ ) {
@@ -1815,7 +1834,7 @@ bool ContainerIdxSigEntryList::lookup( const off_t &req_offset,
                                     o_physical,
                                     o_new_chunk_id) )
         {
-            //mlog(IDX_WARN, "Hit pattern bookmark OHYEAR ");
+            //mlog(IDX_WARN, "Hit pattern bookmark OHYEAH ");
             return true;
         }           
     }
