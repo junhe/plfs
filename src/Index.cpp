@@ -301,6 +301,9 @@ Index::init( string physical )
     chunk_id        = 0;
     last_offset     = 0;
     total_bytes     = 0;
+    plfs_map_orgin = 1; // if = 1, plfs_map shows original uncompressed
+                        // indices without handling overlap. if = 0, do the
+                        // same as before.
     hostIndex.clear();
     global_index.clear();
     chunk_map.clear();
@@ -979,6 +982,12 @@ Index::insertGlobal( ContainerEntry *g_entry )
     ostringstream oss;
     mlog(IDX_DAPI, "Inserting offset %ld into index of %s (%d)",
          (long)g_entry->logical_offset, physical_path.c_str(),g_entry->id);
+
+    if ( plfs_map_orgin == 1 ) {
+        cout << *g_entry << endl;
+        return 0;
+    }
+    
     ret = insertGlobalEntry( g_entry );
     if ( ret.second == false ) {
         oss << "overlap1" <<endl<< *g_entry <<endl << ret.first->second << endl;

@@ -5,13 +5,15 @@
 #include "Container.h"
 
 void show_usage(char* app_name) {
-    fprintf(stderr, "Usage: %s [-version] <filename>\n", app_name);
+    fprintf(stderr, 
+            "Usage: %s [-version] <filename> <0:show map without overlap; 1:show original traces> \n", app_name);
 }
 
 int main (int argc, char **argv) {
     int i;
     char *target;
     bool found_target = false;
+    int plfs_map_orgin = -1;
     for (i = 1; i < argc; i++) {
         plfs_handle_version_arg(argc, argv[i]);
         if (strcmp(argv[i], "-nc") == 0) {
@@ -19,18 +21,21 @@ int main (int argc, char **argv) {
         } else if (!found_target) {
             target = argv[i];
             found_target = true;
-        } else {
+        } else if (plfs_map_orgin == -1) {
+            // it is not set yet.
+            plfs_map_orgin = atoi(argv[i]);
+        }else {
             // Found more than one target. This is an error.
             show_usage(argv[0]);
             exit(1);
         }
     }
-    if (!found_target) {
+    if (!found_target || plfs_map_orgin == -1) {
         show_usage(argv[0]);
         exit(1);
     }
 
-    int ret = plfs_dump_index(stderr,target,0);
+    int ret = plfs_dump_index(stderr,target,0, plfs_map_orgin);
     if ( ret != 0 ) {
         fprintf(stderr, "Error: %s is not in a PLFS mountpoint"
                " configured with 'workload n-1'\n", target);

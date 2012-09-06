@@ -442,6 +442,9 @@ Container::indexTaskManager(deque<IndexerTask> &tasks,Index *index, string path)
             }
         } else {
             // here's where to do the threaded thing
+            assert(index->plfs_map_orgin != 1); // using thread may cause
+                                                // interleaving outputs.
+
             IndexerArgs args;
             args.index = index;
             args.tasks = &tasks;

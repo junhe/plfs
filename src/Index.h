@@ -104,6 +104,8 @@ class Index : public Metadata
         Index( string path, int fd );
         ~Index();
 
+        int plfs_map_orgin;
+
         int readIndex( string hostindex );
 
         void setPath( string );

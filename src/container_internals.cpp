@@ -77,12 +77,15 @@ plfs_dump_index_size()
 
 // returns 0 or -errno
 int
-plfs_dump_index( FILE *fp, const char *logical, int compress )
+plfs_dump_index( FILE *fp, const char *logical, int compress, 
+                 int plfs_map_orgin )
 {
     PLFS_ENTER;
     Index index(path);
+    index.plfs_map_orgin = plfs_map_orgin;
     ret = Container::populateIndex(path,&index,true);
-    if ( ret == 0 ) {
+
+    if ( ret == 0 && plfs_map_orgin == 0 ) {
         if (compress) {
             index.compress();
         }

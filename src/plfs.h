@@ -96,7 +96,7 @@ typedef void *Plfs_fd;
 
     void plfs_debug( const char *format, ... );
 
-    int plfs_dump_index( FILE *fp, const char *path, int compress );
+    int plfs_dump_index( FILE *fp, const char *path, int compress, int plfs_map_orgin );
 
     // Bool sneaked in here
     int plfs_dump_config(int check_dirs, int make_dir);
