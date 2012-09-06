@@ -269,7 +269,7 @@ ostream& operator <<(ostream& os,const ContainerEntry& entry)
         << end_timestamp   << " "
         << setw(16)
         << entry.logical_tail() << " "
-        << " [" << entry.id << "." << setw(10) << entry.physical_offset << "]";
+        << " [" << entry.original_chunk << "." << setw(10) << entry.physical_offset << "]";
     return os;
 }
 
