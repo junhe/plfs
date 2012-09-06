@@ -297,7 +297,7 @@ Index::init( string physical )
     populated       = false;
     buffering       = false;
     buffer_filled   = false;
-    compress_contiguous = true;
+    compress_contiguous = false;
     chunk_id        = 0;
     last_offset     = 0;
     total_bytes     = 0;
