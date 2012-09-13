@@ -150,7 +150,7 @@ TruncateOp::do_op(const char *path, unsigned char isfile)
     }
     // we made it here, we don't ignore it
     // do we want to do an unlink or a truncate?
-    if (open_file) {
+    if (true) {
         return Util::Truncate(path,0);
     } else {
         return Util::Unlink(path);
