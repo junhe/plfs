@@ -301,7 +301,7 @@ Index::init( string physical )
     chunk_id        = 0;
     last_offset     = 0;
     total_bytes     = 0;
-    plfs_map_orgin = 1; // if = 1, plfs_map shows original uncompressed
+    plfs_map_orgin = 0; // if = 1, plfs_map shows original uncompressed
                         // indices without handling overlap. if = 0, do the
                         // same as before.
     hostIndex.clear();
