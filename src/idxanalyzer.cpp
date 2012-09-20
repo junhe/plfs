@@ -1375,30 +1375,34 @@ string ContainerIdxSigEntry::show() const
 bool isAbut( ContainerIdxSigEntry e1, ContainerIdxSigEntry e2 )
 {
 //    mlog(IDX_WARN, "in %s", __FUNCTION__);
-    if (    e1.logical_offset.seq.size() == 1
-         && e2.logical_offset.seq.size() == 1
-         && e1.logical_offset.seq[0] 
-            == e2.logical_offset.seq[0]
-         && e1.length.the_stack.size() == 1
-         && e2.length.the_stack.size() == 1
-         && e1.length.the_stack[0].seq.size() == 1 
-         && e2.length.the_stack[0].seq.size() == 1 
-         && e1.length.the_stack[0].seq[0] == 0 
-         && e1.length.the_stack[0].seq[0] 
-            == e2.length.the_stack[0].seq[0] 
-         && e1.length.the_stack[0].cnt 
-            == e2.length.the_stack[0].cnt
-         && e1.physical_offset.the_stack.size() == 1
-         && e2.physical_offset.the_stack.size() == 1
-         && e1.physical_offset.the_stack[0].seq.size() == 1 
-         && e2.physical_offset.the_stack[0].seq.size() == 1 
-         && e1.physical_offset.the_stack[0].seq[0]
-            == e2.physical_offset.the_stack[0].seq[0]
-         && e1.physical_offset.the_stack[0].cnt
-            == e2.physical_offset.the_stack[0].cnt )
+    if (      (( e1.logical_offset.seq.size() == 1 && e2.logical_offset.seq.size() == 1 
+                 && e1.logical_offset.seq[0] == e2.logical_offset.seq[0] ) 
+               || (e1.logical_offset.seq.size() == 0 && e2.logical_offset.seq.size() == 0) )
+         &&   (e1.length.the_stack.size() == 1 && e2.length.the_stack.size() == 1)
+         &&   ((( e1.length.the_stack[0].seq.size() == 1 && e2.length.the_stack[0].seq.size() == 1 )
+                && ( e1.length.the_stack[0].seq[0] == 0 && e1.length.the_stack[0].seq[0] == e2.length.the_stack[0].seq[0]  
+                     && e1.length.the_stack[0].cnt == e2.length.the_stack[0].cnt ) )
+              || ( e1.length.the_stack[0].seq.size() == 0 && e1.length.the_stack[0].seq.size() == 0 )) 
+         && e1.physical_offset.the_stack.size() == 1 && e2.physical_offset.the_stack.size() == 1
+         && ( e1.physical_offset.the_stack[0].seq.size() == 1 && e2.physical_offset.the_stack[0].seq.size() == 1 
+              && e1.physical_offset.the_stack[0].seq[0] == e2.physical_offset.the_stack[0].seq[0]
+              && e1.physical_offset.the_stack[0].cnt == e2.physical_offset.the_stack[0].cnt )
+            || ( e1.physical_offset.the_stack[0].seq.size() == 0 && e2.physical_offset.the_stack[0].seq.size() == 0 ))
     {
         // the lengths and physical offsets are identical now
         
+        // Handle one number per pattern.
+        if ( e1.logical_offset.seq.size() == 0 ) {
+                if ( e1.logical_offset.init + e1.length.the_stack[0].init 
+                        == e2.logical_offset.init 
+                     && e1.length.the_stack[0].init == e2.length.the_stack[0].init
+                     && e1.physical_offset.the_stack[0].init == e2.physical_offset.the_stack[0].init)
+                {
+                    return true;
+            }
+        }
+
+
         /*
         if ( e1.logical_offset.init 
               + e1.length.the_stack[0].init * e1.chunkmap.size()
