@@ -1413,6 +1413,9 @@ bool isAbut( ContainerIdxSigEntry e1, ContainerIdxSigEntry e2 )
 //        ostringstream oss;
 
         off_t stride = e1.logical_offset.seq[0];
+        if (stride <= 0) {
+            return false;
+        }
         off_t len = e1.length.the_stack[0].init;
         int e1mapsize = e1.chunkmap.size();
 //        oss << "stride: " << stride 
